@@ -8,6 +8,7 @@ dir("01_Functions")
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
+
 # load workspace with relevant data:
 load("binyin_winter.RData")
 
@@ -30,3 +31,6 @@ git commit -m "First commit"
 
 
 
+
+#你好 Hello
+#欢迎 Welcome
