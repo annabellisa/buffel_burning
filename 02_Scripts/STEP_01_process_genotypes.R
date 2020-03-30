@@ -90,24 +90,17 @@ ghead(snp_onerow); dim(snp_onerow)
 ### ~~~ END FIX SITE COLS ~~~ ###
 
 # Import site data:
-sdat<-read.table(paste("../01_data/site_data.txt",sep=""),header=T)
-sdat<-sdat[sdat$genetics=="Y",]
-sdat<-sdat[-which(sdat$site_code %in% c("RCH")),]
+sdat<-read.table(paste("00_data/Cenchrus_site_data.txt",sep=""),header=T)
+sdat<-sdat[sdat$sequenced==1,]
 sdat<-tidy.df(sdat)
-head(sdat)
-
-# The only site not in site data should be RCH and FS (firescape):
-levels(snp_onerow$site)[which(levels(snp_onerow$site) %in% sdat$site_code==F)]
-
-snp_onerow[,1:2]
+head(sdat); dim(sdat)
 
 } # close import
 
-ghead(snp_onerow)
-dim(snp_onerow)
-head(sdat)
-dim(sdat)
-levels(snp_onerow$site)
+ghead(snp_onerow); dim(snp_onerow)
+head(sdat); dim(sdat)
+# site levels in genetic data should == number of sites in site data:
+levels(snp_onerow$site)==dim(sdat)[1]
 
 # The result from IMPORT & FORMAT DATA includes ALL 75376 loci; all sites; RCH is included because it has dups which need to be analysed and excluded separately. FS is also included. 
 
