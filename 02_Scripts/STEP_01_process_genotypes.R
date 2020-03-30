@@ -7,35 +7,38 @@
 ### Author: Annabel Smith
 
 # Load workspace:
-load("../04_workspaces/STEP01_proc_wksp")
+load("binyin_winter.RData")
 
 # load functions:
-invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
+invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 #########################################
 ####     IMPORT & FORMAT DATA:    	 ####
 #########################################
 {
 
-data.dir<-"../GENOTYPE_processing/DATA_FILES/FULL_DATA_SET"
+# dir with original SNP data:
+data.dir<-"/Users/annabelsmith/Documents/01_Current/PROJECTS/02_FIRESCAPE/DATA/01_FIRESCAPE_sample_data/DHype_DCen_original_data_DO_NOT_MODIFY/Report-DCen19-4425"
 dir(data.dir)
 
 ### ~~~ SINGLE ROW SNP data ~~~ ###
 
 # The first six rows contain metadata:
-gt_onerow<-read.csv(paste(data.dir,"Report_DPlan18-3451_SNP_singlerow.csv",sep="/"),header=T,skip=6)
-head(gt_onerow[,1:20])
+gt_onerow<-read.csv(paste(data.dir,"Report_DCen19-4425_SNP_singlerow_2_.csv",sep="/"),header=T,skip=6)
+ghead(gt_onerow)
 
 ### ---- LOCUS INFO ---- ###
 
-# First 17 columns have locus info:
-loc_info_all<-colnames(gt_onerow[,1:17])
+# WARNING: numeric subset - check with raw data
+# First 17 columns have locus info (DPlan):
+# First 34 columns have locus info (DCen19):
+loc_info_all<-colnames(gt_onerow[,1:34])
 
 linf<-gt_onerow[,loc_info_all]
 linf<-tidy.df(linf)
 linf<-data.frame(locus=paste("L",1:nrow(linf),sep=""),linf)
 linf$locus<-as.character(linf$locus)
-head(linf)
+head(linf); dim(linf)
 
 ### ---- END LOCUS INFO ---- ###
 
@@ -53,19 +56,23 @@ gt_onerow[,snp_cols]<-as.data.frame(apply(gt_onerow[,snp_cols],2,function(x)gsub
 # Make locus columns numeric:
 # (gives warning: NAs introduced by coercion)
 gt_onerow[,snp_cols]<-apply(gt_onerow[,snp_cols],2,as.numeric)
-head(gt_onerow[,1:20])
+ghead(gt_onerow)
 
 # SNP data with individuals on rows:
+# WARNING: character subset - check with raw data
+# DPlan, DCen19 = "RepAvg":
 snp_onerow<-data.frame(t(gt_onerow[,(which(colnames(gt_onerow)=="RepAvg")+1):length(gt_onerow)]))
 colnames(snp_onerow)<-linf$locus
 ind.names<-rownames(snp_onerow)
 
 # Add individuals names back in:
 snp_onerow<-data.frame(ind=ind.names,snp_onerow)
-ghead(snp_onerow)
+ghead(snp_onerow); dim(snp_onerow)
 
 # Add site:
-snp_onerow$site<-substr(snp_onerow$ind,1,unlist(lapply(gregexpr("[A-Z]", snp_onerow$ind), function(x) max(x))))
+snp_onerow$site<-substr(snp_onerow$ind,1,unlist(gregexpr("_", snp_onerow$ind))-1)
+
+# Tidy:
 snp_onerow<-tidy.df(snp_onerow)
 
 # Reorder:
@@ -73,56 +80,12 @@ snp_onerow<-snp_onerow[,c(which(colnames(snp_onerow) %in% c("site","ind"))[c(2,1
 snp_onerow<-snp_onerow[order(snp_onerow$site,snp_onerow$ind),]
 snp_onerow<-tidy.df(snp_onerow)
 snp_onerow$site<-as.factor(snp_onerow$site)
-ghead(snp_onerow)
+ghead(snp_onerow); dim(snp_onerow)
 
-### ~~~ MANUALLY FIX SITE COLS ~~~ ###
-snp_onerow[,1:2]
+# For Cenchrus X01u_03.1 is the replicate sample
 
-# MAKE SITE CHARACTER TO ALLOW CHANGES:
-snp_onerow$site<-as.character(snp_onerow$site)
+# save.image("binyin_winter.RData")
 
-# AL >> AL1
-snp_onerow$site[snp_onerow$site=="AL"]<-"AL1"
-
-# The original LK site was included in the new data. The original is "LK" while the new ones all had the underscore. 
-# Remove LK rows without underscore:
-snp_onerow[grep("LK",snp_onerow$site),1:10]
-
-lk_rows<-which(snp_onerow$site=="LK")
-old_lk_rows<-lk_rows[which(lk_rows %in% lk_rows[grep("_",snp_onerow[lk_rows,]$ind)]==F)]
-snp_onerow<-snp_onerow[-old_lk_rows,]
-
-# Change site to LK1 to match site data:
-snp_onerow$site[snp_onerow$site=="LK"]<-"LK1"
-snp_onerow<-tidy.df(snp_onerow)
-ghead(snp_onerow)
-
-# Change VIR to VA to match site data:
-snp_onerow[grep("VIR",snp_onerow$site),1:10]
-snp_onerow$site[snp_onerow$site=="VIR"]<-"VA"
-snp_onerow<-tidy.df(snp_onerow)
-ghead(snp_onerow)
-
-# The outgroups are labelled "OGC" or "OGM" and for "OGM" there are more than one group. All OGs include an underscore.
-og_rows<-grep("OG",snp_onerow$site)
-snp_onerow[og_rows,1:10]
-snp_onerow$site[og_rows]<-substr(as.character(snp_onerow$ind[og_rows]),1,(unlist(gregexpr("_",as.character(snp_onerow$ind[og_rows])))-1))
-
-# All of the swiss sites include underscores. Their full site name occurs before the underscore.
-sw_rows<-grep("SW",snp_onerow$site)
-snp_onerow[sw_rows,1:10]
-snp_onerow$site[sw_rows]<-substr(as.character(snp_onerow$ind[sw_rows]),1,(unlist(gregexpr("_",as.character(snp_onerow$ind[sw_rows])))-1))
-
-# All greek sites include underscores. Their full site name occurs before the underscore.
-gr_rows<-grep("GR",snp_onerow$site)
-snp_onerow[gr_rows,1:10]
-snp_onerow$site[gr_rows]<-substr(as.character(snp_onerow$ind[gr_rows]),1,(unlist(gregexpr("_",as.character(snp_onerow$ind[gr_rows])))-1))
-
-# RE-FACTORISE AND TIDY:
-snp_onerow$site<-as.factor(snp_onerow$site)
-snp_onerow<-tidy.df(snp_onerow)
-ghead(snp_onerow)
-levels(snp_onerow$site)
 
 ### ~~~ END FIX SITE COLS ~~~ ###
 
