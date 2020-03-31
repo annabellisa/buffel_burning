@@ -12,10 +12,7 @@ load("binyin_winter.RData")
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
-#########################################
-####     IMPORT & FORMAT DATA:    	 ####
-#########################################
-{
+#  IMPORT & FORMAT DATA:    	# ----
 
 # dir with original SNP data:
 data.dir<-"/Users/annabelsmith/Documents/01_Current/PROJECTS/02_FIRESCAPE/DATA/01_FIRESCAPE_sample_data/DHype_DCen_original_data_DO_NOT_MODIFY/Report-DCen19-4425"
@@ -86,7 +83,6 @@ ghead(snp_onerow); dim(snp_onerow)
 
 # save.image("binyin_winter.RData")
 
-
 ### ~~~ END FIX SITE COLS ~~~ ###
 
 # Import site data:
@@ -95,23 +91,19 @@ sdat<-sdat[sdat$sequenced==1,]
 sdat<-tidy.df(sdat)
 head(sdat); dim(sdat)
 
-} # close import
+# close import ----
 
 ghead(snp_onerow); dim(snp_onerow)
 head(sdat); dim(sdat)
-# site levels in genetic data should == number of sites in site data:
-levels(snp_onerow$site)==dim(sdat)[1]
 
-# The result from IMPORT & FORMAT DATA includes ALL 75376 loci; all sites; RCH is included because it has dups which need to be analysed and excluded separately. FS is also included. 
+# number of site in genetic data should == number of sites in site data:
+length(levels(snp_onerow$site))==dim(sdat)[1]
 
-# 641 individuals including dups, two columns for site and individual. 
+# The result from IMPORT & FORMAT DATA includes ALL 69799 SNP loci; all individuals that were sequenced, including the replicate sample: X01u_03.1
 
-#########################################
-#  Check & remove duplicate genotypes   #
-#  		Save & remove RCH & FS  	    #
-#########################################
-{
-ghead(snp_onerow)
+#  Check & remove duplicate genotypes   ----
+
+ghead(snp_onerow); dim(snp_onerow)
 snp_onerow[,1:2]
 
 # Remove dups and save file with all duplicate samples for checking. All dups indicated by ".":
@@ -119,7 +111,9 @@ dup_samples<-unique(substr(snp_onerow$ind[grep("\\.",snp_onerow$ind)],1,unlist(g
 ind_all<-snp_onerow$ind
 ind_all[grep("\\.",snp_onerow$ind)]<-substr(snp_onerow$ind[grep("\\.",snp_onerow$ind)],1,unlist(gregexpr("\\.",snp_onerow$ind[grep("\\.",snp_onerow$ind)]))-1)
 # check
-# data.frame(ind_all,snp_onerow$ind)
+ch.dat1<-data.frame(ind_all,snp_onerow$ind)
+head(ch.dat1)
+ch.dat1[which(!ch.dat1$ind_all==ch.dat1$snp_onerow.ind),]
 
 # Create df for all dups:
 dup_data<-snp_onerow[ind_all %in% dup_samples,]
@@ -129,28 +123,10 @@ ghead(dup_data)
 # Remove dups from main data:
 snp_onerow<-snp_onerow[-grep("\\.",snp_onerow$ind),]
 snp_onerow<-tidy.df(snp_onerow)
-ghead(snp_onerow)
-
-# Remove and save RCH for later analysis
-rch_onerow<-snp_onerow[which(snp_onerow$site=="RCH"),]
-rch_onerow<-tidy.df(rch_onerow)
-ghead(rch_onerow)
-
-snp_onerow<-snp_onerow[-which(snp_onerow$site=="RCH"),]
-snp_onerow<-tidy.df(snp_onerow)
-ghead(snp_onerow)
-
-# Remove and save FS for later analysis
-fs_onerow<-snp_onerow[which(snp_onerow$site=="FS"),]
-fs_onerow<-tidy.df(fs_onerow)
-ghead(fs_onerow)
-
-snp_onerow<-snp_onerow[-which(snp_onerow$site=="FS"),]
-snp_onerow<-tidy.df(snp_onerow)
-ghead(snp_onerow)
+ghead(snp_onerow); dim(snp_onerow)
 
 dloci<-colnames(dup_data)[grep("L",colnames(dup_data))]
-ghead(dup_data)
+ghead(dup_data); dim(dup_data)
 
 # What percentage of loci do not match in the duplicate data? 
 
@@ -174,49 +150,35 @@ dup_res[i,3]<-t.thisrun[1]
 
 dup_res$prop_mistyped<-dup_res$mistyped/(dup_res$mistyped+dup_res$correct_typed)
 dup_res
-head(linf) 
+head(linf,2) 
 
-} # close dups
+# close dups ----
 
-#########################################
-####     RESULT = FULL DATA SET:   	 ####
-#########################################
-{
-# The full data set includes ALL 75376 loci; all sites except RCH & FS. No dups. 
+#     RESULT = FULL DATA SET:   	 ####
 
-# Should be 513 individuals, 75376 loci, plus two columns for site and individual
-ghead(snp_onerow)
-dim(snp_onerow)
+# The full data set includes ALL 69799 loci (plus two columns for site and individual); all 93 sequenced individuals and no dups. 
+ghead(snp_onerow); dim(snp_onerow)
 
-# RCH data includes all 75376 loci, 23 genotypes; no dups. Use for determining the clonality:
-ghead(rch_onerow)
-dim(rch_onerow)
-
-# FS data includes all 75376 loci, 92 genotypes; no dups. 
-ghead(fs_onerow)
-dim(fs_onerow)
-
-# dup_data includes 22 genotypes for seven indiviudals and was used in the last step to assess reproducibility (although these metrics were also give by dartseq and are used in the filters in the next stage)
-ghead(dup_data)
-dim(dup_data)
+# dup_data includes 2 genotypes for one indiviudal
+ghead(dup_data); dim(dup_data)
 
 # onerow == alleles coded using dartseq notation:
 # 0 = Reference allele homozygote
 # 1 = SNP allele homozygote
 # 2 = heterozygote
 
-# It is wrong to code presence/absences as alleles - they indicate the opposite of the true genotype. E.g. 0,1 indicates that only the SNP allele is present, i.e. a SNP homozygote; 1,1 indicates both alleles are present, i.e. a heterozygote. If these were coded as alleles 0,1 would look like a heterozygot and 1,1 a homozygote but the opposite is true. As such, this is critical.
+# It is wrong to code presence/absences as alleles - they indicate the opposite of the true genotype. E.g. 0,1 indicates that only the SNP allele is present, i.e. a SNP homozygote; 1,1 indicates both alleles are present, i.e. a heterozygote. If these were coded as alleles 0,1 would look like a heterozygote and 1,1 a homozygote but the opposite is true. As such, this is critical.
+ghead(snp_onerow); dim(snp_onerow)
 
-dim(snp_onerow)
-ghead(snp_onerow)
-
-# Site data includes all 65 sites (i.e. all except RCH & FS):
+# Site data includes all 19 sites at which individuals were sequenced
 head(sdat)
 
 # All locus info:
 head(linf)
 
-} # close full data
+# close full ####
+
+# save.image("binyin_winter.RData")
 
 #########################################
 ####  IDENTIFY DUPLICATE SEQUENCES   ####
