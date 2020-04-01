@@ -4,13 +4,13 @@
 # ------------------------------------ #
 
 ### filter SNP loci & format for different software
-### Author: Annabel Smith
+### Author: Annabel Smith & Di Binyin
 
 # Load and tidy workspace and remove everything except necessary objects:
-load("../04_workspaces/STEP01_proc_wksp"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # load functions:
-invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
+invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 #########################################
 ####	     FULL DATA SET:    		 ####
@@ -26,37 +26,7 @@ filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% dup_loc)]
 filtered_data<-tidy.df(filtered_data)
 ghead(filtered_data); dim(filtered_data)
 
-#########################################
-####   CHOOSE SITES & INDIVIDUALS:   ####
-#########################################
-{
-
-# --- *** Filter sites *** --- #
-
-# Remove cultivars and outgroups:
-filtered_data<-filtered_data[-c(grep("OG", filtered_data$site),grep("CAT", filtered_data$site),grep("CCT", filtered_data$site),grep("CTP", filtered_data$site)),]
-filtered_data<-tidy.df(filtered_data)
-
-# Remove sites with small sample sizes (when removing cultivars and outgroups):
-# Set min n:
-min_n<-7
-filtered_data<-filtered_data[-which(filtered_data$site %in% names(table(filtered_data$site)[table(filtered_data$site)<min_n])),]
-filtered_data<-tidy.df(filtered_data)
-ghead(filtered_data)
-
-# If keeping cultivars and outgroups, remove sites with < 7 that are NOT OG:
-# Set min n:
-min_n<-7
-filtered_data<-filtered_data[-which(filtered_data$site %in% names(table(filtered_data$site)[table(filtered_data$site)<min_n])[-grep("OG",names(table(filtered_data$site)[table(filtered_data$site)<min_n]))]),]
-filtered_data<-tidy.df(filtered_data)
-ghead(filtered_data)
-
-} # close sites
-
-#########################################
 ####	     FILTER LOCI:    		 ####
-#########################################
-{
 
 # --- *** Filter monomorphic loci *** --- #
 filtered_data<-mono_loci(filtered_data,3)
@@ -168,12 +138,9 @@ filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after neutral filt = ",dim(filtered_data)[2],sep=""))
 ghead(filtered_data); dim(filtered_data)
 
-} # close filter loci
+# close filter loci ----
 
-#########################################
 ####   	 	 FORMAT GENEPOP:    	 ####
-#########################################
-{
 
 # Single row data:
 # 0 = Reference allele homozygote (0101)
@@ -206,12 +173,9 @@ ghead(data); dim(data)
 # 5 min for 53 x 18321
 format_genepop(data,headline)
 
-} # close format genepop
+# close format genepop ----
 
-#########################################
 ####  FORMAT PLINK (for STRUCTURE): ####
-#########################################
-{
 
 # Use this for PLINK analyses and for STRUCTURE
 
@@ -259,12 +223,9 @@ param.dup<-T
 
 gp_param(data,headline)
 
-} # close format plink
+# close format plink ----
 
-#########################################
 ####  	 		FORMAT LFMM:	   	 ####
-#########################################
-{
 
 # Single row data:
 # 0 = Reference allele homozygote (0101)
@@ -343,7 +304,7 @@ head(data[,1:2])
 
 write.table(data[,1:2],"lfmm_site.txt",row.names=F,quote=F,sep="\t")
 
-} # close format lfmm
+# close format lfmm ----
 
 
 
