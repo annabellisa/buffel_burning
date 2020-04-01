@@ -4,7 +4,7 @@
 # ------------------------------------ #
 
 ### process SNP genotypes
-### Author: Annabel Smith
+### Author: Annabel Smith & Di Binyin
 
 # Load workspace:
 load("binyin_winter.RData")
@@ -17,6 +17,7 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 # dir with original SNP data:
 data.dir<-"/Users/annabelsmith/Documents/01_Current/PROJECTS/02_FIRESCAPE/DATA/01_FIRESCAPE_sample_data/DHype_DCen_original_data_DO_NOT_MODIFY/Report-DCen19-4425"
 dir(data.dir)
+
 
 ### ~~~ SINGLE ROW SNP data ~~~ ###
 
@@ -82,6 +83,11 @@ ghead(snp_onerow); dim(snp_onerow)
 # For Cenchrus X01u_03.1 is the replicate sample
 
 # save.image("binyin_winter.RData")
+
+# onerow == alleles coded using dartseq notation:
+# 0 = Reference allele homozygote AA
+# 1 = SNP allele homozygote GG
+# 2 = heterozygote AG
 
 ### ~~~ END FIX SITE COLS ~~~ ###
 
@@ -180,11 +186,11 @@ head(linf)
 
 # save.image("binyin_winter.RData")
 
-#########################################
-####  IDENTIFY DUPLICATE SEQUENCES   ####
-####   	AND FORMAT LOCUS DATA:  	 ####
-#########################################
-{
+#  IDENTIFY DUPLICATE SEQUENCES   #
+#   	AND FORMAT LOCUS DATA:  	 #
+# ----
+
+# The following "things to consider" was written for Plantago lanceolata in which multiple rounds of sequencing produced duplicate sequences. I don't think this is a problem for C. cenchrus because we're only dealing with one sequencing run. But I'm going to check to make sure. 
 
 # Things to consider:
 
@@ -221,20 +227,12 @@ seq2$ai4<-paste(seq2$ai3,seq2$pos,seq2$snp,sep="_")
 head(seq2)
 check.rows(seq2)
 
-# Some allele IDs are duplicated (see notes in first step) which will be fixed. However, some software (e.g. blast) won't run with duplicated allele IDs, so we need to make these unique:
-seq2$ai4[which(duplicated(seq2$ai4))]
-seq2$ai5<-paste(seq2$ai4,"_a",sep="")
-
-# If none go over two, it's OK to use the which(duplicated()) index:
-range(as.numeric(table(seq2$ai4)))
-seq2$ai5[which(duplicated(seq2$ai5))]<-paste(seq2$ai4[which(duplicated(seq2$ai4))],"_b",sep="")
+length(which(duplicated(seq2$TrimmedSequence)))
 
 # This should be zero:
-length(which(duplicated(seq2$ai5)))
-
-# Check:
-seq2[which(seq2$ai4==seq2$ai4[sample(which(duplicated(seq2$ai4)),1)]),]
-seq2[which(seq2$ai4==seq2$ai4[sample(which(!duplicated(seq2$ai4)),1)]),]
+# If it's not, there's some code in the DPlan script for fixing this. 
+length(which(duplicated(seq2$ai4)))
+head(seq2)
 
 # Write fasta file with all sequences:
 
@@ -242,23 +240,23 @@ for (i in 1:nrow(seq2)){
 
 data.thisrun<-seq2[i,]
 
-write(paste(">",data.thisrun$ai5,sep=""),file="DPlan18_seqs.fa",append=T)
-write(data.thisrun$TrimmedSequence,file="DPlan18_seqs.fa",append=T)
+write(paste(">",data.thisrun$ai4,sep=""),file="DCen19_seqs.fa",append=T)
+write(data.thisrun$TrimmedSequence,file="DCen19_seqs.fa",append=T)
 
 } # close for
 
 # Import blast results:
-blast_dir<-"../GENOTYPE_processing/ANALYSIS_RESULTS/BLAST"
+blast_dir<-"../RESULTS/BLAST"
 dir(blast_dir)
 
 # Select lines that bound data:
-start_line<-grep("hits",readLines(paste(blast_dir,"DPlan18_result.out",sep="/")))+1
-end_line<-grep("BLASTN 2.7.1+",readLines(paste(blast_dir,"DPlan18_result.out",sep="/")))-1
-end_line<-c(end_line[2:length(end_line)],(length(readLines(paste(blast_dir,"DPlan18_result.out",sep="/")))-1))
+start_line<-grep("hits",readLines(paste(blast_dir,"DCen19_result.out",sep="/")))+1
+end_line<-grep("BLASTN 2.7.1+",readLines(paste(blast_dir,"DCen19_result.out",sep="/")))-1
+end_line<-c(end_line[2:length(end_line)],(length(readLines(paste(blast_dir,"DCen19_result.out",sep="/")))-1))
 lines_to_read<-unlist(mapply(seq,from=start_line,to=end_line))
 
 # Read data lines:
-blast_res<-strsplit(readLines(paste(blast_dir,"DPlan18_result.out",sep="/"))[lines_to_read],split="\t")
+blast_res<-strsplit(readLines(paste(blast_dir,"DCen19_result.out",sep="/"))[lines_to_read],split="\t")
 blast_res<-data.frame(do.call(rbind,blast_res))
 colnames(blast_res)<-c("query_acc_ver", "subject_acc_ver", "perc_identity", "alignment_length", "mismatches", "gap_opens", "q_start", "q_end", "s_start", "s_end", "evalue"," bit_score")
 # gives NA warning
@@ -269,16 +267,15 @@ blast_res<-blast_res[,1:3]
 blast_res$same<-ifelse(as.character(blast_res$query_acc_ver)==as.character(blast_res$subject_acc_ver),1,0)
 blast_res<-blast_res[which(blast_res$same==0),]
 
-# linf and seq2 have not been ordered, so if their AlleleIDs still match, the new ai5 can be added directly to linf:
+# linf and seq2 have not been ordered, so if their AlleleIDs still match, the new ai4 can be added directly to linf:
 dim(linf)[1]==dim(seq2)[1]
 table(linf$AlleleID==seq2$AlleleID)
 
-linf<-data.frame(locus=linf$locus,ai5=seq2$ai5,linf[,which(colnames(linf)=="AlleleID"):ncol(linf)])
-head(linf,2)
+linf<-data.frame(locus=linf$locus,ai4=seq2$ai4,linf[,which(colnames(linf)=="AlleleID"):ncol(linf)])
+head(linf,2); dim(linf)
 
 length(which(duplicated(linf$AlleleID)))
-length(which(duplicated(linf$ai5)))
-
+length(which(duplicated(linf$ai4)))
 
 # Order by call rate, so the best of the duplicates will be kept:
 linf2<-linf[order(-linf$CallRate),]
@@ -286,17 +283,19 @@ linf2<-tidy.df(linf2)
 
 # Identify direct duplicate sequences:
 dup_seq<-as.character(linf2$locus[which(duplicated(linf2$TrimmedSequence))])
-head(dup_seq)
+head(dup_seq); length(dup_seq)
 
 # Identify duplicate AlleleID:
 # Some remain from single bp differences
+# This should be zero for DCen
 dup_aid<-as.character(linf2$locus[which(duplicated(linf2$AlleleID))])
 head(dup_aid)
 
 # Update linf2, removing the straight-forward dups:
-strfwd<-unique(c(dup_seq,dup_aid))
+strfwd<-unique(c(dup_seq))
 linf2<-linf2[-which(linf2$locus %in% strfwd),]
 linf2<-tidy.df(linf2)
+head(linf2, 3); dim(linf2)
 
 # (3) Remove significant matches from blast:
 blast_res$query_acc_ver<-as.character(blast_res$query_acc_ver)
@@ -304,9 +303,10 @@ blast_res$subject_acc_ver<-as.character(blast_res$subject_acc_ver)
 all.matchloci<-unique(c(as.character(blast_res$query_acc_ver),as.character(blast_res$subject_acc_ver)))
 
 # Many of the blast results have already been removed through dup sequences and AlleleIDs, so can simplify the blast results:
-all.matchloci<-all.matchloci[which(all.matchloci %in% linf2$ai5)]
+all.matchloci<-all.matchloci[which(all.matchloci %in% linf2$ai4)]
 blast_res<-blast_res[unique(c(which(blast_res$query_acc_ver %in% all.matchloci),which(blast_res$subject_acc_ver %in% all.matchloci))),]
 blast_res<-tidy.df(blast_res)
+head(blast_res); dim(blast_res)
 
 removed.loci<-list()
 
@@ -314,7 +314,7 @@ removed.loci<-list()
 
 for (i in 1:nrow(linf2)){
 
-ai.thisrun<-as.character(linf2$ai5[i])
+ai.thisrun<-as.character(linf2$ai4[i])
 
 # If it's unique, it won't appear in the blast results; skip to next
 if(ai.thisrun %in% all.matchloci==F) next
@@ -326,7 +326,7 @@ blast.thisrun<-blast_res[c(lines_i,lines_j),]
 matches<-unique(c(blast.thisrun$query_acc_ver, blast.thisrun$subject_acc_ver))
 
 # The data containing matches:
-linf.thisrun<-linf2[which(linf2$ai5 %in% matches),]
+linf.thisrun<-linf2[which(linf2$ai4 %in% matches),]
 
 # Sometimes the match(es) will already have been removed, so skip if this is the case:
 if(nrow(linf.thisrun)==1) next
@@ -334,7 +334,7 @@ if(nrow(linf.thisrun)==1) next
 if(nrow(linf.thisrun)>1) print(paste("at i = ",i," there are ",nrow(linf.thisrun)," lines; performing removal",sep=""))
 
 # This is ordered by call rate, so remove all of the loci that appear below the first
-l.toremove<-as.character(linf.thisrun$ai5[2:nrow(linf.thisrun)])
+l.toremove<-as.character(linf.thisrun$ai4[2:nrow(linf.thisrun)])
 
 # Which of the loci to remove have not already been added?
 if(length(which(l.toremove %in% unlist(removed.loci)==F))>0) l.toremove<-l.toremove[which(l.toremove %in% unlist(removed.loci)==F)] else l.toremove<-NULL
@@ -345,24 +345,24 @@ if(length(l.toremove)>0) print (paste("removing the following loci: ", l.toremov
 
 } # close for 
 
-save.image("../04_workspaces/STEP01_proc_wksp")
+save.image("binyin_winter.RData")
 
 loc_res<-unlist(removed.loci)
 head(loc_res,10); length(loc_res)
-dup_blast<-as.character(linf2$locus[linf2$ai5 %in% loc_res])
+dup_blast<-as.character(linf2$locus[linf2$ai4 %in% loc_res])
 
 # Add all dups to the main locus info data frame:
-head(dup_seq)
+head(dup_seq); length(dup_seq)
 head(dup_aid)
-head(dup_blast)
+head(dup_blast); length(dup_blast)
 
-all_dups<-unique(c(dup_seq,dup_aid,dup_blast))
+all_dups<-unique(c(dup_seq,dup_blast))
 linf$duplicate<-ifelse(linf$locus %in% all_dups,1,0)
-head(linf,2)
+head(linf,2); dim(linf)
 check.rows(linf)
+table(linf$duplicate)
 
-
-} # close sequence and locus format
+# close sequence and locus format----
 
 
 
