@@ -6,8 +6,11 @@
 ### filter SNP loci & format for different software
 ### Author: Annabel Smith & Di Binyin
 
+#Set Working dir
+setwd("D:/GitHub/Binyin_Winter")
+
 # Load and tidy workspace and remove everything except necessary objects:
-load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
@@ -48,10 +51,11 @@ ra<-0.98
 repavg98<-linf$locus[which(linf$RepAvg<ra)]
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% repavg98)]
 filtered_data<-tidy.df(filtered_data)
-ghead(filtered_data)
-dim(filtered_data)
+ghead(filtered_data); dim(filtered_data)
 
-# --- *** MAF filters *** --- #
+
+
+# --- *** Minor Allele Frequency (MAF) filters *** --- #
 maf_sum<-maf_summary(filtered_data)
 head(maf_sum)
 # hist(maf_sum$maf[maf_sum$maf<0.1])
@@ -62,7 +66,7 @@ malim<-0.01
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
-# --- *** LD filters *** --- #
+# --- ***Linkage disequilibrium (LD) filters *** --- #
 
 # Filter loci with were in LD in > 5 populations with a correlation of 0.75 (see Supplement_03_LD_tests.R for details):
 
