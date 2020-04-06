@@ -9,8 +9,11 @@
 #Set Working dir
 setwd("D:/GitHub/Binyin_Winter")
 
-# Load and tidy workspace and remove everything except necessary objects:
+# Binyin: Load and tidy workspace and remove everything except necessary objects:
 load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+
+# Annabel: Load and tidy workspace and remove everything except necessary objects:
+load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
@@ -66,9 +69,11 @@ malim<-0.01
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
+# save.image("binyin_winter.RData")
+
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
-# Filter loci with were in LD in > 5 populations with a correlation of 0.75 (see Supplement_03_LD_tests.R for details):
+# Filter loci with were in LD in > 5 populations with a correlation of 0.75 (see Supplement_01_LD_tests.R for details):
 
 LD_dir<-"../../ANALYSIS_RESULTS/LINKAGE_DISEQUILIBRIUM/LD_parameters"
 dir(LD_dir)
