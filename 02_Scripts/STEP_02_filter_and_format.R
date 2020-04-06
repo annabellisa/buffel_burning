@@ -99,6 +99,8 @@ dir(hwe_dir)
 hwe_res<-read.table(paste(hwe_dir,"hwe_all_pops.txt",sep="/"),header=T)
 head(hwe_res)
 
+# we need to make some changes here. The previous project I did, we looked for consistent loci that were consistently out of HWE in > 5 populations. For ours however, I think we can just go with the p value. 
+
 # Summarise hwe tests:
 loci_outin5<-data.frame(locus=names(table(hwe_res$loci_out)[which(table(hwe_res$loci_out)>5)]),no_pops_out=as.numeric(table(hwe_res$loci_out)[which(table(hwe_res$loci_out)>5)]))
 head(loci_outin5)
