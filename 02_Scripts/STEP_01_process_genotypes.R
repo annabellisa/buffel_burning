@@ -23,7 +23,7 @@ dir(data.dir)
 
 # The first six rows contain metadata:
 gt_onerow<-read.csv(paste(data.dir,"Report_DCen19-4425_SNP_singlerow_2_.csv",sep="/"),header=T,skip=6)
-ghead(gt_onerow)
+ghead(gt_onerow); dim(gt_onerow)
 
 ### ---- LOCUS INFO ---- ###
 
@@ -37,6 +37,13 @@ linf<-tidy.df(linf)
 linf<-data.frame(locus=paste("L",1:nrow(linf),sep=""),linf)
 linf$locus<-as.character(linf$locus)
 head(linf); dim(linf)
+
+head(linf[,1:5])
+head(linf[,20:30])
+head(linf[,30:35])
+hist(linf$CallRate)
+
+check.rows(linf)
 
 ### ---- END LOCUS INFO ---- ###
 
