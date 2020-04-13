@@ -21,6 +21,8 @@ load("binyin_winter.RData")
 # > git remote addorigin https://github.com/annabellisa/Binyin_Winter.git
 
 
+#git problem 14 April
+
 # in terminal
 
 cd /Users/annabelsmith/OneDrive\ -\ The\ University\ of\ Queensland/TEACHING/UQ_Masters_and_special_topic/Binyin_Winter/Analysis/Binyin_analysis
