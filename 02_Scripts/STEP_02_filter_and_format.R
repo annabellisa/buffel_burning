@@ -8,9 +8,11 @@
 
 #Set Working dir
 setwd("D:/GitHub/Binyin_Winter")
+setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
 
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
 load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
 load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
@@ -38,7 +40,7 @@ ghead(filtered_data); dim(filtered_data)
 filtered_data<-mono_loci(filtered_data,3)
 ghead(filtered_data); dim(filtered_data)
 
-# --- *** DartSeq QC filters *** --- #
+# --- *** DartSeq Quality Control (QC) filters *** --- #
 
 # Filter loci with high missing data rate (see remarks in missing_data function):
 ###-->> Set maximum missing data:
@@ -50,9 +52,9 @@ filtered_data<-missing_sum$filt_dat
 
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:
-ra<-0.98
-repavg98<-linf$locus[which(linf$RepAvg<ra)]
-filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% repavg98)]
+ra<-0.95
+repavg95<-linf$locus[which(linf$RepAvg<ra)]
+filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% repavg95)]
 filtered_data<-tidy.df(filtered_data)
 ghead(filtered_data); dim(filtered_data)
 
@@ -65,7 +67,7 @@ head(maf_sum)
 
 # Filter loci with extreme maf:
 ###-->> Set maf limit:
-malim<-0.01
+malim<-0.05
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
@@ -74,6 +76,7 @@ ghead(filtered_data); dim(filtered_data)
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
 # Filter loci with were in LD in > 5 populations with a correlation of 0.75 (see Supplement_01_LD_tests.R for details):
+
 
 LD_dir<-"../../ANALYSIS_RESULTS/LINKAGE_DISEQUILIBRIUM/LD_parameters"
 dir(LD_dir)
