@@ -34,7 +34,8 @@ ghead(rand_snp); dim(rand_snp)
 sites_to_test<-levels(rand_snp$site)
 dat_test<-rand_snp
 
-param_file<-paste("LD_results/parameters","_LD.txt",sep="")
+
+param_file<-paste("RESULTS/LD_results/parameters","_LD.txt",sep="")
 
 # if using the partially filtered data set, we've already removed monomorphic loci and loci with high levels of missing data. So we can move directly to the linkage tests. In this data set, all sites are in the same region, so we can look at the population as a whole. There is no need to divide the data into separate sites. 
 
