@@ -25,6 +25,8 @@ load("binyin_winter.RData")
 # git remote -v is showing the new origin (tamielleB), while Tools > Version Control > Project settings is showing the original Binyin origin - so far so good
 # updating after reset
 
+# reset git, added EVERYTHING to gitignore in root dir
+
 # in terminal
 
 cd /Users/annabelsmith/OneDrive\ -\ The\ University\ of\ Queensland/TEACHING/UQ_Masters_and_special_topic/Binyin_Winter/Analysis/Binyin_analysis
