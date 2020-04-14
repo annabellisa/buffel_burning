@@ -39,6 +39,7 @@ missing_data<-function(data,first_col,max_missing){
 md_df<-apply(data[,first_col:length(data)],2,function(x) length(which(is.na(x)))/length(x))
 md_df<-data.frame(locus=names(md_df),missing_data=md_df)
 md_df<-tidy.df(md_df)
+head(md_df); dim(md_df)
 
 loci_to_filter<-md_df$locus[which(md_df$missing_data>max_missing)]
 

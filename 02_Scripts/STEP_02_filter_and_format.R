@@ -42,7 +42,7 @@ ghead(filtered_data); dim(filtered_data)
 
 # Filter loci with high missing data rate (see remarks in missing_data function):
 ###-->> Set maximum missing data:
-cr<-0.5
+cr<-0.2
 missing_sum<-missing_data(filtered_data,3,cr)
 m_summary<-missing_sum$miss_sum
 # hist(m_summary$missing_data)
@@ -50,13 +50,13 @@ filtered_data<-missing_sum$filt_dat
 
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:
-ra<-0.98
+ra<-0.95
 repavg98<-linf$locus[which(linf$RepAvg<ra)]
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% repavg98)]
 filtered_data<-tidy.df(filtered_data)
 ghead(filtered_data); dim(filtered_data)
 
-
+head(linf)
 
 # --- *** Minor Allele Frequency (MAF) filters *** --- #
 maf_sum<-maf_summary(filtered_data)
@@ -65,7 +65,7 @@ head(maf_sum)
 
 # Filter loci with extreme maf:
 ###-->> Set maf limit:
-malim<-0.01
+malim<-0.05
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
