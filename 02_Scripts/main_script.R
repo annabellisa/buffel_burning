@@ -26,6 +26,8 @@ load("binyin_winter.RData")
 # updating after reset
 
 # reset git, added EVERYTHING to gitignore in root dir
+# final check after fixing tam's repo
+
 
 # in terminal
 
