@@ -94,4 +94,7 @@ str(filtered_data)
 #6   L6  L37 0.6318159116
 #[1] 182739403         3
 
-cutoff: LD by 0.7
+
+#ld_loc<-read.table(paste(LD_dir, "LD_r75_over5pop_LOCI_FOR_REMOVAL.txt",sep="/"),header=T)
+#head(ld_loc)
+

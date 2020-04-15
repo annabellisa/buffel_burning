@@ -78,8 +78,12 @@ ghead(filtered_data); dim(filtered_data)
 
 # Filter loci with were in LD in > 5 populations with a correlation of 0.75 (see Supplement_01_LD_tests.R for details):
 
-
+#Annabel's Script
 LD_dir<-"../../ANALYSIS_RESULTS/LINKAGE_DISEQUILIBRIUM/LD_parameters"
+
+#BD's Script
+LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+
 dir(LD_dir)
 
 ld_loc<-read.table(paste(LD_dir, "LD_r75_over5pop_LOCI_FOR_REMOVAL.txt",sep="/"),header=T)
