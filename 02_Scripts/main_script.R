@@ -62,29 +62,42 @@ options(max.print = 100000)
 ghead(filtered_data); dim(filtered_data)
 ls(); View(filtered_data)
 str(filtered_data)
+
+#----------Script 14/04/2020---------#
 #cr<-0.5 @#42
+
+#quality rate: 0.05 from 
+#"C:/Users/s4467005/OneDrive - The University of Queensland/Smith Lab/Schilling_etal_2014_PlosOne_HWE.pdf"
+#Call rate 0.8-0.9:0.8/0.85/0.9
+#---0.9-0.8:
+#"There were no loci with more than 90 % missing data; none removed"
+#0.5:"6164 loci with more than 50 % missing data removed"
+
+
+# Remarks derived from filter_SNPs:
+# Cannot use DartSeq CallRate filter because it was calculated on the whole dataset. Individuals from the RCH and FS populations will cause higher proportion of missing data in the rest of the data:
+# This metric is highly correlated with the DartSeq metric (99%), but it filters loci biased by the presence of other populations, e.g. removing the firescape samples results in approx. 500 extra loci filtered.
+# cr<-linf[,c("locus","CallRate")]
+# miss<-merge(miss,cr,by="locus",all.x=T,all.y=F)
+# plot(miss$missing_data,miss$CallRate)
+# cor.test(miss$missing_data,miss$CallRate)
+# callrate50<-miss$locus[which(miss$missing_data>0.5)]
+# callrate50_dart<-miss$locus[which(linf$CallRate<0.5)]
+
+
 #ra<-0.98 @#50
+#0.95 instead? 
+
+
 #malim<-0.01 @#65
+#0.01*1 v 0.05*2--> 0.05 instead?
 
-#End @#54
-#site     ind L6 L7 L8 L11 L12 L26 L41 L44
-#1 X01b X01b_01  2  1  2   0   0   0   0   1
-#2 X01b X01b_02  2  1  2   0   0   0  NA   1
-#3 X01b X01b_03  2  1  2   0   0   0   0   1
-#4 X01b X01b_04  2  1  2   0   0   0   0   1
-#5 X01u X01u_01  1  2  0   0   0   0   1   2
-#6 X01u X01u_02  2  1  2   0   0   0  NA   1
-#[1]    93 30119
 
-#End @#67
-#site     ind L6 L7 L8 L11 L12 L26 L41 L44
-#1 X01b X01b_01  2  1  2   0   0   0   0   1
-#2 X01b X01b_02  2  1  2   0   0   0  NA   1
-#3 X01b X01b_03  2  1  2   0   0   0   0   1
-#4 X01b X01b_04  2  1  2   0   0   0   0   1
-#5 X01u X01u_01  1  2  0   0   0   0   1   2
-#6 X01u X01u_02  2  1  2   0   0   0  NA   1
-#[1]    93 29009
+#> LD_dir<-"../../ANALYSIS_RESULTS/LINKAGE_DISEQUILIBRIUM/LD_parameters"
+#> dir(LD_dir)
+#character(0)????
+#Need a file: LD_r75_over5pop_LOCI_FOR_REMOVAL.txt
+
 
 
 #Not Sure:
