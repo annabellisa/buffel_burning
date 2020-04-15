@@ -44,7 +44,8 @@ ghead(filtered_data); dim(filtered_data)
 
 # Filter loci with high missing data rate (see remarks in missing_data function):
 ###-->> Set maximum missing data:
-cr<-0.5
+##missing_data==1-CallRate
+cr<-0.2
 missing_sum<-missing_data(filtered_data,3,cr)
 m_summary<-missing_sum$miss_sum
 # hist(m_summary$missing_data)

@@ -27,7 +27,7 @@ ghead(filtered_data); dim(filtered_data)
 samp_cols<-which(colnames(filtered_data)[3:ncol(filtered_data)] %in% sample(colnames(filtered_data)[3:ncol(filtered_data)],20))
 rand_snp<-filtered_data[,c(1,2,samp_cols)]
 rand_snp<-tidy.df(rand_snp)
-ghead(rand_snp); dim(rand_snp)
+ghead(rand_snp); dim(rand_snp) 
 
 # format genotype file for the calc_LD function from evachang and run test:
 
