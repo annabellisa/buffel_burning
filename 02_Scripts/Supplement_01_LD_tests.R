@@ -109,12 +109,12 @@ hist(df_test$r2)
 # we need to decide what a reasonable cut-off is for discarding linked loci. In the PNAS paper, we used 0.75
 
 # the STEP_02 script pulls in a file of linked loci. If the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
-df_test<-df_test[which(df_test$r2>0.75),]
+df_test<-df_test[which(df_test$r2>0.7),]
 df_test<-tidy.df(df_test)
 
 ############
 
 
 
-write.table(df_test, file="LD_r75_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+write.table(df_test, file="LD_r70_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 
