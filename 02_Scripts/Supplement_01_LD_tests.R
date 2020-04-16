@@ -84,8 +84,6 @@ write.table(df_test, file="LD_r75_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.name
 sites_to_test<-levels(filtered_data$site)
 dat_test<-filtered_data
 param_file<-paste("RESULTS/LD_results/parameters","_LD.txt",sep="")
-
-#########
 dat_test<-dat_test[,3:ncol(dat_test)]
 
 # geno needs to be m x n where m is the number of markers and n is the number of individuals:
@@ -111,10 +109,6 @@ hist(df_test$r2)
 # the STEP_02 script pulls in a file of linked loci. If the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
 df_test<-df_test[which(df_test$r2>0.5),]
 df_test<-tidy.df(df_test)
-
-############
-
-
 
 write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 

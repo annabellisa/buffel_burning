@@ -76,23 +76,61 @@ ghead(filtered_data); dim(filtered_data)
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
-# Filter loci with were in LD in > 5 populations with a correlation of 0.75 (see Supplement_01_LD_tests.R for details):
+----#Supplement_01_LD_test.R#----
 
-#Annabel's Script
+
+##Annabel's Script
 LD_dir<-"../../ANALYSIS_RESULTS/LINKAGE_DISEQUILIBRIUM/LD_parameters"
-
-#BD's Script
-LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-
 dir(LD_dir)
-
-ld_loc<-read.table(paste(LD_dir, "LD_r75_over5pop_LOCI_FOR_REMOVAL.txt",sep="/"),header=T)
+ld_loc<-read.table(paste(LD_dir, "LD_r70_over5pop_LOCI_FOR_REMOVAL.txt",sep="/"),header=T)
 head(ld_loc)
+
+##BD's Script
+LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+dir(LD_dir)
+ld_loc<-read.table(paste(LD_dir, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
+head(ld_loc)
+View(ld_loc)
+
+#Steps
+#1. Read in the file you saved with the LD_results as a data frame
+#2. Set the LD cutoff - 0.7 or 0.75, or whatever you decide
+#3. Identify the loci from the results which occur above this cutoff
+#4. Subset the SNP data set to exclude the loci in disequilibrium
+
+#
+ldf<-0.75
+#ldfilt<-as.character(ld_loc$loc2)
+
+install.packages("tidyverse")
+library(tidyverse)
+library(tibble)
+
+  
+install.packages("dplyr")
+library(dplyr)
+
+ldfilt75<-ldfilt %>% 
+  group_by(ld_loc$loc1, ld_loc$loc2) %>%
+  filter(r2 > ldf)
+
+head(ldfilt75)
+
+
+
+#Or using this method
+df_test<-df_test[which(df_test$r2>0.5),]
+df_test<-tidy.df(df_test)
+
+write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+
+
+
 
 # Filter loci with LD in > 5 pops:
 ###-->> Set ld limit:
 ldf<-0.75
-ldfilt<-as.character(ld_loc$locus)
+ldfilt<-as.character(ld_loc$loc2)
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
 filtered_data<-tidy.df(filtered_data)
