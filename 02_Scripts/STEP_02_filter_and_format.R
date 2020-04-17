@@ -7,11 +7,11 @@
 ### Author: Annabel Smith & Di Binyin
 
 #Set Working dir
-setwd("D:/GitHub/Binyin_Winter")
+setwd("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
 setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
 
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
-load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+load("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
@@ -86,7 +86,8 @@ ld_loc<-read.table(paste(LD_dir, "LD_r70_over5pop_LOCI_FOR_REMOVAL.txt",sep="/")
 head(ld_loc)
 
 ##BD's Script
-LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter"
 dir(LD_dir)
 ld_loc<-read.table(paste(LD_dir, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
 head(ld_loc)
@@ -105,24 +106,20 @@ ldf<-0.75
 install.packages("tidyverse")
 library(tidyverse)
 library(tibble)
-
-  
 install.packages("dplyr")
 library(dplyr)
 
-ldfilt75<-ldfilt %>% 
-  group_by(ld_loc$loc1, ld_loc$loc2) %>%
+ldfilt75<-ld_loc %>%
   filter(r2 > ldf)
-
 head(ldfilt75)
+write.table(ldfilt75, file = "LD_r75_filtered_data", quote = F, sep = "\t", row.names = T)
 
 
+#Or using this method (have not tried)
+ldlift75<-ld_loc[which(ld_loc$r2>0.75),]
+ldlift75<-tidy.df(ldlift75)
 
-#Or using this method
-df_test<-df_test[which(df_test$r2>0.5),]
-df_test<-tidy.df(df_test)
-
-write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names=T)
 
 
 
