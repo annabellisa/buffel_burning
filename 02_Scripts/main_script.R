@@ -63,7 +63,8 @@ ghead(filtered_data); dim(filtered_data)
 ls(); View(filtered_data)
 str(filtered_data)
 
-#----------Script 15/04/2020---------#
+
+#20/04/2020
 #> ghead(filtered_data); dim(filtered_data)
 #site     ind L6 L7 L8 L9 L12 L26 L37 L47
 #1 X01b X01b_01  2  1  2  0   0   0   2   1
@@ -74,27 +75,5 @@ str(filtered_data)
 #6 X01u X01u_02  2  1  2  0   0   0   2   1
 #[1]    93 19120
 
-#> ghead(dat_test); dim(dat_test)
-#1 2 3 4 5 6 7 8 9 10
-#L6  2 2 2 2 1 2 2 2 2  2
-#L7  1 1 1 1 2 1 1 1 1  1
-#L8  2 2 2 2 0 2 2 2 2  2
-#L9  0 0 0 0 0 0 0 0 0  0
-#L12 0 0 0 0 0 0 0 0 0  0
-#L26 0 0 0 0 0 0 0 0 0  0
-#[1] 19118    93
-
-#> head(df_test); dim(df_test)
-#loc1 loc2           r2
-#1   L6   L7 0.0001216915
-#2   L6   L8 0.4972949160
-#3   L6   L9 0.2656598485
-#4   L6  L12 0.6284829721
-#5   L6  L26 0.6263439360
-#6   L6  L37 0.6318159116
-#[1] 182739403         3
-
-#18/04/2020
-#ld_loc<-read.table(paste(LD_dir, "LD_r75_over5pop_LOCI_FOR_REMOVAL.txt",sep="/"),header=T)
-#head(ld_loc)
-
+#Supp 2 
+#Error in grep("L", colnames(data))[1]:ncol(data) : NA/NaN argument

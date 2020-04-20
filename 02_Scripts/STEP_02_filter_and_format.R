@@ -72,7 +72,7 @@ malim<-0.05
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
-# save.image("binyin_winter.RData")
+save.image("binyin_winter.RData")
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
@@ -87,7 +87,7 @@ head(ld_loc)
 
 ##BD's Script
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter"
+LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 dir(LD_dir)
 ld_loc<-read.table(paste(LD_dir, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
 head(ld_loc)
@@ -101,7 +101,6 @@ View(ld_loc)
 
 #
 ldf<-0.75
-#ldfilt<-as.character(ld_loc$loc2)
 
 install.packages("tidyverse")
 library(tidyverse)
@@ -118,29 +117,39 @@ write.table(ldfilt75, file = "LD_r75_filtered_data", quote = F, sep = "\t", row.
 #Or using this method (have not tried)
 ldlift75<-ld_loc[which(ld_loc$r2>0.75),]
 ldlift75<-tidy.df(ldlift75)
-
 write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names=T)
 
-
-
-
+----#delete following Scripts#----
 # Filter loci with LD in > 5 pops:
 ###-->> Set ld limit:
-ldf<-0.75
-ldfilt<-as.character(ld_loc$loc2)
-print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
-filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
-filtered_data<-tidy.df(filtered_data)
-print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
-ghead(filtered_data)
+#ldf<-0.75
+#ldfilt<-as.character(ld_loc$loc2)
+#print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
+#filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
+#filtered_data<-tidy.df(filtered_data)
+#print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
+#ghead(filtered_data)
 
 # --- *** HWE filters *** --- #
 
+#Supplement_02_HWE_test.R#
+
+#Annabel
 hwe_dir<-"../../ANALYSIS_RESULTS/ALL_pops_HWE_test"
 dir(hwe_dir)
-
 hwe_res<-read.table(paste(hwe_dir,"hwe_all_pops.txt",sep="/"),header=T)
 head(hwe_res)
+
+#Binyin
+hwe_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/HWE_results"
+dir(hwe_dir)
+
+#See-sup#2
+hwe_res<-read.table(paste(hwe_res, "HWE_test",sep="/"),header=T)
+head(ld_loc)
+
+
+
 
 # we need to make some changes here. The previous project I did, we looked for consistent loci that were consistently out of HWE in > 5 populations. For ours however, I think we can just go with the p value. 
 
