@@ -44,14 +44,10 @@ head(hwe.res); dim(hwe.res)
 
 #----fun full dataset----#
 
-
-hwe_data<-colnames(filtered_data)[3:ncol(filtered_data)] %in% sample(colnames(filtered_data)[3:ncol(filtered_data)])
-loc_snp<-filtered_data[,c(1,2,hwe_data)]
-loc_snp<-tidy.df(loc_snp)
-ghead(loc_snp); dim(loc_snp) 
+ghead(filtered_data); dim(filtered_data)
 
 #Error in grep("L", colnames(data))[1]:ncol(data) : NA/NaN argument
-hwe.res<-hwe_exact(loc_snp)
+hwe.res<-hwe_exact(filtered_data)
 head(hwe.res); dim(hwe.res)
 
   

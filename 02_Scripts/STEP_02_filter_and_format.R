@@ -90,6 +90,12 @@ LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winte
 LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 dir(LD_dir)
 ld_loc<-read.table(paste(LD_dir, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
+
+# AS LD: 
+LD_dir_AS<-"../Offline_Results/LD_results"
+dir(LD_dir_AS)
+ld_loc<-read.table(paste(LD_dir_AS, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
+
 head(ld_loc)
 View(ld_loc)
 
@@ -118,6 +124,8 @@ write.table(ldfilt75, file = "LD_r75_filtered_data", quote = F, sep = "\t", row.
 ldlift75<-ld_loc[which(ld_loc$r2>0.75),]
 ldlift75<-tidy.df(ldlift75)
 write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names=T)
+
+# Hi Binyin - what you're doing above is saving the LD results to a new file, which is good. But the following lines are needed to do the actual filtering. I.e. now that we've got the LD results saved, we can use them to filter out the loci that are too correlated, according to our cut-off. 
 
 ----#delete following Scripts#----
 # Filter loci with LD in > 5 pops:
