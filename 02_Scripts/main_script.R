@@ -75,5 +75,26 @@ str(filtered_data)
 #6 X01u X01u_02  2  1  2  0   0   0   2   1
 #[1]    93 19120
 
-#Supp 2 
-#Error in grep("L", colnames(data))[1]:ncol(data) : NA/NaN argument
+#"no loci before ld filt = 19120"
+#"no loci after ld filt = 11332"
+#> head(hwe.res); dim(hwe.res)
+#locus            p        p.adj
+#1    L6 1.000000e+00 1.000000e+00
+#2    L7 2.314964e-01 1.000000e+00
+#3    L8 6.324177e-02 1.000000e+00
+#4    L9 1.423518e-23 1.546795e-19
+#5   L12 6.206069e-02 1.000000e+00
+#6   L26 4.986915e-02 1.000000e+00
+#[1] 11330     3
+
+#"no loci before ld filt = 11332"
+#"no loci after ld filt = 9371"
+#> ghead(filtered_data); dim(filtered_data)
+#site     ind L9 L37 L47 L54 L59 L164 L169 L176
+#1 X01b X01b_01  0   2   1   2   0    2    1    1
+#2 X01b X01b_02  0   2   1   2   0    2    1    1
+#3 X01b X01b_03  0   2   1   2   0    2    1    1
+#4 X01b X01b_04  0   2   1   2   0    2    1    1
+#5 X01u X01u_01  0   0   1   0   1    0    0   NA
+#6 X01u X01u_02  0   2   1   0   0    2    1    1
+#[1]   93 9371

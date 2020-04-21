@@ -98,38 +98,46 @@ View(ld_loc)
 #3. Identify the loci from the results which occur above this cutoff
 #4. Subset the SNP data set to exclude the loci in disequilibrium
 
-#
 ldf<-0.75
-
+#Method 1.#
 install.packages("tidyverse")
 library(tidyverse)
 library(tibble)
 install.packages("dplyr")
 library(dplyr)
-
 ldfilt75<-ld_loc %>%
   filter(r2 > ldf)
 head(ldfilt75)
 write.table(ldfilt75, file = "LD_r75_filtered_data", quote = F, sep = "\t", row.names = T)
 
-
-#Or using this method (have not tried)
+#Method 2.#
 ldlift75<-ld_loc[which(ld_loc$r2>0.75),]
 ldlift75<-tidy.df(ldlift75)
 write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names=T)
 
 # Hi Binyin - what you're doing above is saving the LD results to a new file, which is good. But the following lines are needed to do the actual filtering. I.e. now that we've got the LD results saved, we can use them to filter out the loci that are too correlated, according to our cut-off. 
 
-----#delete following Scripts#----
-# Filter loci with LD in > 5 pops:
-###-->> Set ld limit:
-#ldf<-0.75
-#ldfilt<-as.character(ld_loc$loc2)
-#print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
-#filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
-#filtered_data<-tidy.df(filtered_data)
-#print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
-#ghead(filtered_data)
+
+----#Changes#----
+##BD's Script
+LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+dir(LD_dir)
+ld_loc<-read.table(paste(LD_dir, "LD_r75_filtered_data",sep="/"),header=T)
+
+# AS LD: 
+LD_dir_AS<-"../Offline_Results/LD_results"
+dir(LD_dir_AS)
+ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_filtered_data",sep="/"),header=T)
+
+ldfilt<-as.character(ld_loc$loc2)
+print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
+filtered_data<-tidy.df(filtered_data)
+filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
+filtered_data<-tidy.df(filtered_data)
+print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
+ghead(filtered_data)
+save.image("binyin_winter.RData")
 
 # --- *** HWE filters *** --- #
 
@@ -146,8 +154,10 @@ hwe_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyi
 dir(hwe_dir)
 
 #See-sup#2
-hwe_res<-read.table(paste(hwe_res, "HWE_test",sep="/"),header=T)
-head(hwe_res)
+ghead(filtered_data); dim(filtered_data)
+hwe.res<-hwe_exact(filtered_data)
+head(hwe.res); dim(hwe.res)
+write.table(hwe.res, file="HWE_test.txt", quote=F, sep="\t", row.names=F)
 
 # we need to make some changes here. The previous project I did, we looked for loci that were consistently out of HWE in > 5 populations. For ours however. we're treating them as a single population so I think we can just go with the p value. 
 
@@ -156,12 +166,14 @@ head(hwe_res)
 # Filter loci with HWD:
 hwe_flag<-T
 hwe_cutoff<-0.01 # we need to decide on the cutoff
-hwefilt<-as.character(hwe_res$locus[hwe_res$p>hwe_cutoff])
+hwefilt<-as.character(hwe.res$locus[hwe.res$p>hwe_cutoff])
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% hwefilt)]
 filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
 ghead(filtered_data); dim(filtered_data)
+
+save.image("Binyin_Winter.Rdata")
 
 # --- *** NEUTRALITY filter *** --- #
 

@@ -4,7 +4,7 @@
 # ------------------------------------ #
 
 ### HWE TESTS
-### Author: Annabel Smith
+### Author: Annabel Smith; Di Binyin
 
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
 load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
@@ -46,7 +46,7 @@ head(hwe.res); dim(hwe.res)
 
 ghead(filtered_data); dim(filtered_data)
 
-#Error in grep("L", colnames(data))[1]:ncol(data) : NA/NaN argument
+
 hwe.res<-hwe_exact(filtered_data)
 head(hwe.res); dim(hwe.res)
 
