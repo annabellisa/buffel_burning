@@ -78,13 +78,6 @@ save.image("binyin_winter.RData")
 
 ----#Supplement_01_LD_test.R#----
 
-
-##Annabel's Script
-LD_dir<-"../../ANALYSIS_RESULTS/LINKAGE_DISEQUILIBRIUM/LD_parameters"
-dir(LD_dir)
-ld_loc<-read.table(paste(LD_dir, "LD_r70_over5pop_LOCI_FOR_REMOVAL.txt",sep="/"),header=T)
-head(ld_loc)
-
 ##BD's Script
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
@@ -154,21 +147,16 @@ dir(hwe_dir)
 
 #See-sup#2
 hwe_res<-read.table(paste(hwe_res, "HWE_test",sep="/"),header=T)
-head(ld_loc)
+head(hwe_res)
 
+# we need to make some changes here. The previous project I did, we looked for loci that were consistently out of HWE in > 5 populations. For ours however. we're treating them as a single population so I think we can just go with the p value. 
 
+# I've made some preliminary changes here, but we need to look at the results, check the script and make some decisions:
 
-
-# we need to make some changes here. The previous project I did, we looked for consistent loci that were consistently out of HWE in > 5 populations. For ours however, I think we can just go with the p value. 
-
-# Summarise hwe tests:
-loci_outin5<-data.frame(locus=names(table(hwe_res$loci_out)[which(table(hwe_res$loci_out)>5)]),no_pops_out=as.numeric(table(hwe_res$loci_out)[which(table(hwe_res$loci_out)>5)]))
-head(loci_outin5)
-dim(loci_outin5)
-
-# Filter loci with HWED in > 5 pops:
+# Filter loci with HWD:
 hwe_flag<-T
-hwefilt<-as.character(loci_outin5$locus)
+hwe_cutoff<-0.01 # we need to decide on the cutoff
+hwefilt<-as.character(hwe_res$locus[hwe_res$p>hwe_cutoff])
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% hwefilt)]
 filtered_data<-tidy.df(filtered_data)
