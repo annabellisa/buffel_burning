@@ -48,7 +48,7 @@ ghead(filtered_data); dim(filtered_data)
 cr<-0.2
 missing_sum<-missing_data(filtered_data,3,cr)
 m_summary<-missing_sum$miss_sum
-# hist(m_summary$missing_data)
+#hist(m_summary$missing_data)
 filtered_data<-missing_sum$filt_dat
 
 # Filter loci with low reproducibility:
@@ -64,7 +64,7 @@ ghead(filtered_data); dim(filtered_data)
 # --- *** Minor Allele Frequency (MAF) filters *** --- #
 maf_sum<-maf_summary(filtered_data)
 head(maf_sum)
-# hist(maf_sum$maf[maf_sum$maf<0.1])
+#hist(maf_sum$maf[maf_sum$maf<0.1])
 
 # Filter loci with extreme maf:
 ###-->> Set maf limit:
@@ -72,7 +72,7 @@ malim<-0.05
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
-save.image("binyin_winter.RData")
+save.image("Partially Filtered Data.RData")
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
@@ -157,7 +157,7 @@ dir(hwe_dir)
 ghead(filtered_data); dim(filtered_data)
 hwe.res<-hwe_exact(filtered_data)
 head(hwe.res); dim(hwe.res)
-write.table(hwe.res, file="HWE_test.txt", quote=F, sep="\t", row.names=F)
+write.table(hwe.res, file="HWE_test1.txt", quote=F, sep="\t", row.names=F)
 
 # we need to make some changes here. The previous project I did, we looked for loci that were consistently out of HWE in > 5 populations. For ours however. we're treating them as a single population so I think we can just go with the p value. 
 
@@ -165,15 +165,15 @@ write.table(hwe.res, file="HWE_test.txt", quote=F, sep="\t", row.names=F)
 
 # Filter loci with HWD:
 hwe_flag<-T
-hwe_cutoff<-0.01 # we need to decide on the cutoff
-hwefilt<-as.character(hwe.res$locus[hwe.res$p>hwe_cutoff])
+hwe_cutoff<-0.1 # we need to decide on the cutoff
+hwefilt<-as.character(hwe.res$locus[hwe.res$p.adj<hwe_cutoff])
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% hwefilt)]
 filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
 ghead(filtered_data); dim(filtered_data)
 
-save.image("Binyin_Winter.Rdata")
+save.image("HWE_filter_data.Rdata")
 
 # --- *** NEUTRALITY filter *** --- #
 
