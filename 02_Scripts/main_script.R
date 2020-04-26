@@ -102,3 +102,6 @@ str(filtered_data)
 #Not Sure what's wrong with 
 #> filtered_data<-get(data_name)
 #Error in get(data_name) : object 'snp_onerow' not found
+
+#198
+#res<-read.table(paste(sel_dir,"outliers_all.txt",sep="/"),header=T)

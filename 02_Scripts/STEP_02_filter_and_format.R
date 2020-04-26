@@ -180,11 +180,19 @@ save.image("HWE_filter_data.Rdata")
 
 # --- *** NEUTRALITY filter *** --- #
 
-ghead(filtered_data); dim(filtered_data)
-
 # Directory with results:
+sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
+sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
+
+
 sel_dir<-"../../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION"
 dir(sel_dir)
+
+
+filtered_data<-read.table(paste(sel_dir,"Partially_filtered_data",sep="/"),header=T)
+
+ghead(filtered_data); dim(filtered_data)
+
 
 # Outlier loci:
 res<-read.table(paste(sel_dir,"outliers_all.txt",sep="/"),header=T)
