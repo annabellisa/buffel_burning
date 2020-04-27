@@ -20,7 +20,9 @@ load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
+# Hi Binyin, I've restored the original data. Maybe we should save "binyin_winter.RData" for the full data set (69,799 loci) and when we do any filtering - we save those to different RData files? I think you've already started doing this in your "Datasets" folder which is great. 
 
+# save.image("binyin_winter.RData")
 
 #########################################
 ####	     FULL DATA SET:    		 ####
