@@ -253,7 +253,7 @@ write(data.thisrun$TrimmedSequence,file="DCen19_seqs.fa",append=T)
 } # close for
 
 # Import blast results:
-blast_dir<-"../RESULTS/BLAST"
+blast_dir<-"RESULTS/BLAST"
 dir(blast_dir)
 
 # Select lines that bound data:

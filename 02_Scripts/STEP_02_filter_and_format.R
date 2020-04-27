@@ -33,6 +33,7 @@ data_name<-"snp_onerow"
 filtered_data<-get(data_name)
 
 # --- *** Discard duplicated *** --- #
+head(linf)
 dup_loc<-as.character(linf$locus[linf$duplicate==1])
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% dup_loc)]
 filtered_data<-tidy.df(filtered_data)
