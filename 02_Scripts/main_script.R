@@ -98,3 +98,10 @@ str(filtered_data)
 #5 X01u X01u_01  0   0   1   0   1    0    0   NA
 #6 X01u X01u_02  0   2   1   0   0    2    1    1
 #[1]   93 9371
+
+#Not Sure what's wrong with 
+#> filtered_data<-get(data_name)
+#Error in get(data_name) : object 'snp_onerow' not found
+
+#198
+#res<-read.table(paste(sel_dir,"outliers_all.txt",sep="/"),header=T)

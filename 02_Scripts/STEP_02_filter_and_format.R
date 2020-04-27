@@ -72,13 +72,15 @@ malim<-0.05
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
+write.table(filtered_data, file = "Partially_filtered_data", quote = F, sep = "\t", row.names = T)
+
 save.image("Partially Filtered Data.RData")
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
 ----#Supplement_01_LD_test.R#----
 
-##BD's Script
+##BD's Script#
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 dir(LD_dir)
@@ -118,9 +120,9 @@ write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names
 # Hi Binyin - what you're doing above is saving the LD results to a new file, which is good. But the following lines are needed to do the actual filtering. I.e. now that we've got the LD results saved, we can use them to filter out the loci that are too correlated, according to our cut-off. 
 
 
-----#Changes#----
-##BD's Script
-LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+#----Changes----#
+#BD's Script#
+LD_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 dir(LD_dir)
 ld_loc<-read.table(paste(LD_dir, "LD_r75_filtered_data",sep="/"),header=T)
@@ -141,7 +143,8 @@ filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
 filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
 ghead(filtered_data)
-save.image("binyin_winter.RData")
+
+save.image("LD.RData")
 
 # --- *** HWE filters *** --- #
 
@@ -181,11 +184,19 @@ save.image("HWE_filter_data.Rdata")
 
 # --- *** NEUTRALITY filter *** --- #
 
-ghead(filtered_data); dim(filtered_data)
-
 # Directory with results:
+sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
+sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
+
+
 sel_dir<-"../../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION"
 dir(sel_dir)
+
+
+filtered_data<-read.table(paste(sel_dir,"Partially_filtered_data",sep="/"),header=T)
+
+ghead(filtered_data); dim(filtered_data)
+
 
 # Outlier loci:
 res<-read.table(paste(sel_dir,"outliers_all.txt",sep="/"),header=T)
