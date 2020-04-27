@@ -109,7 +109,7 @@ df_test<-tidy.df(df_test)
 write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 
 
-
+#New Steps for Filtered Data 
 
 ##BD's Script
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
@@ -126,7 +126,7 @@ head(ld_loc)
 
 # The determine which loci would need to be removed to ensure no linked loci would occur together:
 
-# Add separate loci:
+# Add separate loci:#
 second_L<-unlist(lapply(gregexpr("L",occ_pop6$locus_pair),function(x)x[2]))
 occ_pop6$loc1<-substr(occ_pop6$locus_pair,1,(second_L-1))
 occ_pop6$loc2<-substr(occ_pop6$locus_pair,second_L,nchar(as.character(occ_pop6$locus_pair)))
