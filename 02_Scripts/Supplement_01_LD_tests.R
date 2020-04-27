@@ -76,8 +76,6 @@ df_test<-tidy.df(df_test)
 # write.table(df_test, file="LD_r75_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 write.table(df_test, file="LD_r75_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 
-
-
 ----###Warning: full dataset were used in following scripts###---- 
 
 #rand_snp replaced by filtered_data for full data run. 
@@ -102,13 +100,103 @@ head(df_test); dim(df_test)
 
 hist(df_test$r2)
 
-
-
 # we need to decide what a reasonable cut-off is for discarding linked loci. In the PNAS paper, we used 0.75
 
-# the STEP_02 script pulls in a file of linked loci. If the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
+# the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
 df_test<-df_test[which(df_test$r2>0.5),]
 df_test<-tidy.df(df_test)
 
 write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+
+
+
+
+##BD's Script
+LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+dir(LD_dir)
+ld_loc<-read.table(paste(LD_dir, "LD_r75_filtered_data",sep="/"),header=T)
+
+# AS LD: 
+LD_dir_AS<-"../Offline_Results/LD_results"
+dir(LD_dir_AS)
+ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_filtered_data",sep="/"),header=T)
+
+head(ld_loc)
+
+# The determine which loci would need to be removed to ensure no linked loci would occur together:
+
+# Add separate loci:
+second_L<-unlist(lapply(gregexpr("L",occ_pop6$locus_pair),function(x)x[2]))
+occ_pop6$loc1<-substr(occ_pop6$locus_pair,1,(second_L-1))
+occ_pop6$loc2<-substr(occ_pop6$locus_pair,second_L,nchar(as.character(occ_pop6$locus_pair)))
+check.rows(occ_pop6)
+head(occ_pop6)
+
+# The total number of loci in the linked data set:
+all_ldloc<-as.character(c(occ_pop6$loc1,occ_pop6$loc2))
+length(unique(all_ldloc))
+head(all_ldloc)
+
+freq_loc<-data.frame(locus=names(table(all_ldloc)),no_times_total=as.numeric(table(all_ldloc)))
+head(freq_loc)
+head(occ_pop6)
+
+removed.loci<-list()
+
+for (i in 1:nrow(occ_pop6)){
+  
+  line.thisrun<-occ_pop6[i,]
+  l1.thisrun<-line.thisrun$loc1
+  l2.thisrun<-line.thisrun$loc2
+  
+  freq_l1<-freq_loc$no_times_total[which(freq_loc$locus==l1.thisrun)]
+  freq_l2<-freq_loc$no_times_total[which(freq_loc$locus==l2.thisrun)]
+  
+  # If one of the pair has already been assigned to the "remove" pile, then the pair is OK and can skip to the next test
+  if(length(which(c(l1.thisrun,l2.thisrun) %in% unlist(removed.loci)==T))>0) next
+  
+  # If they have the same frequency in the linkage summary, remove l2:
+  if (freq_l1==freq_l2) {
+    removed.loci[[i]]<-l2.thisrun
+    next
+  } # close if same freq
+  
+  # If they have a different frequency, remove the one with the higher frequency:
+  if(freq_l1!=freq_l2) {
+    removed.loci[[i]]<-c(l1.thisrun,l2.thisrun)[which(c(freq_l1,freq_l2)==max(freq_l1,freq_l2))]
+  } # close different freq
+  
+} # close for
+
+rm_loci<-data.frame(locus=unlist(removed.loci))
+rm_loci$for_removal<-1
+loci_toremove<-as.character(rm_loci$locus)
+head(loci_toremove)
+
+# write.table(rm_loci,"LD_r75_over5pop.txt",sep="\t",row.names=F,quote=F)
+
+# Check:
+occ_rm<-merge(occ_pop6,rm_loci,by.x="loc1",by.y="locus",all.x=T, all.y=F)
+colnames(occ_rm)[length(colnames(occ_rm))]<-"l1_removal"
+occ_rm$l1_removal[which(is.na(occ_rm$l1_removal))]<-0
+occ_rm<-merge(occ_rm,rm_loci,by.x="loc2",by.y="locus",all.x=T, all.y=F)
+colnames(occ_rm)[length(colnames(occ_rm))]<-"l2_removal"
+occ_rm$l2_removal[which(is.na(occ_rm$l2_removal))]<-0
+
+# Sometimes both will be removed, because they both occur somewhere else
+check.rows(occ_rm)
+head(occ_rm)
+
+# But every line should add to at least 1:
+range(rowSums(occ_rm[,which(colnames(occ_rm) %in% c("l1_removal","l2_removal"))]))
+
+# This shows that at least one of each pair will be removed and that no linked pair will be included in the final data set. 
+
+save.image("../04_workspaces/Supp03_LD_tests")
+
+
+
+
+
 

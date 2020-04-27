@@ -130,6 +130,10 @@ LD_dir_AS<-"../Offline_Results/LD_results"
 dir(LD_dir_AS)
 ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_filtered_data",sep="/"),header=T)
 
+head(ld_loc)
+
+
+
 ldfilt<-as.character(ld_loc$loc2)
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-tidy.df(filtered_data)
