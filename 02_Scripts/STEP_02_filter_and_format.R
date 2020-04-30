@@ -77,9 +77,11 @@ malim<-0.05
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
 
-write.table(filtered_data, file = "Partially_filtered_data", quote = F, sep = "\t", row.names = T)
+# I usually hashtag the write.table() and save.image() functions so we don't acidentally overwrite saved files
 
-save.image("Partially Filtered Data.RData")
+# write.table(filtered_data, file = "Partially_filtered_data", quote = F, sep = "\t", row.names = T)
+
+# save.image("Partially Filtered Data.RData")
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 

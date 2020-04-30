@@ -18,15 +18,16 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 # This is the full data set:
 ghead(snp_onerow); dim(snp_onerow)
 
-----###Running LD Scripts###----
+#Running LD Scripts
 
-# Perhaps we should use the partially filtered data from STEP 01, which has 29007 loci? This will be quicker than doing the full data set and we are not interested in those loci which have already been filtered out. 
+# Use  partially filtered data from STEP 01? This will be quicker than doing the full data set and we are not interested in those loci which have already been filtered out. 
 
-###BD note: Use the partially fitered data from STEP 02, after malim ==0.05 process.
+#BD note: Use the partially fitered data from STEP 02, after malim ==0.05 process
 ghead(filtered_data); dim(filtered_data)
 
 
-----###Warning: Sample dataset were used in following scripts###---- 
+
+#Warning: Sample dataset were used in following scripts
 
 # To get the script working, you could run through a smaller data set, that won't take as long to run. Once you have it working you can work on the full filtered_data data set:
 
@@ -40,7 +41,6 @@ ghead(rand_snp); dim(rand_snp)
 
 sites_to_test<-levels(rand_snp$site)
 dat_test<-rand_snp
-
 
 param_file<-paste("RESULTS/LD_results/parameters","_LD.txt",sep="")
 
@@ -106,10 +106,10 @@ hist(df_test$r2)
 df_test<-df_test[which(df_test$r2>0.5),]
 df_test<-tidy.df(df_test)
 
-write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+# write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 
-
-
+# ------------------------------------------
+# Which of the linked pairs should we remove?
 
 ##BD's Script
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
@@ -120,35 +120,42 @@ ld_loc<-read.table(paste(LD_dir, "LD_r75_filtered_data",sep="/"),header=T)
 # AS LD: 
 LD_dir_AS<-"../Offline_Results/LD_results"
 dir(LD_dir_AS)
-ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_filtered_data",sep="/"),header=T)
+ld_loc<-read.table(paste(LD_dir_AS, "LD_r70_LOCI_FOR_REMOVAL",sep="/"),header=T)
 
-head(ld_loc)
+head(ld_loc); dim(ld_loc)
+
+# Set cutoff at 0.75:
+
+ld_loc<-ld_loc[which(ld_loc$r2>0.75),]
+ld_loc<-tidy.df(ld_loc)
+head(ld_loc); dim(ld_loc)
 
 # The determine which loci would need to be removed to ensure no linked loci would occur together:
 
-# Add separate loci:
-second_L<-unlist(lapply(gregexpr("L",occ_pop6$locus_pair),function(x)x[2]))
-occ_pop6$loc1<-substr(occ_pop6$locus_pair,1,(second_L-1))
-occ_pop6$loc2<-substr(occ_pop6$locus_pair,second_L,nchar(as.character(occ_pop6$locus_pair)))
-check.rows(occ_pop6)
-head(occ_pop6)
-
 # The total number of loci in the linked data set:
-all_ldloc<-as.character(c(occ_pop6$loc1,occ_pop6$loc2))
+all_ldloc<-c(as.character(ld_loc$loc1),as.character(ld_loc$loc2))
 length(unique(all_ldloc))
 head(all_ldloc)
 
 freq_loc<-data.frame(locus=names(table(all_ldloc)),no_times_total=as.numeric(table(all_ldloc)))
-head(freq_loc)
-head(occ_pop6)
+head(freq_loc); dim(freq_loc)
+head(ld_loc); dim(ld_loc)
+
+# This script removes a locus from a linked pair, prioritising the locus which is more frequently linked to other loci:
+
+# start 1000h, finish 2000h - next day!! 24+10 = 43 hr!! Something is wrong here... 
+
+save.image("../Offline_Results/LD_selection.RData")
 
 removed.loci<-list()
 
-for (i in 1:nrow(occ_pop6)){
+for (i in 1:nrow(ld_loc)){
   
-  line.thisrun<-occ_pop6[i,]
-  l1.thisrun<-line.thisrun$loc1
-  l2.thisrun<-line.thisrun$loc2
+  print(paste("Starting test", i, "of", nrow(ld_loc), "tests", sep=" "))
+  
+  line.thisrun<-ld_loc[i,]
+  l1.thisrun<-as.character(line.thisrun$loc1)
+  l2.thisrun<-as.character(line.thisrun$loc2)
   
   freq_l1<-freq_loc$no_times_total[which(freq_loc$locus==l1.thisrun)]
   freq_l2<-freq_loc$no_times_total[which(freq_loc$locus==l2.thisrun)]
@@ -169,31 +176,38 @@ for (i in 1:nrow(occ_pop6)){
   
 } # close for
 
+Sys.time()
+save.image("../Offline_Results/LD_selection.RData")
+
 rm_loci<-data.frame(locus=unlist(removed.loci))
 rm_loci$for_removal<-1
 loci_toremove<-as.character(rm_loci$locus)
 head(loci_toremove)
+length(loci_toremove)
+length(removed.loci)
+head(rm_loci)
+tail(rm_loci)
 
 # write.table(rm_loci,"LD_r75_over5pop.txt",sep="\t",row.names=F,quote=F)
 
 # Check:
-occ_rm<-merge(occ_pop6,rm_loci,by.x="loc1",by.y="locus",all.x=T, all.y=F)
-colnames(occ_rm)[length(colnames(occ_rm))]<-"l1_removal"
-occ_rm$l1_removal[which(is.na(occ_rm$l1_removal))]<-0
-occ_rm<-merge(occ_rm,rm_loci,by.x="loc2",by.y="locus",all.x=T, all.y=F)
-colnames(occ_rm)[length(colnames(occ_rm))]<-"l2_removal"
-occ_rm$l2_removal[which(is.na(occ_rm$l2_removal))]<-0
+ck_rm<-merge(ld_loc,rm_loci,by.x="loc1",by.y="locus",all.x=T, all.y=F)
+colnames(ck_rm)[length(colnames(ck_rm))]<-"l1_removal"
+ck_rm$l1_removal[which(is.na(ck_rm$l1_removal))]<-0
+ck_rm<-merge(ck_rm,rm_loci,by.x="loc2",by.y="locus",all.x=T, all.y=F)
+colnames(ck_rm)[length(colnames(ck_rm))]<-"l2_removal"
+ck_rm$l2_removal[which(is.na(ck_rm$l2_removal))]<-0
 
 # Sometimes both will be removed, because they both occur somewhere else
-check.rows(occ_rm)
-head(occ_rm)
+check.rows(ck_rm)
+head(ck_rm)
 
 # But every line should add to at least 1:
-range(rowSums(occ_rm[,which(colnames(occ_rm) %in% c("l1_removal","l2_removal"))]))
+range(rowSums(ck_rm[,which(colnames(ck_rm) %in% c("l1_removal","l2_removal"))]))
 
 # This shows that at least one of each pair will be removed and that no linked pair will be included in the final data set. 
 
-save.image("../04_workspaces/Supp03_LD_tests")
+save.image("../Offline_Results/LD_selection.RData")
 
 
 
