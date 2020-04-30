@@ -106,10 +106,17 @@ hist(df_test$r2)
 df_test<-df_test[which(df_test$r2>0.5),]
 df_test<-tidy.df(df_test)
 
+<<<<<<< HEAD
 # write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 
 # ------------------------------------------
 # Which of the linked pairs should we remove?
+=======
+write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+
+
+#New Steps for Filtered Data 
+>>>>>>> 37f64eeca13cbfc82471f8cf70c09928ac0d95c8
 
 ##BD's Script
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
@@ -130,7 +137,16 @@ ld_loc<-ld_loc[which(ld_loc$r2>0.75),]
 ld_loc<-tidy.df(ld_loc)
 head(ld_loc); dim(ld_loc)
 
+<<<<<<< HEAD
 # The determine which loci would need to be removed to ensure no linked loci would occur together:
+=======
+# Add separate loci:#
+second_L<-unlist(lapply(gregexpr("L",occ_pop6$locus_pair),function(x)x[2]))
+occ_pop6$loc1<-substr(occ_pop6$locus_pair,1,(second_L-1))
+occ_pop6$loc2<-substr(occ_pop6$locus_pair,second_L,nchar(as.character(occ_pop6$locus_pair)))
+check.rows(occ_pop6)
+head(occ_pop6)
+>>>>>>> 37f64eeca13cbfc82471f8cf70c09928ac0d95c8
 
 # The total number of loci in the linked data set:
 all_ldloc<-c(as.character(ld_loc$loc1),as.character(ld_loc$loc2))
