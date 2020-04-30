@@ -20,16 +20,16 @@ ghead(snp_onerow); dim(snp_onerow)
 
 #Running LD Scripts
 
-# Use  partially filtered data from STEP 01? This will be quicker than doing the full data set and we are not interested in those loci which have already been filtered out. 
+# Use  partially filtered data from STEP 01 - this will be quicker than doing the full data set and we are not interested in those loci which have already been filtered out. 
 
 #BD note: Use the partially fitered data from STEP 02, after malim ==0.05 process
 ghead(filtered_data); dim(filtered_data)
 
-
+### TEST SCRIPT on sample data:
 
 #Warning: Sample dataset were used in following scripts
 
-# To get the script working, you could run through a smaller data set, that won't take as long to run. Once you have it working you can work on the full filtered_data data set:
+# To get the script working, run through a smaller data set, that won't take as long to run. Once you have it working you can work on the full filtered_data data set:
 
 # randomly sample 20 loci for testing:
 samp_cols<-which(colnames(filtered_data)[3:ncol(filtered_data)] %in% sample(colnames(filtered_data)[3:ncol(filtered_data)],20))
@@ -38,10 +38,8 @@ rand_snp<-tidy.df(rand_snp)
 ghead(rand_snp); dim(rand_snp) 
 
 # format genotype file for the calc_LD function from evachang and run test:
-
 sites_to_test<-levels(rand_snp$site)
 dat_test<-rand_snp
-
 param_file<-paste("RESULTS/LD_results/parameters","_LD.txt",sep="")
 
 # if using the partially filtered data set, we've already removed monomorphic loci and loci with high levels of missing data. So we can move directly to the linkage tests. In this data set, all sites are in the same region, so we can look at the population as a whole. There is no need to divide the data into separate sites. 
@@ -62,21 +60,11 @@ df_test<-data.frame(loc1=loc_combn[1,],loc2=loc_combn[2,],r2=ld.thisrun$rsq[lowe
 
 # for 20 loci, there are 190 pairwise comparisons of linkage disequilibrium:
 head(df_test); dim(df_test)
-
 hist(df_test$r2)
 
 # there will be MANY, MANY more for the full data set. Once you have it working on the test data set, you can proceed to work on the full data set. 
 
-# we need to decide what a reasonable cut-off is for discarding linked loci. In the PNAS paper, we used 0.75
-
-# the STEP_02 script pulls in a file of linked loci. If the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
-df_test<-df_test[which(df_test$r2>0.75),]
-df_test<-tidy.df(df_test)
-
-# write.table(df_test, file="LD_r75_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
-write.table(df_test, file="LD_r75_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
-
-----###Warning: full dataset were used in following scripts###---- 
+### LD ANALYSIS on FULL dataset:
 
 #rand_snp replaced by filtered_data for full data run. 
 sites_to_test<-levels(filtered_data$site)
@@ -97,26 +85,19 @@ df_test<-data.frame(loc1=loc_combn[1,],loc2=loc_combn[2,],r2=ld.thisrun$rsq[lowe
 
 # for all loci, there are 182739403 pairwise comparisons of linkage disequilibrium:
 head(df_test); dim(df_test)
-
 hist(df_test$r2)
-
-# we need to decide what a reasonable cut-off is for discarding linked loci. In the PNAS paper, we used 0.75
 
 # the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
 df_test<-df_test[which(df_test$r2>0.5),]
 df_test<-tidy.df(df_test)
 
-<<<<<<< HEAD
+# This step only tells us which loci are linked, not which loci we should remove (the next script does that). 
+
+# Write a file of all the linked loci, reduced to a smaller file size. Previously we were calling this "LD_r50_LOCI_FOR_REMOVAL", but really it should be "LD_r50_linked_loci", because we haven't yet determined which to remove. 
+
 # write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 
-# ------------------------------------------
-# Which of the linked pairs should we remove?
-=======
-write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
-
-
-#New Steps for Filtered Data 
->>>>>>> 37f64eeca13cbfc82471f8cf70c09928ac0d95c8
+### LD ANALYSIS: Determine which of the linked pairs we should remove:
 
 ##BD's Script
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
@@ -128,38 +109,29 @@ ld_loc<-read.table(paste(LD_dir, "LD_r75_filtered_data",sep="/"),header=T)
 LD_dir_AS<-"../Offline_Results/LD_results"
 dir(LD_dir_AS)
 ld_loc<-read.table(paste(LD_dir_AS, "LD_r70_LOCI_FOR_REMOVAL",sep="/"),header=T)
-
 head(ld_loc); dim(ld_loc)
 
+# Decide  a reasonable cut-off is for  linked loci. In the PNAS paper, we used 0.75
 # Set cutoff at 0.75:
-
 ld_loc<-ld_loc[which(ld_loc$r2>0.75),]
 ld_loc<-tidy.df(ld_loc)
 head(ld_loc); dim(ld_loc)
 
-<<<<<<< HEAD
 # The determine which loci would need to be removed to ensure no linked loci would occur together:
-=======
-# Add separate loci:#
-second_L<-unlist(lapply(gregexpr("L",occ_pop6$locus_pair),function(x)x[2]))
-occ_pop6$loc1<-substr(occ_pop6$locus_pair,1,(second_L-1))
-occ_pop6$loc2<-substr(occ_pop6$locus_pair,second_L,nchar(as.character(occ_pop6$locus_pair)))
-check.rows(occ_pop6)
-head(occ_pop6)
->>>>>>> 37f64eeca13cbfc82471f8cf70c09928ac0d95c8
 
-# The total number of loci in the linked data set:
+# Total number of loci in the linked data set:
 all_ldloc<-c(as.character(ld_loc$loc1),as.character(ld_loc$loc2))
 length(unique(all_ldloc))
 head(all_ldloc)
 
+# Frequency with which each of the linked loci occurs:
 freq_loc<-data.frame(locus=names(table(all_ldloc)),no_times_total=as.numeric(table(all_ldloc)))
 head(freq_loc); dim(freq_loc)
 head(ld_loc); dim(ld_loc)
 
-# This script removes a locus from a linked pair, prioritising the locus which is more frequently linked to other loci:
+# The following script removes a locus from a linked pair, prioritising the locus which is more frequently linked to other loci:
 
-# start 1000h, finish 2000h - next day!! 24+10 = 43 hr!! Something is wrong here... 
+# start 1000h, finish 2000h - next day!! 24+10 = 43 hr! And this is on the big mac. Something is wrong... Might be that it's online constantly connecting to Github, I need to do some tests to figure out what's going on. 
 
 save.image("../Offline_Results/LD_selection.RData")
 
@@ -195,6 +167,7 @@ for (i in 1:nrow(ld_loc)){
 Sys.time()
 save.image("../Offline_Results/LD_selection.RData")
 
+# Summarise results:
 rm_loci<-data.frame(locus=unlist(removed.loci))
 rm_loci$for_removal<-1
 loci_toremove<-as.character(rm_loci$locus)
