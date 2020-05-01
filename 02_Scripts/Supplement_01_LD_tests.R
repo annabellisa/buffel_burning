@@ -97,6 +97,22 @@ df_test<-tidy.df(df_test)
 
 # write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
 
+#save the file by above the cutoff
+ldf<-0.75
+#Method 1.#
+install.packages("dplyr")
+library(dplyr)
+ldfilt75<-ld_loc %>%
+  filter(r2 > ldf)
+head(ldfilt75)
+write.table(ldfilt75, file = "LD_r75_filtered_data", quote = F, sep = "\t", row.names = T)
+
+#Method 2.#
+ldlift75<-ld_loc[which(ld_loc$r2>0.75),]
+ldlift75<-tidy.df(ldlift75)
+write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names=T)
+
+
 ### LD ANALYSIS: Determine which of the linked pairs we should remove:
 
 ##BD's Script

@@ -100,4 +100,12 @@ str(filtered_data)
 #[1]   93 9371
 
 
-
+#Output after LD filters
+#> ghead(filtered_data)
+#site     ind L7 L8 L9 L47 L59 L64 L80 L82
+#1 X01b X01b_01  1  2  0   1   0   0   2   2
+#2 X01b X01b_02  1  2  0   1   0   0   2   2
+#3 X01b X01b_03  1  2  0   1   0   0   2   2
+#4 X01b X01b_04  1  2  0   1   0   0   2   2
+#5 X01u X01u_01  2  0  0   1   1   1   1   1
+#6 X01u X01u_02  1  2  0   1   0   0   0   2

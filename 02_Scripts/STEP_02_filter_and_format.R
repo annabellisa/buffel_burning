@@ -83,13 +83,12 @@ ghead(filtered_data); dim(filtered_data)
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
-----#Supplement_01_LD_test.R#----
-
+#Supplement_01_LD_test.R#
 ##BD's Script#
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
 dir(LD_dir)
-ld_loc<-read.table(paste(LD_dir, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
+ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 
 # AS LD: 
 LD_dir_AS<-"RESULTS/LD_results"
@@ -108,51 +107,6 @@ ghead(filtered_data)
 
 # that concludes our LD filter
 
-
-#Steps
-#1. Read in the file you saved with the LD_results as a data frame
-#2. Set the LD cutoff - 0.7 or 0.75, or whatever you decide
-#3. Identify the loci from the results which occur above this cutoff
-#4. Subset the SNP data set to exclude the loci in disequilibrium
-
-ldf<-0.75
-#Method 1.#
-install.packages("tidyverse")
-library(tidyverse)
-library(tibble)
-install.packages("dplyr")
-library(dplyr)
-ldfilt75<-ld_loc %>%
-  filter(r2 > ldf)
-head(ldfilt75)
-write.table(ldfilt75, file = "LD_r75_filtered_data", quote = F, sep = "\t", row.names = T)
-
-#Method 2.#
-ldlift75<-ld_loc[which(ld_loc$r2>0.75),]
-ldlift75<-tidy.df(ldlift75)
-write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names=T)
-
-# Hi Binyin - what you're doing above is saving the LD results to a new file, which is good. But the following lines are needed to do the actual filtering. I.e. now that we've got the LD results saved, we can use them to filter out the loci that are too correlated, according to our cut-off. 
-
-
-#----Changes----#
-#BD's Script#
-LD_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-dir(LD_dir)
-ld_loc<-read.table(paste(LD_dir, "LD_r75_filtered_data",sep="/"),header=T)
-
-# AS LD: 
-LD_dir_AS<-"../Offline_Results/LD_results"
-dir(LD_dir_AS)
-ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_filtered_data",sep="/"),header=T)
-
-head(ld_loc)
-
-
-
-
-save.image("LD.RData")
 
 # --- *** HWE filters *** --- #
 
