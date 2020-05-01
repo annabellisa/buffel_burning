@@ -131,7 +131,7 @@ head(ld_loc); dim(ld_loc)
 
 # The following script removes a locus from a linked pair, prioritising the locus which is more frequently linked to other loci:
 
-# start 1000h, finish 2000h - next day!! 24+10 = 43 hr! And this is on the big mac. Something is wrong... Might be that it's online constantly connecting to Github, I need to do some tests to figure out what's going on. 
+# start 1000h, finish 2000h - next day!! 24+10 = 34 hr! And this is on the big mac. Something is wrong... Might be that it's online constantly connecting to Github, I need to do some tests to figure out what's going on. 
 
 save.image("../Offline_Results/LD_selection.RData")
 
@@ -177,7 +177,7 @@ length(removed.loci)
 head(rm_loci)
 tail(rm_loci)
 
-# write.table(rm_loci,"LD_r75_over5pop.txt",sep="\t",row.names=F,quote=F)
+# write.table(rm_loci,"LD_r75_loci_to_remove.txt",sep="\t",row.names=F,quote=F)
 
 # Check:
 ck_rm<-merge(ld_loc,rm_loci,by.x="loc1",by.y="locus",all.x=T, all.y=F)

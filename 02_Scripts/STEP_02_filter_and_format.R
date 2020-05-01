@@ -64,8 +64,6 @@ filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% repavg95)]
 filtered_data<-tidy.df(filtered_data)
 ghead(filtered_data); dim(filtered_data)
 
-
-
 # --- *** Minor Allele Frequency (MAF) filters *** --- #
 maf_sum<-maf_summary(filtered_data)
 head(maf_sum)
@@ -94,12 +92,22 @@ dir(LD_dir)
 ld_loc<-read.table(paste(LD_dir, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
 
 # AS LD: 
-LD_dir_AS<-"../Offline_Results/LD_results"
+LD_dir_AS<-"RESULTS/LD_results"
 dir(LD_dir_AS)
-ld_loc<-read.table(paste(LD_dir_AS, "LD_r50_LOCI_FOR_REMOVAL",sep="/"),header=T)
+ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
+head(ld_loc); dim(ld_loc)
 
-head(ld_loc)
-View(ld_loc)
+ldfilt<-as.character(ld_loc$locus)
+head(ldfilt); length(ldfilt)
+
+print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
+filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
+filtered_data<-tidy.df(filtered_data)
+print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
+ghead(filtered_data)
+
+# that concludes our LD filter
+
 
 #Steps
 #1. Read in the file you saved with the LD_results as a data frame
@@ -143,13 +151,6 @@ head(ld_loc)
 
 
 
-ldfilt<-as.character(ld_loc$loc2)
-print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
-filtered_data<-tidy.df(filtered_data)
-filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
-filtered_data<-tidy.df(filtered_data)
-print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
-ghead(filtered_data)
 
 save.image("LD.RData")
 
@@ -190,6 +191,12 @@ ghead(filtered_data); dim(filtered_data)
 save.image("HWE_filter_data.Rdata")
 
 # --- *** NEUTRALITY filter *** --- #
+
+# 1. BAYESCAN - command line program - AS
+# 2. LFMM - R - BD
+# 3. PCAdapt - R - BD
+
+# for all neutrality tests, remove: duplicated, monomorphic and low call rate, but leave EVERYTHING ELSE. 
 
 # Directory with results:
 sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
