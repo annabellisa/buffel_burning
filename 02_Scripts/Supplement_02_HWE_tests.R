@@ -50,5 +50,4 @@ ghead(filtered_data); dim(filtered_data)
 hwe.res<-hwe_exact(filtered_data)
 head(hwe.res); dim(hwe.res)
 
-  
 write.table(hwe.res, file="HWE_test.txt", quote=F, sep="\t", row.names=F)

@@ -33,7 +33,8 @@ data_name<-"snp_onerow"
 filtered_data<-get(data_name)
 
 # --- *** Discard duplicated *** --- #
-head(linf)
+
+# 22923 out of 69799 loci (33%) were identified as duplicate sequences by BLAST. This seemed very high, so I did some random manual checks of the blast results and the results are correct: we do have many SNPs occurring on the same sequence. 
 dup_loc<-as.character(linf$locus[linf$duplicate==1])
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% dup_loc)]
 filtered_data<-tidy.df(filtered_data)
@@ -48,12 +49,19 @@ ghead(filtered_data); dim(filtered_data)
 # --- *** DartSeq Quality Control (QC) filters *** --- #
 
 # Filter loci with high missing data rate (see remarks in missing_data function):
+
+# Something is WRONG here. The raw data from DartSeq does not contain any loci with a call rate < 20% and this is what we've set our cutoff as. However, we're losing approx. 20,000 loci. Need to investigate what's going on here. 
+
 ###-->> Set maximum missing data:
 ##missing_data==1-CallRate
 cr<-0.2
 missing_sum<-missing_data(filtered_data,3,cr)
 m_summary<-missing_sum$miss_sum
+head(m_summary); dim(m_summary)
+range(m_summary$missing)
 #hist(m_summary$missing_data)
+#hist(1-m_summary$missing_data)
+#hist(linf$CallRate)
 filtered_data<-missing_sum$filt_dat
 
 # Filter loci with low reproducibility:
@@ -113,36 +121,28 @@ ghead(filtered_data)
 #Supplement_02_HWE_test.R#
 
 #Annabel
-hwe_dir<-"../../ANALYSIS_RESULTS/ALL_pops_HWE_test"
+hwe_dir<-"RESULTS/HWE_results"
 dir(hwe_dir)
-hwe_res<-read.table(paste(hwe_dir,"hwe_all_pops.txt",sep="/"),header=T)
+hwe_res<-read.table(paste(hwe_dir,"HWE_test.txt",sep="/"),header=T)
 head(hwe_res)
 
 #Binyin
 hwe_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/HWE_results"
 dir(hwe_dir)
-
-#See-sup#2
-ghead(filtered_data); dim(filtered_data)
-hwe.res<-hwe_exact(filtered_data)
-head(hwe.res); dim(hwe.res)
-write.table(hwe.res, file="HWE_test1.txt", quote=F, sep="\t", row.names=F)
-
-# we need to make some changes here. The previous project I did, we looked for loci that were consistently out of HWE in > 5 populations. For ours however. we're treating them as a single population so I think we can just go with the p value. 
-
-# I've made some preliminary changes here, but we need to look at the results, check the script and make some decisions:
+hwe_res<-read.table(paste(hwe_dir,"HWE_test.txt",sep="/"),header=T)
+head(hwe_res)
 
 # Filter loci with HWD:
 hwe_flag<-T
 hwe_cutoff<-0.1 # we need to decide on the cutoff
-hwefilt<-as.character(hwe.res$locus[hwe.res$p.adj<hwe_cutoff])
+hwefilt<-as.character(hwe_res$locus[hwe_res$p.adj<hwe_cutoff])
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% hwefilt)]
 filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
 ghead(filtered_data); dim(filtered_data)
 
-save.image("HWE_filter_data.Rdata")
+# save.image("HWE_filter_data.Rdata")
 
 # --- *** NEUTRALITY filter *** --- #
 
@@ -150,7 +150,9 @@ save.image("HWE_filter_data.Rdata")
 # 2. LFMM - R - BD
 # 3. PCAdapt - R - BD
 
-# for all neutrality tests, remove: duplicated, monomorphic and low call rate, but leave EVERYTHING ELSE. 
+# for all neutrality tests, remove: duplicated and monomorphic loci, but leave EVERYTHING ELSE (including low call rate - I changed my mind on this. 
+# If I'm not wrong, PCAdapt uses bed, bim, fam files (i.e. PLINK files) and LFMM a special format below. The next step is to format the files for these programs. 
+
 
 # Directory with results:
 sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
