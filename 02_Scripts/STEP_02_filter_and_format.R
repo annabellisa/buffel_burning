@@ -54,8 +54,20 @@ ghead(filtered_data); dim(filtered_data)
 
 ###-->> Set maximum missing data:
 ##missing_data==1-CallRate
-cr<-0.2
-missing_sum<-missing_data(filtered_data,3,cr)
+#Orginally
+missing_cutoff<-0.2
+missing_sum<-missing_data(filtered_data,3,missing_cutoff)
+
+#Remarks:
+#when missing_cutoff<-0.5
+#[1] "Original data: 93 individuals; 46875 loci"
+#[1] "Filtered data: 93 individuals; 40711 loci"
+#[1] "6164 loci with more than 50 % missing data removed"
+#missing_cutoff<-0.2
+#[1] "Original data: 93 individuals; 46875 loci"
+#[1] "Filtered data: 93 individuals; 24579 loci"
+#[1] "22296 loci with more than 20 % missing data removed"
+
 m_summary<-missing_sum$miss_sum
 head(m_summary); dim(m_summary)
 range(m_summary$missing)
@@ -63,6 +75,7 @@ range(m_summary$missing)
 #hist(1-m_summary$missing_data)
 #hist(linf$CallRate)
 filtered_data<-missing_sum$filt_dat
+
 
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:
