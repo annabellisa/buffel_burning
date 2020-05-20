@@ -10,13 +10,24 @@
 load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
-load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
+load("../Offline_Results/LD_40711_loci/LD_40711_loci.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 # This is the full data set:
 ghead(snp_onerow); dim(snp_onerow)
+
+# This is the filtered data set on which to do the LD tests (40711 loci)
+ghead(filtered_data); dim(filtered_data)
+
+
+
+
+### **************** 
+# BELOW is SCRIPT DEVELOPMENT ONLY.
+# We did not use the full panel of loci on this analysis. Even the "full data set" was only 19,000 loci, so we are re-doing the tests on the complete data set. 
+### ****************
 
 #Running LD Scripts
 

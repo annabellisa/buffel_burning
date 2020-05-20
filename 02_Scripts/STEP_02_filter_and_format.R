@@ -55,7 +55,7 @@ ghead(filtered_data); dim(filtered_data)
 ###-->> Set maximum missing data:
 ##missing_data==1-CallRate
 #Orginally
-missing_cutoff<-0.2
+missing_cutoff<-0.5
 missing_sum<-missing_data(filtered_data,3,missing_cutoff)
 
 #Remarks:
@@ -75,6 +75,7 @@ range(m_summary$missing)
 #hist(1-m_summary$missing_data)
 #hist(linf$CallRate)
 filtered_data<-missing_sum$filt_dat
+ghead(filtered_data); dim(filtered_data)
 
 
 # Filter loci with low reproducibility:
