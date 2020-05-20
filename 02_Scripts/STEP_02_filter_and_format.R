@@ -75,6 +75,7 @@ range(m_summary$missing)
 #hist(1-m_summary$missing_data)
 #hist(linf$CallRate)
 filtered_data<-missing_sum$filt_dat
+ghead(filtered_data); dim(filtered_data)
 
 
 # Filter loci with low reproducibility:

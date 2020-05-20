@@ -10,13 +10,79 @@
 load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
-load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
+load("../Offline_Results/LD_40711_loci/LD_40711_loci.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
+library(parallel)
 
 # This is the full data set:
 ghead(snp_onerow); dim(snp_onerow)
+
+# This is the filtered data set on which to do the LD tests (40711 loci)
+ghead(filtered_data); dim(filtered_data)
+
+# Data set-up:
+sites_to_test<-levels(filtered_data$site)
+dat_ld<-filtered_data
+dat_ld<-dat_ld[,3:ncol(dat_ld)]
+ghead(dat_ld); dim(dat_ld)
+
+# Make a parameter file so we know what filters were applied before the tests:
+# param_file<-paste("../Offline_Results/LD_40711_loci/LD_40711_parameters.txt",sep="")
+# write("LD tests, round 2",file=param_file,sep="")
+# write(as.character(print(Sys.time())),file=param_file,append = T)
+# write(paste("number of sites = ",length(sites_to_test),sep=""),file=param_file,append = T)
+# write(paste("sites:", sep=""),file=param_file,append = T)
+# write(paste(sites_to_test,collapse=", "),file=param_file,append = T)
+# write(paste("number of loci = ",ncol(dat_ld),sep=""),file=param_file,append = T)
+# write(paste("filters applied = dups removed, mono removed, max missing= 50%"),file=param_file,append = T)
+
+# geno needs to be m x n where m is the number of markers and n is the number of individuals:
+dat_ld<-t(dat_ld)
+ghead(dat_ld); dim(dat_ld)
+
+# these are the actual tests, but the mac is slow and we need to figure out why first:
+print("LD test START:")
+print(Sys.time())
+
+
+ld.thisrun<-calc_LD(dat_ld,inds=1:nrow(dat_ld), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
+print("LD test END")
+print(Sys.time())
+
+# Create pairwise locus column names:
+loc_combn<-combn(rownames(dat_ld),2)
+print(Sys.time())
+
+# Summarise results:
+ld_df<-data.frame(loc1=loc_combn[1,],loc2=loc_combn[2,],r2=ld.thisrun$rsq[lower.tri(ld.thisrun$rsq)])
+
+# for all loci, there are 182739403 pairwise comparisons of linkage disequilibrium (that was for ~19,000 loci):
+head(ld_df); dim(ld_df)
+hist(ld_df$r2)
+
+# the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
+ld_df<-ld_df[which(ld_df$r2>0.5),]
+ld_df<-tidy.df(ld_df)
+
+# This step only tells us which loci are linked, not which loci we should remove (the next script does that). 
+
+# Write a file of all the linked loci, reduced to a smaller file size. Previously we were calling this "LD_r50_LOCI_FOR_REMOVAL", but really it should be "LD_r50_linked_loci", because we haven't yet determined which to remove. 
+
+# write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+
+
+
+
+
+
+
+
+### **************** 
+# BELOW is SCRIPT DEVELOPMENT ONLY.
+# We did not use the full panel of loci on this analysis. Even the "full data set" was only 19,000 loci, so we are re-doing the tests on the complete data set. 
+### ****************
 
 #Running LD Scripts
 
@@ -31,7 +97,7 @@ ghead(filtered_data); dim(filtered_data)
 
 # To get the script working, run through a smaller data set, that won't take as long to run. Once you have it working you can work on the full filtered_data data set:
 
-# randomly sample 20 loci for testing:
+# randomly sample 20-2000 loci for testing:
 samp_cols<-which(colnames(filtered_data)[3:ncol(filtered_data)] %in% sample(colnames(filtered_data)[3:ncol(filtered_data)],20))
 rand_snp<-filtered_data[,c(1,2,samp_cols)]
 rand_snp<-tidy.df(rand_snp)
@@ -52,7 +118,37 @@ dat_test<-t(dat_test)
 
 ghead(dat_test); dim(dat_test)
 
+print("LD test START:")
+print(Sys.time())
+
 ld.thisrun<-calc_LD(dat_test,inds=1:nrow(dat_test), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
+
+print("LD test END")
+print(Sys.time())
+
+# 2000 loci = 2 min
+
+# trying to get this to work with mclapply, but not sure how it works yet:
+
+f <- function(i) {
+  nrow(dat_test)
+}
+
+f()
+x1 <- mclapply(1:nrow(dat_test), f)
+
+save1 <- mclapply(1:100, f)
+
+print("LD test START:")
+print(Sys.time())
+
+ld.thisrun<-calc_LD(dat_test,inds=1:nrow(dat_test), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
+
+print("LD test END")
+print(Sys.time())
+
+
+# this goes back to the normal script:
 
 loc_combn<-combn(rownames(dat_test),2)
 

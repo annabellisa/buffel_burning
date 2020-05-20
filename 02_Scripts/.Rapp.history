@@ -1,0 +1,39 @@
+test_number<-5000#
+test_names<-sample(rownames(dat_ld),size=test_number)#
+start_time <- gsub("[: -]", "" , Sys.time(), perl=TRUE)#
+test_combn<-combn(test_names,2)#
+end_time <- gsub("[: -]", "" , Sys.time(), perl=TRUE)#
+#
+print(paste("names test START: ", start_time, sep=""))#
+print(paste("There were this many names: ", test_number, sep=""))#
+print(paste("There were this many pair wise combinations: ", length(test_combn)))#
+print(paste("names test END: ", end_time, sep=""))#
+paste("it took this many minutes: ",(as.numeric(end_time)-as.numeric(start_time))/60,sep="")
+test_number<-5000
+letters()
+letters[]
+test_names<-sample(letters[],size=test_number)
+test_names<-sample(letters[],size=test_number,replace=T)
+test_names
+test_number<-5000#
+test_names<-sample(letters[],size=test_number,replace=T)#
+start_time <- gsub("[: -]", "" , Sys.time(), perl=TRUE)#
+test_combn<-combn(test_names,2)#
+end_time <- gsub("[: -]", "" , Sys.time(), perl=TRUE)#
+#
+print(paste("names test START: ", start_time, sep=""))#
+print(paste("There were this many names: ", test_number, sep=""))#
+print(paste("There were this many pair wise combinations: ", length(test_combn)))#
+print(paste("names test END: ", end_time, sep=""))#
+paste("it took this many minutes: ",(as.numeric(end_time)-as.numeric(start_time))/60,sep="")
+test_number<-15000#
+test_names<-sample(letters[],size=test_number,replace=T)#
+start_time <- gsub("[: -]", "" , Sys.time(), perl=TRUE)#
+test_combn<-combn(test_names,2)#
+end_time <- gsub("[: -]", "" , Sys.time(), perl=TRUE)#
+#
+print(paste("names test START: ", start_time, sep=""))#
+print(paste("There were this many names: ", test_number, sep=""))#
+print(paste("There were this many pair wise combinations: ", length(test_combn)))#
+print(paste("names test END: ", end_time, sep=""))#
+paste("it took this many minutes: ",(as.numeric(end_time)-as.numeric(start_time))/60,sep="")
