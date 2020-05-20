@@ -51,3 +51,30 @@ hwe.res<-hwe_exact(filtered_data)
 head(hwe.res); dim(hwe.res)
 
 write.table(hwe.res, file="HWE_test.txt", quote=F, sep="\t", row.names=F)
+
+#Results
+
+#> # This is the partially filtered data from STEP 02:
+#  > ghead(filtered_data); dim(filtered_data)
+#site     ind L6 L7 L8 L9 L11 L12 L17 L25
+#1 X01b X01b_01  2  1  2  0   0   0   0   0
+#2 X01b X01b_02  2  1  2  0   0   0   0   0
+#3 X01b X01b_03  2  1  2  0   0   0   0   0
+#4 X01b X01b_04  2  1  2  0   0   0   0   0
+#5 X01u X01u_01  1  2  0  0   0   0   0   0
+#6 X01u X01u_02  2  1  2  0   0   0  NA   0
+#[1]    93 40713
+#> hwe.res<-hwe_exact(filtered_data)
+#> head(hwe.res); dim(hwe.res)
+#locus            p        p.adj
+#1    L6 1.000000e+00 1.000000e+00
+#2    L7 2.314964e-01 1.000000e+00
+#3    L8 6.324177e-02 1.000000e+00
+#4    L9 1.423518e-23 5.729233e-19
+#5   L11 1.369863e-02 1.000000e+00
+#6   L12 6.206069e-02 1.000000e+00
+#[1] 40711     3
+
+
+
+

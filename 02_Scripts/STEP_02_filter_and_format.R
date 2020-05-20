@@ -77,6 +77,10 @@ range(m_summary$missing)
 filtered_data<-missing_sum$filt_dat
 ghead(filtered_data); dim(filtered_data)
 
+# save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/0.5 Datasets_filter_and_format/Max Cutoff.RData")
+
+# Jumpt to the test, following scripts are the filters
+
 
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:
@@ -99,9 +103,9 @@ ghead(filtered_data); dim(filtered_data)
 
 # I usually hashtag the write.table() and save.image() functions so we don't acidentally overwrite saved files
 
-# write.table(filtered_data, file = "Partially_filtered_data", quote = F, sep = "\t", row.names = T)
+# write.table(filtered_data, file = "Partially_filtered_data_after_MAF", quote = F, sep = "\t", row.names = T)
 
-# save.image("Partially Filtered Data.RData")
+# save.image("Partially Filtered Data After MAF.RData")
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
