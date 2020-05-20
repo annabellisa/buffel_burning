@@ -55,7 +55,7 @@ ghead(filtered_data); dim(filtered_data)
 ###-->> Set maximum missing data:
 ##missing_data==1-CallRate
 #Orginally
-missing_cutoff<-0.2
+missing_cutoff<-0.5
 missing_sum<-missing_data(filtered_data,3,missing_cutoff)
 
 #Remarks:
