@@ -14,6 +14,7 @@ load("../Offline_Results/LD_40711_loci/LD_40711_loci.RData"); rm(list=setdiff(ls
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
+
 # library(parallel)
 
 # This is the full data set:
@@ -26,12 +27,14 @@ ghead(filtered_data); dim(filtered_data)
 # Data set-up:
 ### ^^^^ ____________
 
+# Data set-up:
 sites_to_test<-levels(filtered_data$site)
 dat_ld<-filtered_data
 dat_ld<-dat_ld[,3:ncol(dat_ld)]
 ghead(dat_ld); dim(dat_ld)
 
 # Make a parameter file so we know what filters were applied before the tests: test change
+# Make a parameter file so we know what filters were applied before the tests:
 # param_file<-paste("../Offline_Results/LD_40711_loci/LD_40711_parameters.txt",sep="")
 # write("LD tests, round 2",file=param_file,sep="")
 # write(as.character(print(Sys.time())),file=param_file,append = T)
@@ -53,6 +56,11 @@ ghead(dat_ld); dim(dat_ld)
 # 2hr 40min on big mac (40711 loci)
 print("LD test START:")
 print(Sys.time())
+# these are the actual tests, but the mac is slow and we need to figure out why first:
+print("LD test START:")
+print(Sys.time())
+
+
 ld.thisrun<-calc_LD(dat_ld,inds=1:nrow(dat_ld), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
 print("LD test END")
 print(Sys.time())
@@ -79,6 +87,14 @@ ld_df<-tidy.df(ld_df)
 
 # save.image("../Offline_Results/LD_40711_loci/LD_40711_loci.RData")
 # reduced size is 9GB - I've deleted this since the results were saved in the text file
+
+# for all loci, there are 182739403 pairwise comparisons of linkage disequilibrium (that was for ~19,000 loci):
+head(ld_df); dim(ld_df)
+hist(ld_df$r2)
+
+# the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
+ld_df<-ld_df[which(ld_df$r2>0.5),]
+ld_df<-tidy.df(ld_df)
 
 # This step only tells us which loci are linked, not which loci we should remove (the next script does that). 
 
@@ -283,6 +299,9 @@ save.image("../Offline_Results/LD_40711_loci/LD_selection.RData")
 
 
 
+=======
+# write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
+>>>>>>> 50ceee386cd999fe648b2ae6fe899beda55e2f23
 
 
 
