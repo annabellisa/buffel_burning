@@ -148,7 +148,11 @@ save.image("../Offline_Results/LD_40711_loci/LD_selection.RData")
 library(foreach)
 library(doParallel)
 
-#setup parallel backend to use many processors
+# Hi Binyin - this is where I'm trying to convert the original script from below into parallel. But it's not working. Maybe there's a better way to do the script without the loop? 
+
+# setup parallel backend to use many processors
+# https://stackoverflow.com/questions/38318139/run-a-for-loop-in-parallel-in-r
+
 cores=detectCores()
 cl <- makeCluster(cores[1]-1) #not to overload your computer
 registerDoParallel(cl)
