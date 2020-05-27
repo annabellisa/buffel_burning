@@ -156,7 +156,7 @@ paste("Number of sites = ",length(sites_now),sep=""),
 paste("Sites included = ",paste(sites_now,collapse=", "),sep=""),
 paste("Number of individuals = ",nrow(get(data_name)),sep=""),
 paste("Monomorphic loci removed = ",remove_mono,sep=""),
-paste("Maximum missing data = ",cr*100,"%",sep=""),
+paste("Maximum missing data = ",missing_cutoff*100,"%",sep=""),
 paste("Minimum reproducibility = ",ra*100,"%",sep=""),
 paste("Minimum minor allele frequency = ",malim*100,"%",sep=""),
 file=paste(out_file,".txt",sep=""),sep="\n",append=T)

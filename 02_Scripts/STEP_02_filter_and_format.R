@@ -50,13 +50,22 @@ ghead(filtered_data); dim(filtered_data)
 
 # Filter loci with high missing data rate (see remarks in missing_data function):
 
-# Something is WRONG here. The raw data from DartSeq does not contain any loci with a call rate < 20% and this is what we've set our cutoff as. However, we're losing approx. 20,000 loci. Need to investigate what's going on here. 
-
 ###-->> Set maximum missing data:
 ##missing_data==1-CallRate
 #Orginally
 missing_cutoff<-0.5
 missing_sum<-missing_data(filtered_data,3,missing_cutoff)
+m_summary<-missing_sum$miss_sum
+head(m_summary); dim(m_summary)
+range(m_summary$missing)
+filtered_data<-missing_sum$filt_dat
+ghead(filtered_data); dim(filtered_data)
+
+# save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/0.5 Datasets_filter_and_format/Max Cutoff.RData")
+
+#hist(m_summary$missing_data)
+#hist(1-m_summary$missing_data)
+#hist(linf$CallRate)
 
 #Remarks:
 #when missing_cutoff<-0.5
@@ -67,17 +76,6 @@ missing_sum<-missing_data(filtered_data,3,missing_cutoff)
 #[1] "Original data: 93 individuals; 46875 loci"
 #[1] "Filtered data: 93 individuals; 24579 loci"
 #[1] "22296 loci with more than 20 % missing data removed"
-
-m_summary<-missing_sum$miss_sum
-head(m_summary); dim(m_summary)
-range(m_summary$missing)
-#hist(m_summary$missing_data)
-#hist(1-m_summary$missing_data)
-#hist(linf$CallRate)
-filtered_data<-missing_sum$filt_dat
-ghead(filtered_data); dim(filtered_data)
-
-# save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/0.5 Datasets_filter_and_format/Max Cutoff.RData")
 
 # Jumpt to the test, following scripts are the filters
 
@@ -380,7 +378,44 @@ write.table(data[,1:2],"lfmm_site.txt",row.names=F,quote=F,sep="\t")
 
 # close format lfmm ----
 
+####   	 	 FORMAT STRUCTURE:	   	 ####
+  
+  # Single row data:
+  # 0 = Reference allele homozygote (0101)
+  # 1 = SNP allele homozygote (0202)
+  # 2 = heterozygote (0102)
+  
+ghead(filtered_data); dim(filtered_data)
 
+  # List parameters:
+  data<-filtered_data
+  headline<-"Cenchrus_filt1"
+  param.sites<-levels(data$site)
+  param.nosites<-length(param.sites)
+  param.noloci<-ncol(data)-2
+  param.noindiv<-nrow(data)
+  param.mono<-T
+  param.repavg<-F
+  param.callrate<-T
+  param.MAF<-F
+  param.LD<-F
+  param.HWE<-F
+  param.neu<-F
+  param.dup<-T
+  
+  ghead(data)
+  dim(data)
+  
+  # This is MUCH faster than format_genepop (only a few mins)
+  format_structure(data,headline)
+  
+  # Output locus info index:
+  bs_loci_filt1<-data.frame(lind=1:length(colnames(data)[3:ncol(data)]),locus=colnames(data)[3:ncol(data)])
+  head(bs_loci_filt1)
+  
+  # write.table(bs_loci_filt1,"bs_loci_filt1.txt",row.names=F,quote=F,sep="\t")
+  
+  # close format strucutre ----
 
 
 
