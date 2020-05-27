@@ -79,7 +79,7 @@ if(param.MAF==T) paste("Minor allele frequency filter = ", malim*100,"%",sep="")
 if(param.LD==T) paste("Linkage disequilibrium filter = ", ldf*100,"%",sep="") else paste("No LD filter",sep=""),
 if(param.HWE==T) paste("HWE filter applied = ",param.HWE,sep="") else paste("No HWE filter",sep=""),
 if(param.neu==T) paste("Non-neutral markers removed = ",param.neu,sep="") else paste("Non-neutral markers not removed",sep=""),
-if(param.dup==T) paste("Duplicate sequences removed = ",param.HWE,sep="") else paste("Duplicate sequences not removed",sep=""),
+if(param.dup==T) paste("Duplicate sequences removed = ",param.dup,sep="") else paste("Duplicate sequences not removed",sep=""),
 file=paste(headline,"_param.txt",sep=""),sep="\n",append=T)
 
 } # close gp_param
