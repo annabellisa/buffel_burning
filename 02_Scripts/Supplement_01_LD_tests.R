@@ -259,7 +259,8 @@ hist(rm_loci$no_times_total)
 saved_loci<-data.frame(locus=as.character(freq_loc$locus[which(!freq_loc$locus %in% rm_loci$locus)]))
 saved_loci<-merge(saved_loci, freq_loc, by="locus", all.x=T, all.y=F)
 
-# apart from one or two exceptions, most of the "saved" loci had very low levels of linkage with other loci, so it was worth saving them:
+# apart from one or two exceptions, most of the "saved" loci had very low levels of linkage with other loci
+# this essentially "validates" the process of removing the highly_linked markers to begin with, without checking if any of them could be saved. None of the saved markers were linked with > 100 other markers and only one or two had high-ish levels of linkage (50, 76, etc). We might have lost one or two from the mass removal of highly_linked, but unlikely to make much difference, and a reasonable trade-off given the savings in computational time. 
 range(saved_loci$no_times_total)
 mean(saved_loci$no_times_total)
 hist(saved_loci$no_times_total)
