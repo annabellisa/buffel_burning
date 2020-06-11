@@ -15,8 +15,6 @@ load("../Offline_Results/LD_40711_loci/LD_40711_loci.RData"); rm(list=setdiff(ls
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
-# library(parallel)
-
 # This is the full data set:
 ghead(snp_onerow); dim(snp_onerow)
 
@@ -33,7 +31,6 @@ dat_ld<-filtered_data
 dat_ld<-dat_ld[,3:ncol(dat_ld)]
 ghead(dat_ld); dim(dat_ld)
 
-# Make a parameter file so we know what filters were applied before the tests: test change
 # Make a parameter file so we know what filters were applied before the tests:
 # param_file<-paste("../Offline_Results/LD_40711_loci/LD_40711_parameters.txt",sep="")
 # write("LD tests, round 2",file=param_file,sep="")
@@ -60,7 +57,6 @@ print(Sys.time())
 print("LD test START:")
 print(Sys.time())
 
-
 ld.thisrun<-calc_LD(dat_ld,inds=1:nrow(dat_ld), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
 print("LD test END")
 print(Sys.time())
@@ -76,7 +72,7 @@ ld_df<-data.frame(loc1=loc_combn[1,],loc2=loc_combn[2,],r2=ld.thisrun$rsq[lower.
 
 # save.image("../Offline_Results/LD_40711_loci/LD_40711_loci.RData")
 
-# for all loci, there are 828672405 pairwise comparisons of linkage disequilibrium for 40711 loci (182739403 for ~19,000 loci):
+# for all loci, there are 828672405 pairwise comparisons of linkage disequilibrium for 40711 loci (there were previously 182739403 for ~19,000 loci):
 head(ld_df); dim(ld_df)
 # hist(ld_df$r2)
 # table(ld_df$r2>0.5)
@@ -86,17 +82,16 @@ ld_df<-ld_df[which(ld_df$r2>0.5),]
 ld_df<-tidy.df(ld_df)
 
 # save.image("../Offline_Results/LD_40711_loci/LD_40711_loci.RData")
-# reduced size is 9GB - I've deleted this since the results were saved in the text file
 
-# for all loci, there are 182739403 pairwise comparisons of linkage disequilibrium (that was for ~19,000 loci):
+# reduced size is 9GB - I've deleted this since the results were saved in the text file
 head(ld_df); dim(ld_df)
 hist(ld_df$r2)
 
-# the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
+# the file is very large, reduce it to only those locus pairs above the cut-off:
 ld_df<-ld_df[which(ld_df$r2>0.5),]
 ld_df<-tidy.df(ld_df)
 
-# This step only tells us which loci are linked, not which loci we should remove (the next script does that). 
+# This step only tells us which loci are linked, not which loci we should remove (the next section does that). 
 
 # Write a file of all the linked loci, reduced to a smaller file size. Previously we were calling this "LD_r50_LOCI_FOR_REMOVAL", but really it should be "LD_r50_linked_loci", because we haven't yet determined which to remove. 
 
@@ -106,23 +101,26 @@ ld_df<-tidy.df(ld_df)
 # LD locus selection
 ### ^^^^ ____________
 
-# AS LD: 
+# Decide  a reasonable cut-off is for  linked loci. In the PNAS paper, we used 0.75
+
+dir("../Offline_Results/LD_40711_loci")
+
+# no need to run this section if loading the LD_selection.RData workspace below
 LD_dir_AS<-"../Offline_Results/LD_40711_loci"
 dir(LD_dir_AS)
 ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_linked_loci.txt",sep="/"),header=T)
 head(ld_loc); dim(ld_loc)
 
-# I saved 0.75 as a separate file, to reduce the amount of data stored in the workspace when running. Re-load from the first lines in this section. 
-# Decide  a reasonable cut-off is for  linked loci. In the PNAS paper, we used 0.75
-# Set cutoff at 0.75:
-# ld_loc<-ld_loc[which(ld_loc$r2>0.75),]
-# ld_loc<-tidy.df(ld_loc)
-# head(ld_loc); dim(ld_loc)
-# write.table(ld_loc, file="../Offline_Results/LD_40711_loci/LD_r75_linked_loci.txt", quote=F, sep="\t", row.names=T)
+# this workspace has the full data set of 0.75 pw comparisons (16235 individual loci, 15040523 pw comparisons)
+load("../Offline_Results/LD_40711_loci/LD_selection.RData")
 
 # The determine which loci would need to be removed to ensure no linked loci would occur together:
 
-# Total number of loci in the linked data set:
+# the new "quick method":
+
+# Method: We first removed any locus that was linked more than 100 times with another locus (12385 out of 16235 loci). For the remaining 3850 loci, we systematically evaluated each pair of linked loci, and removed the locus with the highest frequency of linkage to other loci in the data set. This process identified 2722 loci that were  unlinked to any other locus after the more highly linked loci were removed. The remaining 13513 loci were removed from all analyses that assumed independence of loci. 
+
+# Total number of loci in the full data set:
 all_ldloc<-c(as.character(ld_loc$loc1),as.character(ld_loc$loc2))
 length(unique(all_ldloc))
 head(all_ldloc)
@@ -132,106 +130,82 @@ freq_loc<-data.frame(locus=names(table(all_ldloc)),no_times_total=as.numeric(tab
 head(freq_loc); dim(freq_loc)
 head(ld_loc); dim(ld_loc)
 
-# The following script removes a locus from a linked pair, prioritising the locus which is more frequently linked to other loci:
+# order the loci by the frequency with which they are correlated with others:
+f2loc<-freq_loc[order(freq_loc$no_times_total,decreasing=T),]
+f2loc<-tidy.df(f2loc)
+head(f2loc); dim(f2loc)
 
-# First run from limited (19,000) data set:
-# start 1000h, finish 2000h - next day!! 24+10 = 34 hr! Have done speed tests and nothing is wrong - the only way to speed it up is to learn to use parallel()
+# plot(f2loc$no_times_total)
+# hist(f2loc$no_times_total)
 
-# Starting now (start time was approx 1345 21 May 2020):
-# This run didn't work. Computer froze and nothing was saved.  
+# remove any locus that is highly linked (e.g. with 100 other loci). Removing loci that are very highly linked reduced the data set to a more computationally managable size:
+freq_cutoff<-100
+highly_linked<-as.character(f2loc$locus[f2loc$no_times_total>freq_cutoff])
 
-# Starting again at 26 May 2020, 0910:
+# Of the 16235 linked loci, 12385 of them are highly linked. 
+head(highly_linked); length(highly_linked)
+head(which(duplicated(highly_linked)))
 
-Sys.time()
-save.image("../Offline_Results/LD_40711_loci/LD_selection.RData")
+# This leaves 3850 loci with low levels of linkage (low_linked):
+f3loc<-f2loc[f2loc$no_times_total<=freq_cutoff,]
+f3loc<-tidy.df(f3loc)
+# plot(f3loc$no_times_total)
+# hist(f3loc$no_times_total)
+head(f3loc); dim(f3loc)
 
-library(foreach)
-library(doParallel)
+low_linked<-as.character(f3loc$locus)
+head(low_linked); length(low_linked)
 
-# Hi Binyin - this is where I'm trying to convert the original script from below into parallel. But it's not working. Maybe there's a better way to do the script without the loop? 
-
-# setup parallel backend to use many processors
-# https://stackoverflow.com/questions/38318139/run-a-for-loop-in-parallel-in-r
-
-cores=detectCores()
-cl <- makeCluster(cores[1]-1) #not to overload your computer
-registerDoParallel(cl)
-
-ld_select<-function(pw_data, freq_data, line_to_test){
-
-  # pw_data = the r2 values for all pairs of loci
-  # freq_data = the frequency of occurrence for each locus
-  # lines_to_test = a sequence (e.g. 1:5000) of lines in pw_data to test
-
-line.thisrun<-pw_data[line_to_test,]
-l1.thisrun<-as.character(line.thisrun$loc1)
-l2.thisrun<-as.character(line.thisrun$loc2)
-
-freq_l1<-freq_data$no_times_total[which(freq_data$locus==l1.thisrun)]
-freq_l2<-freq_data$no_times_total[which(freq_data$locus==l2.thisrun)]
-
-# If one of the pair has already been assigned to the "remove" pile, then the pair is OK and can skip to the next test
-if(length(which(c(l1.thisrun,l2.thisrun) %in% unlist(removed.loci)==T))>0) next
-
-# If they have the same frequency in the linkage summary, remove l2:
-if (freq_l1==freq_l2) {
-  removed.loci[[i]]<-l2.thisrun
-  next
-} # close if same freq
-
-# If they have a different frequency, remove the one with the higher frequency:
-if(freq_l1!=freq_l2) {
-  removed.loci[[i]]<-c(l1.thisrun,l2.thisrun)[which(c(freq_l1,freq_l2)==max(freq_l1,freq_l2))]
-} # close different freq
-
-return(removed.loci)
-  
-} # close function
-
-head(freq_loc); dim(freq_loc)
+# update the pw comparison data, so it only includes the relevant loci:
 head(ld_loc); dim(ld_loc)
 
-removed.loci<-list()
+# if we include ALL of the low_linked markers here (e.g. c(which(ld_loc$loc1 %in% f3loc$locus),which(ld_loc$loc2 %in% f3loc$locus))), we end up with low_linked markers paired with high_linked markers, thus, more rows than we need. So we need to REMOVE highly_linked from each row in the ld_loc data set:
+ld_loc<-ld_loc[-c(which(ld_loc$loc1 %in% highly_linked),which(ld_loc$loc2 %in% highly_linked)),]
+ld_loc<-tidy.df(ld_loc)
+head(ld_loc); dim(ld_loc)
 
-for (i in 1:5000){
+# with 100 as the cutoff, this reduces from 15040523 pw comparisons to 19250. 
 
-line_to_test<-i
-xx<-ld_select(ld_loc, freq_loc, line_to_test)
+# a problem here is that this removes some of the low_linked loci where all of their pw comparisons were with high_linked loci. So, after updating the frequencies, we need to add them back in as zeros.
 
-} # close for loop
+# update freq_loc so it only includes the new data set:
 
-str(xx)
-head(xx)
+# Total number of loci in the new data set:
+all_ldloc<-c(as.character(ld_loc$loc1),as.character(ld_loc$loc2))
+length(unique(all_ldloc))
+head(all_ldloc)
 
-rm_loci<-data.frame(locus=unlist(xx))
-rm_loci$for_removal<-1
-loci_toremove<-as.character(rm_loci$locus)
-head(loci_toremove)
-length(loci_toremove)
-head(rm_loci); dim(rm_loci)
-tail(rm_loci)
+# Frequency with which each of the linked loci occurs:
+freq_loc<-data.frame(locus=names(table(all_ldloc)),no_times_total=as.numeric(table(all_ldloc)))
+head(freq_loc); dim(freq_loc)
 
-head(xx,20)
-head(xx[unlist(which(lapply(xx,is.null)==T))])
+# create df of the low linked loci that do NOT appear in the new freq_loc data set; these are the ones that should be zero - i.e. all of their pairs were with high_linked loci, that have already been removed. 
 
-tail(xx)
-sample(xx, 6 )
+# ll2 includes all loci which should be zero
+ll2<-low_linked[which(!low_linked %in% freq_loc$locus)]
+head(ll2); length(ll2)
 
+#  and its length, plus the length of the new frequency dataset give the total number of low_linked loci: 2078+1772==3850; this should be TRUE:
+length(ll2)+nrow(freq_loc)==nrow(f3loc)
 
-foreach (i= 1:10000, .combine=cbind) %dopar% {
-  
-ld_select(ld_loc, freq_loc)
-  
-} # close foreach
+ll_df<-data.frame(locus=ll2,no_times_total=0)
+head(ll_df); dim(ll_df)
 
-# Finish time:
-Sys.time()
-save.image("../Offline_Results/LD_40711_loci/LD_selection.RData")
+# rbind both datasets:
+freq_loc<-rbind(freq_loc, ll_df)
+range(freq_loc$no_times_total)
+# hist(freq_loc$no_times_total)
 
+head(ld_loc); dim(ld_loc)
+head(freq_loc); dim(freq_loc)
 
+# then run the main script (quick method only takes 1 min)
 
+# The following script removes a locus from a linked pair, prioritising the locus which is more frequently linked to other loci:
 
-# the original script (it works!) but it's too slow:
+save.image("../Offline_Results/LD_40711_loci/LD_quick_method.RData")
+
+# add removed loci to the pile:
 
 removed.loci<-list()
 
@@ -266,19 +240,41 @@ for (i in 1:nrow(ld_loc)){
 
 # Finish time:
 Sys.time()
-save.image("../Offline_Results/LD_40711_loci/LD_selection.RData")
+save.image("../Offline_Results/LD_40711_loci/LD_quick_method.RData")
 
+head(removed.loci); length(removed.loci)
 
-# up to here:
 # Summarise results:
 rm_loci<-data.frame(locus=unlist(removed.loci))
 rm_loci$for_removal<-1
 loci_toremove<-as.character(rm_loci$locus)
-head(loci_toremove)
-length(loci_toremove)
-length(removed.loci)
-head(rm_loci)
-tail(rm_loci)
+head(loci_toremove); length(loci_toremove)
+
+# Add frequencies to removed loci to check where they sat on the spectrum of linkage level (there is quite a range):
+rm_loci<-merge(rm_loci, freq_loc, by="locus", all.x=T, all.y=F)
+head(rm_loci); dim(rm_loci)
+hist(rm_loci$no_times_total)
+
+# this process identified 1128 loci to be removed (in addition to the "highly_linked" markers identified previously); the process thus "saved" 2722 loci from removal (nrow(f3loc)-nrow(rm_loci)) from a total of 16235 that were used in the LD selection process
+saved_loci<-data.frame(locus=as.character(freq_loc$locus[which(!freq_loc$locus %in% rm_loci$locus)]))
+saved_loci<-merge(saved_loci, freq_loc, by="locus", all.x=T, all.y=F)
+
+# apart from one or two exceptions, most of the "saved" loci had very low levels of linkage with other loci, so it was worth saving them:
+range(saved_loci$no_times_total)
+mean(saved_loci$no_times_total)
+hist(saved_loci$no_times_total)
+head(saved_loci); dim(saved_loci)
+
+# the final step is to add all highly linked loci to the rm_loci df:
+hgll<-data.frame(locus=highly_linked, for_removal=1)
+head(hgll); dim(hgll)
+
+# we've overwritten the frequencies for highly_linked, but since we no longer need this column (it was just for checking), we can remove it from the main df and rbind them together:
+rm_loci$no_times_total<-NULL
+rm_loci<-rbind(rm_loci, hgll)
+head(rm_loci); dim(rm_loci)
+
+# the final result is 13513 loci that will need to be removed from the neutral analyses
 
 # write.table(rm_loci,"LD_r75_loci_to_remove.txt",sep="\t",row.names=F,quote=F)
 
@@ -299,253 +295,7 @@ range(rowSums(ck_rm[,which(colnames(ck_rm) %in% c("l1_removal","l2_removal"))]))
 
 # This shows that at least one of each pair will be removed and that no linked pair will be included in the final data set. 
 
-save.image("../Offline_Results/LD_40711_loci/LD_selection.RData")
-
-
-
-=======
-# write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
->>>>>>> 50ceee386cd999fe648b2ae6fe899beda55e2f23
-
-
-
-
-
-
-
-
-### **************** 
-# BELOW is SCRIPT DEVELOPMENT ONLY.
-# We did not use the full panel of loci on this analysis. Even the "full data set" was only 19,000 loci, so we are re-doing the tests on the complete data set. 
-### ****************
-
-#Running LD Scripts
-
-# Use  partially filtered data from STEP 01 - this will be quicker than doing the full data set and we are not interested in those loci which have already been filtered out. 
-
-#BD note: Use the partially fitered data from STEP 02, after malim ==0.05 process
-ghead(filtered_data); dim(filtered_data)
-
-### TEST SCRIPT on sample data:
-
-#Warning: Sample dataset were used in following scripts
-
-# To get the script working, run through a smaller data set, that won't take as long to run. Once you have it working you can work on the full filtered_data data set:
-
-# randomly sample 20-2000 loci for testing:
-samp_cols<-which(colnames(filtered_data)[3:ncol(filtered_data)] %in% sample(colnames(filtered_data)[3:ncol(filtered_data)],20))
-rand_snp<-filtered_data[,c(1,2,samp_cols)]
-rand_snp<-tidy.df(rand_snp)
-ghead(rand_snp); dim(rand_snp) 
-
-# format genotype file for the calc_LD function from evachang and run test:
-sites_to_test<-levels(rand_snp$site)
-dat_test<-rand_snp
-param_file<-paste("RESULTS/LD_results/parameters","_LD.txt",sep="")
-
-# if using the partially filtered data set, we've already removed monomorphic loci and loci with high levels of missing data. So we can move directly to the linkage tests. In this data set, all sites are in the same region, so we can look at the population as a whole. There is no need to divide the data into separate sites. 
-
-# First remove the site and individual data:
-dat_test<-dat_test[,3:ncol(dat_test)]
-
-# geno needs to be m x n where m is the number of markers and n is the number of individuals:
-dat_test<-t(dat_test)
-
-ghead(dat_test); dim(dat_test)
-
-print("LD test START:")
-print(Sys.time())
-
-ld.thisrun<-calc_LD(dat_test,inds=1:nrow(dat_test), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
-
-print("LD test END")
-print(Sys.time())
-
-# 2000 loci = 2 min
-
-# trying to get this to work with mclapply, but not sure how it works yet:
-
-f <- function(i) {
-  nrow(dat_test)
-}
-
-f()
-x1 <- mclapply(1:nrow(dat_test), f)
-
-save1 <- mclapply(1:100, f)
-
-print("LD test START:")
-print(Sys.time())
-
-ld.thisrun<-calc_LD(dat_test,inds=1:nrow(dat_test), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
-
-print("LD test END")
-print(Sys.time())
-
-
-# this goes back to the normal script:
-
-loc_combn<-combn(rownames(dat_test),2)
-
-df_test<-data.frame(loc1=loc_combn[1,],loc2=loc_combn[2,],r2=ld.thisrun$rsq[lower.tri(ld.thisrun$rsq)])
-
-# for 20 loci, there are 190 pairwise comparisons of linkage disequilibrium:
-head(df_test); dim(df_test)
-hist(df_test$r2)
-
-# there will be MANY, MANY more for the full data set. Once you have it working on the test data set, you can proceed to work on the full data set. 
-
-### LD ANALYSIS on FULL dataset:
-
-#rand_snp replaced by filtered_data for full data run. 
-sites_to_test<-levels(filtered_data$site)
-dat_test<-filtered_data
-param_file<-paste("RESULTS/LD_results/parameters","_LD.txt",sep="")
-dat_test<-dat_test[,3:ncol(dat_test)]
-
-# geno needs to be m x n where m is the number of markers and n is the number of individuals:
-dat_test<-t(dat_test)
-
-ghead(dat_test); dim(dat_test)
-
-ld.thisrun<-calc_LD(dat_test,inds=1:nrow(dat_test), get.D=F, get.Dprime=F, get.rsq=T, get.chisq=F, get.chisq_prime=F)
-
-loc_combn<-combn(rownames(dat_test),2)
-
-df_test<-data.frame(loc1=loc_combn[1,],loc2=loc_combn[2,],r2=ld.thisrun$rsq[lower.tri(ld.thisrun$rsq)])
-
-# for all loci, there are 182739403 pairwise comparisons of linkage disequilibrium:
-head(df_test); dim(df_test)
-hist(df_test$r2)
-
-# the file is very large, it might be good to reduce it to only those locus pairs above the cut-off:
-df_test<-df_test[which(df_test$r2>0.5),]
-df_test<-tidy.df(df_test)
-
-# This step only tells us which loci are linked, not which loci we should remove (the next script does that). 
-
-# Write a file of all the linked loci, reduced to a smaller file size. Previously we were calling this "LD_r50_LOCI_FOR_REMOVAL", but really it should be "LD_r50_linked_loci", because we haven't yet determined which to remove. 
-
-# write.table(df_test, file="LD_r50_LOCI_FOR_REMOVAL", quote=F, sep="\t", row.names=T)
-
-#save the file by above the cutoff
-ldf<-0.75
-#Method 1.#
-install.packages("dplyr")
-library(dplyr)
-ldfilt75<-ld_loc %>%
-  filter(r2 > ldf)
-head(ldfilt75)
-write.table(ldfilt75, file = "LD_r75_filtered_data", quote = F, sep = "\t", row.names = T)
-
-#Method 2.#
-ldlift75<-ld_loc[which(ld_loc$r2>0.75),]
-ldlift75<-tidy.df(ldlift75)
-write.table(ldlift75, file="LD_r75_another_method", quote=F, sep="\t", row.names=T)
-
-
-### LD ANALYSIS: Determine which of the linked pairs we should remove:
-
-##BD's Script
-LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-dir(LD_dir)
-ld_loc<-read.table(paste(LD_dir, "LD_r75_filtered_data",sep="/"),header=T)
-
-# AS LD: 
-LD_dir_AS<-"../Offline_Results/LD_results"
-dir(LD_dir_AS)
-ld_loc<-read.table(paste(LD_dir_AS, "LD_r70_LOCI_FOR_REMOVAL",sep="/"),header=T)
-head(ld_loc); dim(ld_loc)
-
-# Decide  a reasonable cut-off is for  linked loci. In the PNAS paper, we used 0.75
-# Set cutoff at 0.75:
-ld_loc<-ld_loc[which(ld_loc$r2>0.75),]
-ld_loc<-tidy.df(ld_loc)
-head(ld_loc); dim(ld_loc)
-
-# The determine which loci would need to be removed to ensure no linked loci would occur together:
-
-# Total number of loci in the linked data set:
-all_ldloc<-c(as.character(ld_loc$loc1),as.character(ld_loc$loc2))
-length(unique(all_ldloc))
-head(all_ldloc)
-
-# Frequency with which each of the linked loci occurs:
-freq_loc<-data.frame(locus=names(table(all_ldloc)),no_times_total=as.numeric(table(all_ldloc)))
-head(freq_loc); dim(freq_loc)
-head(ld_loc); dim(ld_loc)
-
-# The following script removes a locus from a linked pair, prioritising the locus which is more frequently linked to other loci:
-
-# start 1000h, finish 2000h - next day!! 24+10 = 34 hr! And this is on the big mac. Something is wrong... Might be that it's online constantly connecting to Github, I need to do some tests to figure out what's going on. 
-
-save.image("../Offline_Results/LD_selection.RData")
-
-removed.loci<-list()
-
-for (i in 1:nrow(ld_loc)){
-  
-  print(paste("Starting test", i, "of", nrow(ld_loc), "tests", sep=" "))
-  
-  line.thisrun<-ld_loc[i,]
-  l1.thisrun<-as.character(line.thisrun$loc1)
-  l2.thisrun<-as.character(line.thisrun$loc2)
-  
-  freq_l1<-freq_loc$no_times_total[which(freq_loc$locus==l1.thisrun)]
-  freq_l2<-freq_loc$no_times_total[which(freq_loc$locus==l2.thisrun)]
-  
-  # If one of the pair has already been assigned to the "remove" pile, then the pair is OK and can skip to the next test
-  if(length(which(c(l1.thisrun,l2.thisrun) %in% unlist(removed.loci)==T))>0) next
-  
-  # If they have the same frequency in the linkage summary, remove l2:
-  if (freq_l1==freq_l2) {
-    removed.loci[[i]]<-l2.thisrun
-    next
-  } # close if same freq
-  
-  # If they have a different frequency, remove the one with the higher frequency:
-  if(freq_l1!=freq_l2) {
-    removed.loci[[i]]<-c(l1.thisrun,l2.thisrun)[which(c(freq_l1,freq_l2)==max(freq_l1,freq_l2))]
-  } # close different freq
-  
-} # close for
-
-Sys.time()
-save.image("../Offline_Results/LD_selection.RData")
-
-# Summarise results:
-rm_loci<-data.frame(locus=unlist(removed.loci))
-rm_loci$for_removal<-1
-loci_toremove<-as.character(rm_loci$locus)
-head(loci_toremove)
-length(loci_toremove)
-length(removed.loci)
-head(rm_loci)
-tail(rm_loci)
-
-# write.table(rm_loci,"LD_r75_loci_to_remove.txt",sep="\t",row.names=F,quote=F)
-
-# Check:
-ck_rm<-merge(ld_loc,rm_loci,by.x="loc1",by.y="locus",all.x=T, all.y=F)
-colnames(ck_rm)[length(colnames(ck_rm))]<-"l1_removal"
-ck_rm$l1_removal[which(is.na(ck_rm$l1_removal))]<-0
-ck_rm<-merge(ck_rm,rm_loci,by.x="loc2",by.y="locus",all.x=T, all.y=F)
-colnames(ck_rm)[length(colnames(ck_rm))]<-"l2_removal"
-ck_rm$l2_removal[which(is.na(ck_rm$l2_removal))]<-0
-
-# Sometimes both will be removed, because they both occur somewhere else
-check.rows(ck_rm)
-head(ck_rm)
-
-# But every line should add to at least 1:
-range(rowSums(ck_rm[,which(colnames(ck_rm) %in% c("l1_removal","l2_removal"))]))
-
-# This shows that at least one of each pair will be removed and that no linked pair will be included in the final data set. 
-
-save.image("../Offline_Results/LD_selection.RData")
-
-
+save.image("../Offline_Results/LD_40711_loci/LD_quick_method.RData")
 
 
 
