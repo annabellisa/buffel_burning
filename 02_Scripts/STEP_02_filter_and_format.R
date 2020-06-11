@@ -129,9 +129,6 @@ filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
 ghead(filtered_data)
 
-# that concludes our LD filter
-
-
 # --- *** HWE filters *** --- #
 
 #Supplement_02_HWE_test.R#
