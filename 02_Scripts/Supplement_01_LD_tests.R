@@ -7,13 +7,18 @@
 ### Author: Annabel Smith & Di Binyin
 
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
-load("D:/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
+load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
 load("../Offline_Results/LD_40711_loci/LD_40711_loci.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
+
+### Alternatively, load R.Data
+load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/0.5 Datasets_filter_and_format/Max Cutoff.RData")
+
 
 # This is the full data set:
 ghead(snp_onerow); dim(snp_onerow)
@@ -105,10 +110,15 @@ ld_df<-tidy.df(ld_df)
 
 dir("../Offline_Results/LD_40711_loci")
 
+dir("D:/Onedrive/OneDrive - The University of Queensland/Smith Lab/RESULTS/Offline_Results/LD_40711_loci")
+
+
 # no need to run this section if loading the LD_selection.RData workspace below
 LD_dir_AS<-"../Offline_Results/LD_40711_loci"
 dir(LD_dir_AS)
-ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_linked_loci.txt",sep="/"),header=T)
+ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_linked_loci.txt",sep="/"), header=T)
+ld_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/Smith Lab/RESULTS/Offline_Results/LD_40711_loci/LD_r75_linked_loci.txt", sep = "/", header = TRUE)
+
 head(ld_loc); dim(ld_loc)
 
 # this workspace has the full data set of 0.75 pw comparisons (16235 individual loci, 15040523 pw comparisons)

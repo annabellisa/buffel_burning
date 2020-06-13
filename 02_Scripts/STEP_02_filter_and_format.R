@@ -176,7 +176,7 @@ sel_dir<-"../../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION"
 dir(sel_dir)
 
 
-filtered_data<-read.table(paste(sel_dir,"Partially_filtered_data",sep="/"),header=T)
+# filtered_data<-read.table(paste(sel_dir,"Partially_filtered_data",sep="/"),header=T)
 
 ghead(filtered_data); dim(filtered_data)
 
