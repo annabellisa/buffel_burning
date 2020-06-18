@@ -148,7 +148,7 @@ head(hwe_res)
 # Filter loci with HWD:
 hwe_flag<-T
 hwe_cutoff<-0.1 # we need to decide on the cutoff
-hwefilt<-as.character(hwe_res$locus[hwe_res$p.adj<hwe_cutoff])
+hwefilt<-as.character(hwe_res$locus[hwe_res$p<hwe_cutoff])
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% hwefilt)]
 filtered_data<-tidy.df(filtered_data)

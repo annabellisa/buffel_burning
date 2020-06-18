@@ -146,7 +146,7 @@ f2loc<-tidy.df(f2loc)
 head(f2loc); dim(f2loc)
 
 # plot(f2loc$no_times_total)
-# hist(f2loc$no_times_total)
+# hist(f2loc$no_times_total[f2loc$no_times_total<200])
 
 # remove any locus that is highly linked (e.g. with 100 other loci). Removing loci that are very highly linked reduced the data set to a more computationally managable size:
 freq_cutoff<-100
