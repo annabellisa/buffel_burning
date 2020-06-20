@@ -4,7 +4,7 @@
 # ------------------------------------ #
 
 ### Post-process results from analyses to detect loci under selection
-### Author: Annabel Smith
+### Author: Annabel Smith, Binyin Di
 
 # Load and tidy workspace and remove everything except necessary objects:
 load("../04_workspaces/STEP01_proc_wksp"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
@@ -15,6 +15,10 @@ load("../04_workspaces/STEP03_sel_wksp")
 
 # load functions:
 invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
+
+
+# BD load R.Data and Functions
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData")
 
 #########################################
 ####	    ANALYSE BAYESCAN:    	 ####
@@ -142,6 +146,9 @@ boa.hpd(seldat[[parameter]],0.05)
 #########################################
 {
 
+install.packages("pcadapt")  
+install.packages("https://cran.r-project.org/src/contrib/Archive/qvalue/qvalue_1.26.0.tar.gz", repos = NULL, type = "source")  
+
 library(pcadapt)
 library(qvalue)
 
@@ -149,6 +156,7 @@ library(qvalue)
 # browseVignettes("pcadapt")
 
 path_to_file <- "../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_files"
+path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/LOCI_UNDER_SELECTION"
 dir(path_to_file)
 
 filename <- read.pcadapt(paste(path_to_file,"pcadapt_filt2.bed",sep="/"), type = "bed")
