@@ -107,6 +107,8 @@ ghead(filtered_data); dim(filtered_data)
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
+ldf<-0.75
+
 #Supplement_01_LD_test.R#
 ##BD's Script#
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
