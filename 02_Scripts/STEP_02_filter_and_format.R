@@ -219,7 +219,7 @@ ghead(filtered_data); dim(filtered_data)
 data<-filtered_data
 
 # List parameters:
-headline<-"enter_data_name_here"
+headline<-"Genpop_Diversity_Original"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -229,8 +229,8 @@ param.repavg<-T
 param.callrate<-T
 param.MAF<-T
 param.LD<-T
-param.HWE<-T
-param.neu<-T
+param.HWE<-F
+param.neu<-F
 param.dup<-T
 
 ghead(data); dim(data)
