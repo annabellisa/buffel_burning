@@ -235,6 +235,7 @@ param.HWE<-F
 param.neu<-F
 param.dup<-T
 
+
 ghead(data); dim(data)
 
 # This makes three files: the genepop file, the parameter file and the locus file:

@@ -4,30 +4,28 @@
 # ------------------------------------ #
 
 ### Diversity & distances
-### Author: Annabel Smith
+### Author: Annabel Smith & Binyin Di
 
 # Load workspace:
 load("../04_workspaces/STEP04_divdist_wksp")
-
 # load functions:
 invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
 
-# Load libraries:
 
-library("diveRsity")
-library("geosphere")
-install.packages("hierfstat", dependencies = TRUE)
-library("hierfstat")
-install.packages("ade4",dependencies = TRUE)
-install.packages("adegenet")
-library("adegenet")
+
+# Load libraries:
+install.packages(c("diveRsity","geosphere","hierfstat","adegenet"),repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com",dependencies=TRUE))
+
+library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
+library(geosphere); library(hierfstat); library(adegenet)
+
 #########################################
 ##     GENIND object & site data:      ##
 #########################################
 {
 
 gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
-gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/Genepop_Files"
+gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/"
 dir(gp_dir)
 
 # Make genind objects:
@@ -53,14 +51,16 @@ head(sdat,3); dim(sdat)
 ### -- *** CALCULATE FST:
 
 gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
+
+gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/"
 dir(gp_dir)
 
-# USE ALL POPULATIONS, including outgroups and cultivars (genepop_filt1.gen); can subset this later, but we need all the FSTs:
+# USE ALL POPULATIONS, including outgroups and cultivars (Genpop_Diversity_Original.gen); can subset this later, but we need all the FSTs:
 
 # Get FST:
 # 1hr 20min for 513 x 18320
 print(Sys.time())
-fst<-diffCalc(paste(gp_dir,"genepop_filt1.gen",sep="/"),fst=T,pairwise=T)
+fst<-diffCalc(paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
