@@ -22,6 +22,11 @@ install.packages("installr", dependencies = TRUE)
 library(installr)
 updateR()
 library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
+# Update R
+install.packages("installr", dependencies = TRUE)
+library(installr)
+updateR()
+
 library(geosphere); library(hierfstat); library(adegenet)
 
 #########################################
