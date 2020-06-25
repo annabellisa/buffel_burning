@@ -13,42 +13,36 @@ load("../04_workspaces/STEP04_divdist_wksp")
 invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
 
 # Load libraries:
+
 library("diveRsity")
 library("geosphere")
+install.packages("hierfstat", dependencies = TRUE)
 library("hierfstat")
+install.packages("ade4",dependencies = TRUE)
+install.packages("adegenet")
 library("adegenet")
-
 #########################################
 ##     GENIND object & site data:      ##
 #########################################
 {
 
 gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
+gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/Genepop_Files"
 dir(gp_dir)
 
 # Make genind objects:
 # ~~
-genind_filt1<-read.genepop(file=paste(gp_dir,"genepop_filt1.gen",sep="/"), ncode=2L,quiet=FALSE)
+genind_filt1<-read.genepop(file=paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"), ncode=2L,quiet=FALSE)
 genind_filt1
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
-# ~~
-genind_filt2<-read.genepop(file=paste(gp_dir,"genepop_filt2.gen",sep="/"), ncode=2L,quiet=FALSE)
-genind_filt2
-save.image("../04_workspaces/STEP04_divdist_wksp")
 
-# ~~ this is the non-neutral data set:
-genind_filt3<-read.genepop(file=paste(gp_dir,"genepop_filt3.gen",sep="/"), ncode=2L,quiet=FALSE)
-genind_filt3
-save.image("../04_workspaces/STEP04_divdist_wksp")
 
 } # close genind
 
 # RESULT:
 # See parameter files in gp_dir for filters
 genind_filt1 # no OG or cultivars
-genind_filt2 # all sites
-genind_filt3 # non-neutral loci, no OG or cultivars, no small sample sizes
 head(sdat,3); dim(sdat)
 
 #########################################
@@ -61,12 +55,12 @@ head(sdat,3); dim(sdat)
 gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
 dir(gp_dir)
 
-# USE ALL POPULATIONS, including outgroups and cultivars (genepop_filt2.gen); can subset this later, but we need all the FSTs:
+# USE ALL POPULATIONS, including outgroups and cultivars (genepop_filt1.gen); can subset this later, but we need all the FSTs:
 
 # Get FST:
 # 1hr 20min for 513 x 18320
 print(Sys.time())
-fst<-diffCalc(paste(gp_dir,"genepop_filt2.gen",sep="/"),fst=T,pairwise=T)
+fst<-diffCalc(paste(gp_dir,"genepop_filt1.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
@@ -165,28 +159,30 @@ check.rows(m2)
 
 ## -- ** POPULATION LEVEL GENETIC DIVERSITY:
 
-# Remember to update VIR to VA
+# GenFilter1
 
 # Calculate genetic diversity per population in hierfstat (conservative dataset):
-gendiv_filt2 <- basic.stats(genind_filt2, diploid = TRUE, digits = 2)
-str(gendiv_filt2)
-head(gendiv_filt2$Ho)
-tail(gendiv_filt2$Ho)
+gendiv_filt1 <- basic.stats(genind_filt1, diploid = TRUE, digits = 2)
+str(gendiv_filt1)
+head(gendiv_filt1$Ho)
+tail(gendiv_filt1$Ho)
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
-gd_filt2<-data.frame(site=names(apply(gendiv_filt2$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_filt2$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_filt2$Ho,2,mean,na.rm=T),He=apply(gendiv_filt2$Hs,2,mean,na.rm=T),Fis=apply(gendiv_filt2$Fis,2,mean,na.rm=T))
-gd_filt2<-tidy.df(gd_filt2)
-head(gd_filt2)
+gd_filt1<-data.frame(site=names(apply(gendiv_filt1$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_filt1$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_filt1$Ho,2,mean,na.rm=T),He=apply(gendiv_filt1$Hs,2,mean,na.rm=T),Fis=apply(gendiv_filt1$Fis,2,mean,na.rm=T))
+gd_filt1<-tidy.df(gd_filt1)
+head(gd_filt1); dim(gd_filt1)
 
-gd_filt2$site<-substr(gd_filt2$site,1,nchar(as.character(gd_filt2$site))-1)
+gd_filt1$site<-substr(gd_filt1$site,1,nchar(as.character(gd_filt1$site))-1)
 
-gd_filt2$site[grep("_",substr(gd_filt2$site,nchar(gd_filt2$site),nchar(gd_filt2$site)))]<-substr(gd_filt2$site[grep("_",substr(gd_filt2$site,nchar(gd_filt2$site),nchar(gd_filt2$site)))],1,nchar(gd_filt2$site[grep("_",substr(gd_filt2$site,nchar(gd_filt2$site),nchar(gd_filt2$site)))])-1)
+gd_filt1$site[grep("_",substr(gd_filt1$site,nchar(gd_filt1$site),nchar(gd_filt1$site)))]<-substr(gd_filt1$site[grep("_",substr(gd_filt1$site,nchar(gd_filt1$site),nchar(gd_filt1$site)))],1,nchar(gd_filt1$site[grep("_",substr(gd_filt1$site,nchar(gd_filt1$site),nchar(gd_filt1$site)))])-1)
 
-# write.table(gd_filt2,"gd_filt2.txt",sep="\t",row.names=F,quote=F)
+# write.table(gd_filt1,"gd_filt1.txt",sep="\t",row.names=F,quote=F)
+
+save.image("pop_level_gen_div.RData")
 
 ## -- ** ALLELIC RICHNESS:
 
-# Remember to update VIR to VA
+
 
 head(sdat,3); dim(sdat)
 range(sdat$n_gt)
@@ -196,17 +192,13 @@ sdat[,c("site_code","n_gt")]
 # See Sept 2018 old code file for old calcs
 # Approx. 6 min for 454 x 17162
 genind_filt1
-genind_filt3
+
 
 print(Sys.time())
 ar_default_rd<- allelic.richness(genind_filt1, diploid = TRUE)
 print(Sys.time())
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
-print(Sys.time())
-ar_default_adapt<- allelic.richness(genind_filt3, diploid = TRUE)
-print(Sys.time())
-save.image("../04_workspaces/STEP04_divdist_wksp")
 
 # Summarise
 
