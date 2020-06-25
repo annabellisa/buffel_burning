@@ -16,12 +16,12 @@ invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries
 # Load libraries:
 install.packages(c("diveRsity","geosphere","hierfstat","adegenet"),repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com",dependencies=TRUE))
 
-library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
+
 # Update R
 install.packages("installr", dependencies = TRUE)
 library(installr)
 updateR()
-
+library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
 library(geosphere); library(hierfstat); library(adegenet)
 
 #########################################
@@ -31,6 +31,7 @@ library(geosphere); library(hierfstat); library(adegenet)
 
 gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
 gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/"
+gp_dir<-"D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files"
 dir(gp_dir)
 
 # Make genind objects:
@@ -56,14 +57,14 @@ head(sdat,3); dim(sdat)
 ### -- *** CALCULATE FST:
 
 gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
-
 gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/"
+gp_dir<-"D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files"
 dir(gp_dir)
 
 # USE ALL POPULATIONS, including outgroups and cultivars (Genpop_Diversity_Original.gen); can subset this later, but we need all the FSTs:
 
 # Get FST:
-# 1hr 20min for 513 x 18320
+# <10min
 print(Sys.time())
 fst<-diffCalc(paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
@@ -168,10 +169,10 @@ check.rows(m2)
 
 # Calculate genetic diversity per population in hierfstat (conservative dataset):
 gendiv_filt1 <- basic.stats(genind_filt1, diploid = TRUE, digits = 2)
-str(gendiv_filt1)
+str(gendiv_filt1) # a few mins
 head(gendiv_filt1$Ho)
 tail(gendiv_filt1$Ho)
-save.image("../04_workspaces/STEP04_divdist_wksp")
+# save.image("../04_workspaces/STEP04_divdist_wksp")
 
 gd_filt1<-data.frame(site=names(apply(gendiv_filt1$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_filt1$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_filt1$Ho,2,mean,na.rm=T),He=apply(gendiv_filt1$Hs,2,mean,na.rm=T),Fis=apply(gendiv_filt1$Fis,2,mean,na.rm=T))
 gd_filt1<-tidy.df(gd_filt1)
@@ -187,25 +188,42 @@ save.image("pop_level_gen_div.RData")
 
 ## -- ** ALLELIC RICHNESS:
 
-
-
 head(sdat,3); dim(sdat)
-range(sdat$n_gt)
-sdat[,c("site_code","n_gt")]
+genind_filt1
 
+# Delete following:
+# range(sdat$n_gt)
+# sdat[,c("site_code","n_gt")]
 # Re-do allelic richness on 53 sites, all with 7-9 individuals:
 # See Sept 2018 old code file for old calcs
 # Approx. 6 min for 454 x 17162
-genind_filt1
+
 
 
 print(Sys.time())
-ar_default_rd<- allelic.richness(genind_filt1, diploid = TRUE)
+ar_default_rd<- allelic.richness(genind_filt1, diploid = TRUE) # 2mins
 print(Sys.time())
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
 
+# BD Script
+
+library(diveRsity)
+setwd("D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files")
+
+
+print(Sys.time())
+divBasic(infile = "Genpop_Diversity_Original.gen", outfile ='out', gp = 3, bootstraps = NULL,HWEexact = FALSE, mcRep = 2000)
+print(Sys.time())
+
+
+
+
+
+
 # Summarise
+
+# Netural Theory of Molecular Evolution
 
 # Neutral:
 head(ar_default_rd$Ar,2)
@@ -215,7 +233,25 @@ ar_res_rd<-data.frame(
 site=levels(genind_filt1@pop),
 ar_default_rd=apply(ar_default_rd$Ar,2,mean,na.rm=T))
 
-# Non-neutral:
+
+# > head(ar_res_rd);dim(ar_res_rd)
+# site ar_default_rd
+# 1 X01b_04      1.039622
+# 2 X01u_05      1.191332
+# 3 X02b_05      1.040427
+# 4 X02u_05      1.045406
+# 5 X03b_05      1.264530
+# 6 X03u_05      1.041854
+# [1] 19  2
+
+# merge to gd_filt1
+
+allelic_richness<-ar_res_rd
+ar<-merge(gd_filt1, allelic_richness, all = TRUE)
+write.table(ar,"allelic_richness.txt",sep="\t",row.names=F,quote=F)
+
+
+# Non-neutral
 head(ar_default_adapt$Ar,2)
 ar_default_adapt$min.all
 
