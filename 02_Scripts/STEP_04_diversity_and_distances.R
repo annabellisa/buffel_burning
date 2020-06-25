@@ -17,6 +17,11 @@ invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries
 install.packages(c("diveRsity","geosphere","hierfstat","adegenet"),repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com",dependencies=TRUE))
 
 library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
+# Update R
+install.packages("installr", dependencies = TRUE)
+library(installr)
+updateR()
+
 library(geosphere); library(hierfstat); library(adegenet)
 
 #########################################
