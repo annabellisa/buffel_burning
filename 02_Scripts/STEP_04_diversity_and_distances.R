@@ -22,10 +22,7 @@ install.packages("installr", dependencies = TRUE)
 library(installr)
 updateR()
 library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
-# Update R
-install.packages("installr", dependencies = TRUE)
-library(installr)
-updateR()
+
 
 library(geosphere); library(hierfstat); library(adegenet)
 
@@ -211,17 +208,27 @@ print(Sys.time())
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
 
-# BD Script
-
+# BD Script: Two methods, maybe can be used, but not sure. Regarding data from netural in AS Scripts as AR. Non-netural scripts are broken. 
+# Takes very long time, no need to load data:
 library(diveRsity)
 setwd("D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files")
-
-
 print(Sys.time())
 divBasic(infile = "Genpop_Diversity_Original.gen", outfile ='out', gp = 3, bootstraps = NULL,HWEexact = FALSE, mcRep = 2000)
 print(Sys.time())
 
 
+# allel.rich method
+
+library(geosphere); library(hierfstat); library(adegenet)
+load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/Unfished.RData")
+
+install.packages("PopGenReport")
+library(PopGenReport)
+print(Sys.time())
+allelic_richness<-allel.rich(genind_filt1,min.alleles = NULL) # 10 mins
+print(Sys.time())
+
+write.table(allelic_richness,"allelic.richness.txt",sep="\t",row.names=F,quote=F)
 
 
 
@@ -249,11 +256,6 @@ ar_default_rd=apply(ar_default_rd$Ar,2,mean,na.rm=T))
 # 6 X03u_05      1.041854
 # [1] 19  2
 
-# merge to gd_filt1
-
-allelic_richness<-ar_res_rd
-ar<-merge(gd_filt1, allelic_richness, all = TRUE)
-write.table(ar,"allelic_richness.txt",sep="\t",row.names=F,quote=F)
 
 
 # Non-neutral
@@ -271,6 +273,87 @@ plot(test_df$ar_default_rd, test_df$ar_adapt)
 # write.table(ar_res_adapt,"ar_res_adapt.txt",sep="\t",row.names=F,quote=F)
 
 save.image("../04_workspaces/STEP04_divdist_wksp")
+
+
+# Done BD:
+# dplyr from tidyverse to bind columns 
+install.packages("tidyverse")
+library(tidyverse)
+sdatcoord<- sdat %>%
+  select(burn_unburnt,lat,long)
+colnames(sdatcoord)[1]<-"treatment"
+ar<-data.frame(ar= ar_res_rd$ar_default_rd)
+joint_data_frame<-bind_cols(gd_filt1,sdatcoord, ar)
+write.table(joint_data_frame,"joint_dataframe.txt",sep="\t",row.names=F,quote=F)
+
+
+# Models
+mod1<-lm(ar~treatment + long, data = joint_data_frame)
+
+
+# Call:
+ # lm(formula = ar ~ treatment + long, data = joint_data_frame)
+
+# Coefficients:
+  # (Intercept)   treatmentu         long  
+# 3.88893     -0.07325     -0.02055
+
+
+aov(ar~treatment + long, data = joint_data_frame)
+
+new.dataframe<-data.frame(treatment = c("b", "u"), 
+                          long = mean(sdat$long))
+
+p1<-predict(mod1, new.dataframe, se.fit = TRUE)
+
+
+p1
+
+new.dataframe$se<- p1$se.fit
+new.dataframe$fit<- p1$fit
+
+# upper & lower confidence interval
+
+# Question: why are the differences? 
+p1$uci<-p1$fit+(1.96*p1$se.fit)
+p1$lci<-p1$fit-(1.96*p1$se.fit)
+
+install.packages("Rmisc", dependencies = TRUE)
+library(Rmisc)
+p1$uci<-CI(p1$fit,ci=0.95)
+p1$lci<-CI(p1$fit,ci=0.95)
+
+
+new.dataframe$uci<-p1$uci
+new.dataframe$lci<-p1$lci
+
+library("tidyverse")
+ggplot(data = new.dataframe, mapping = aes(x = treatment,
+                                           y = fit)) +
+  ylab("estimated allelic richness")+
+  geom_jitter()+
+  geom_errorbar(aes(ymin = lci, ymax = uci, position = "dodge"), width = 0.2)
+  
+  
+  
+  #stat_summary(geom = "bar", fun.y = fit, position = "dodge") +
+  #stat_summary(geom = "errorbar", fun.data = se, position = "dodge")
+
+
+
+# calculating std errors
+# install.packages("plotrix") # Install plotrix R package
+# library("plotrix")  
+# std.error()
+
+
+
+
+dir("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
+save.image("Working.RData")
+
+
+
 
 ## -- ** Admixture Diversity Score:
 
