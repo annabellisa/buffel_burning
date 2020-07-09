@@ -231,6 +231,8 @@ print(Sys.time())
 write.table(allelic_richness,"allelic.richness.txt",sep="\t",row.names=F,quote=F)
 
 
+ar_dat<-read.table("D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
+head(ar_dat)
 
 
 # Summarise
@@ -287,15 +289,14 @@ joint_data_frame<-bind_cols(gd_filt1,sdatcoord, ar)
 write.table(joint_data_frame,"joint_dataframe.txt",sep="\t",row.names=F,quote=F)
 
 
-# Models
-mod1<-lm(ar~treatment + long, data = joint_data_frame)
+
 
 
 # Call:
- # lm(formula = ar ~ treatment + long, data = joint_data_frame)
+# lm(formula = ar ~ treatment + long, data = joint_data_frame)
 
 # Coefficients:
-  # (Intercept)   treatmentu         long  
+# (Intercept)   treatmentu         long  
 # 3.88893     -0.07325     -0.02055
 
 
@@ -311,6 +312,42 @@ p1
 
 new.dataframe$se<- p1$se.fit
 new.dataframe$fit<- p1$fit
+
+
+
+
+
+# Models
+mod1<-lm(ar~treatment , data = ar_dat)
+summary(mod1)
+head(ar_dat)
+
+
+
+mod2<-lm(He~treatment + long, data = ar_dat)
+summary(mod2)
+
+
+
+mod3<-lm(ar~treatment + long, data = ar_dat[-which(ar_dat$site%in%c("X11b1_0", "X11b2_0", "X11b3_0")),])
+summary(mod3)
+
+plot(as.factor(ar_dat$treatment), ar_dat$ar)
+
+
+
+ar_dat$trt[which(ar_dat$site%in%c("X11b1_0", "X11b2_0", "X11b3_0"))]
+plot(as.factor(ar_dat$trt), ar_dat$ar)
+
+
+mod4<-lm(ar~trt, data = ar_dat)
+summary(mod4)
+
+anova(mod4)
+
+
+
+
 
 # upper & lower confidence interval
 
