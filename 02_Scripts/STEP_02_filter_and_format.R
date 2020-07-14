@@ -254,41 +254,41 @@ format_genepop(data,headline)
 ###-->> Set data:
 data_to_plink<-filtered_data
 
-# ~ 5-10 MINS
+# ~ 3 MINS on bigmac; 40711 loci Cenchrus
 formatted_ped<-format_plink_ped(snp_data=data_to_plink,locus_data=linf,remove_og=NULL,remove_cultivar=NULL)
-ghead(formatted_ped)
+ghead(formatted_ped); dim(formatted_ped)
 
 check_plink_ped(orig_data=data_to_plink,plink_data=formatted_ped)
 
-# write.table(formatted_ped,"ntham_filt1.ped",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_ped,"Cenchrus_filt1.ped",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ****** .map file ****** ~~~~ ##
 formatted_map<-format_plink_map(ped_file=formatted_ped,locus_data=linf)
 head(formatted_map)
 
-# write.table(formatted_map,"ntham_filt1.map",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_map,"Cenchrus_filt1.map",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ***** locus info file ***** ~~~~ ##
 plink_locus_info<-data.frame(lind=1:length(colnames(data_to_plink)[3:ncol(data_to_plink)]),locus=colnames(data_to_plink)[3:ncol(data_to_plink)])
 head(plink_locus_info)
 
-# write.table(plink_locus_info,"ntham_filt1_loci.txt",sep="\t",row.names=F,quote=F)
+# write.table(plink_locus_info,"Cenchrus_filt1_loci.txt",sep="\t",row.names=F,quote=F)
 
 # Save parameters to file:
 # List parameters:
 data<-filtered_data
-headline<-"ntham_filt1"
+headline<-"Cenchrus_filt1"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
 param.noindiv<-nrow(data)
 param.mono<-T
-param.repavg<-T
+param.repavg<-F
 param.callrate<-T
-param.MAF<-T
-param.LD<-T
-param.HWE<-T
-param.neu<-T
+param.MAF<-F
+param.LD<-F
+param.HWE<-F
+param.neu<-F
 param.dup<-T
 
 # The original plink parameter file was write_parameters() in the format_plink.R library but the genepop one is working better
