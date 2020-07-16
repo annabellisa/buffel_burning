@@ -143,6 +143,10 @@ boa.hpd(seldat[[parameter]],0.05)
 #########################################
 {
 
+  
+# Tutorial: https://bcm-uga.github.io/pcadapt/articles/pcadapt.html  
+  
+
 install.packages("pcadapt")  
 install.packages("https://cran.r-project.org/src/contrib/Archive/qvalue/qvalue_1.26.0.tar.gz", repos = NULL, type = "source")  
 
