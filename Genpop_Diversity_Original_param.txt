@@ -1,0 +1,14 @@
+Genpop_Diversity_Original
+Time = 2020-07-16 15:06:03
+Number of sites = 19
+Sites included = X01b, X01u, X02b, X02u, X03b, X03u, X05b, X05u, X06b, X06u, X07b, X07u, X08b, X08u, X10b, X10u, X11b1, X11b2, X11b3
+Number of loci = 40711
+Number of individuals = 93
+Monomorphic loci removed = TRUE
+No reproducibility filter
+Maximum missing data = 50%
+No MAF filter
+No LD filter
+No HWE filter
+Non-neutral markers not removed
+Duplicate sequences removed = TRUE

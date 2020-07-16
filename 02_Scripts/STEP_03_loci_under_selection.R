@@ -8,6 +8,7 @@
 
 # Load workspace (not updated for Cenchrus):
 # load("03_Workspaces/STEP03_sel_wksp")
+# load("03_Workspaces/STEP03_sel_wksp_BD.RData")
 
 # AS Load and tidy workspace and remove everything except necessary objects:
 load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
@@ -152,18 +153,34 @@ library(qvalue)
 # browseVignettes("pcadapt")
 
 path_to_file <- "../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_files"
-path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/LOCI_UNDER_SELECTION"
+path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/"
+path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+
 dir(path_to_file)
 
-filename <- read.pcadapt(paste(path_to_file,"pcadapt_filt2.bed",sep="/"), type = "bed")
+filename <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
 
 ### --- *** CHOOSE K *** --- ###
 
-K<-40
-
-x <- pcadapt(input = filename, K = K) 
+x <- pcadapt(input = filename, K = 40) 
 
 # CHOOSE K FROM SCREE PLOT: reproduce built in plot: plot(x, option = "screeplot")
+
+# plot(x, option = "screeplot")
+
+# Score plot - Example
+# poplist.int<-c(rep(1,50), rep(2,50), rep(3,50))
+# print(poplist.int)
+
+# poplist.names<-c(rep("POP1", 50), rep("POP2",50), rep("POP3",50))
+# print(poplist.names)
+
+# plot(x, option = "scores", pop = poplist.int)
+# plot(x, option = "scores", pop = poplist.names)
+
+
+install.packages("grDevices")
+library(grDevices)
 
 quartz("",4,4,dpi=160,pointsize=12)
 par(mar=c(4,4,0.5,0.5))
