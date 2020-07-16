@@ -334,6 +334,7 @@ library(lfmm)
 library(qvalue)
 
 lfmm_dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/LFMM/lfmm_filt2"
+lfmm_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
 dir(lfmm_dir)
 
 # Genotype data:
