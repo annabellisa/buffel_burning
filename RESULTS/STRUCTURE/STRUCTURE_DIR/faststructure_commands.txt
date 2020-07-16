@@ -1,0 +1,109 @@
+##### fastStructure
+
+
+# First make bed file:
+plink --version
+
+# cd into one drive cos I haven't figure out how to handle the spaces when assigning names to dirs:
+cd "OneDrive - The University of Queensland"
+
+# base dir
+base_dir='TEACHING/STUDENTS/Binyin_Winter/Analysis/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR'
+ls $base_dir
+
+# name for this analysis
+analysis_name=Cenchrus_filt1
+
+# dir for this analysis
+analysis_dir="${base_dir}/$analysis_name"
+# make dir if it doesn't exist
+# mkdir $analysis_dir
+ls $analysis_dir
+echo $analysis_dir
+
+# map file
+map_file="${analysis_dir}/Cenchrus_filt1.map"
+
+# ped file
+ped_file="${analysis_dir}/Cenchrus_filt1.ped"
+
+echo $map_file
+head $map_file
+head $ped_file | cut -c 1-30
+
+# make bed:
+plink --ped $ped_file --map $map_file --make-bed --out ${analysis_dir}/$analysis_name
+	
+trash ${analysis_dir}/*nosex ${analysis_dir}/*.log
+ls $analysis_dir
+
+
+##### fastStructure
+
+# P = allele frequency
+# Q = assignment probability
+
+# outfile.K.meanP = mean allele frequencies for all loci
+# outfile.K.meanQ = mean assignment probability for all individuals
+# outfile.K.varP = twice as many columns as K, not sure what these values are
+# outfile.K.varQ = probabilities for each individual in each cluster
+# remove --full and var files won't print
+
+# site names can be alpha or numeric
+
+# set location of program:
+soft_dir="/Users/annabelsmith/Documents/01_Current/PROJECTS/01_PLANTPOPNET/DATA_and_ANALYSIS/SNP_analysis/GENOTYPE_processing/SOFTWARE/fastStructure"
+ls $soft_dir
+
+# be in soft_dir for running the program, otherwise add soft_dir to the run command below:
+cd $soft_dir 
+ls
+
+# set project folders, subfolders and file names:
+proj_dir=$analysis_dir
+ls $proj_dir
+
+# need to get this working with one drive
+
+proj_dir='/Users/annabelsmith/OneDrive - The University of Queensland/TEACHING/STUDENTS/Binyin_Winter/Analysis/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1'
+ls $(proj_dir)
+
+
+# test site codes in str file:
+
+infile="$proj_dir/Cenchrus_filt1"
+out_dir="$proj_dir/Cenchrus_filt1_results"
+out_prefix="$out_dir/Cenchrus_filt1"
+
+head $(infile) | cut -c 1-30
+
+
+# make out dir if it doesn't exist
+mkdir $(out_dir)
+
+echo $out_dir
+echo $infile
+ls $proj_dir
+echo $proj_dir
+
+# 1-20 start ~ 1124
+
+# Set max K and run analysis:
+for i in {1..10} 
+do
+
+K_thisrun=$i
+
+python2 structure.py -K $i --input=$infile --output=$out_prefix --format=bed --seed=100
+
+done
+
+
+ls $out_dir
+
+# remove allele frequency files:
+rm ${out_dir}/*meanP
+
+python2 chooseK.py --input=$out_prefix
+
+	

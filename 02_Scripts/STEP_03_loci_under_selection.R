@@ -6,36 +6,30 @@
 ### Post-process results from analyses to detect loci under selection
 ### Author: Annabel Smith, Binyin Di
 
-# Load and tidy workspace and remove everything except necessary objects:
-load("../04_workspaces/STEP01_proc_wksp"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+# Load workspace (not updated for Cenchrus):
+# load("03_Workspaces/STEP03_sel_wksp")
 
-# Load workspace:
-# Has BayeScan, PCAdapt and LFMM results saved:
-load("../04_workspaces/STEP03_sel_wksp")
-
-# load functions:
-invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
-
+# AS Load and tidy workspace and remove everything except necessary objects:
+load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # BD load R.Data and Functions
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData")
 
-#########################################
-####	    ANALYSE BAYESCAN:    	 ####
-#########################################
-{
+# load functions:
+invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
+
+#  ANALYSE BAYESCAN:    	# ----
 
 # *** ANALYSE OUTLIER LOCI:
 
-# Remove cultivars and outgroups:
-gt_data<-snp_onerow[-c(grep("OG", snp_onerow$site),grep("CAT", snp_onerow$site),grep("CCT", snp_onerow$site),grep("CTP", snp_onerow$site)),]
-gt_data<-tidy.df(gt_data)
+# Rename data:
+gt_data<-snp_onerow
 
 # Directory with bayescan results:
-bs_dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bayescan_filt3_results"
+bs_dir<-"../Offline_Analysis/BayeScan/Cenchrus_filt1/Cenchrus_BS_po400_RESULTS"
 dir(bs_dir)
 
-bs_fst<-paste(bs_dir,"bayescan_filt3_out_fst.txt",sep="/")
+bs_fst<-paste(bs_dir,"Cenchrus_BS_po400_fst.txt",sep="/")
 
 # FST Outlier loci:
 bsres<-plot_bayescan(bs_fst,FDR=0.05)
@@ -139,7 +133,9 @@ library("boa")
 # Density Interval (HPDI) for your parameter of interest (example for the 95% interval):
 boa.hpd(seldat[[parameter]],0.05)
 
-} # close Bayescan
+# close BayeScan ----
+
+
 
 #########################################
 ####	    	PCADAPT:	    	 ####
