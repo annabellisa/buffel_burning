@@ -168,6 +168,41 @@ x <- pcadapt(input = filename, K = 40)
 
 # plot(x, option = "screeplot")
 
+# install.packages("grDevices")
+# library(grDevices)
+
+quartz("",4,4,dpi=160,pointsize=12) # Error
+par(mar=c(4,4,0.5,0.5))
+plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
+title(xlab="PC",mgp=c(2.5,1,0))
+grid()
+lines(1:K,x$singular.values^2)
+points(1:K,x$singular.values^2,pch=20)
+
+# CHOOSE K FROM PCs:
+
+# Get population names from the fam file:
+famf<-read.table(paste(path_to_file,"Cenchrus_filt1.fam",sep="/"),header=F)
+head(famf)
+poplist.names <- as.character(famf$V1)
+head(poplist.names)
+
+# Reproduce inbuilt PC plot: plot(x, option = "scores", i = 1, j = 2, pop = poplist.names)
+
+quartz("",10,10,dpi=80,pointsize=14) # Error
+par(mfrow=c(5,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
+for (i in seq(1,ncol(x$scores),2)){
+pc1<-x$scores[,i]
+pc2<-x$scores[,i+1]
+plot(pc1,pc2,col=rainbow(length(unique(poplist.names))),xlab="",ylab="",pch=20)
+title(xlab=paste("PC",i,sep=""),cex.lab=1)
+title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
+}
+par(xpd=NA)
+legend(-5, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+
+# 10-25 pcs needed to explain variation
+
 # Score plot - Example
 # poplist.int<-c(rep(1,50), rep(2,50), rep(3,50))
 # print(poplist.int)
@@ -179,56 +214,42 @@ x <- pcadapt(input = filename, K = 40)
 # plot(x, option = "scores", pop = poplist.names)
 
 
-install.packages("grDevices")
-library(grDevices)
 
-quartz("",4,4,dpi=160,pointsize=12)
-par(mar=c(4,4,0.5,0.5))
-plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
-title(xlab="PC",mgp=c(2.5,1,0))
-grid()
-lines(1:K,x$singular.values^2)
-points(1:K,x$singular.values^2,pch=20)
-
-# CHOOSE K FROM PCs:
-
-# Get population names from the fam file:
-famf<-read.table(paste(path_to_file,"pcadapt_filt2.fam",sep="/"),header=F)
-head(famf)
-poplist.names <- as.character(famf$V1)
-head(poplist.names)
-
-# Reproduce inbuilt PC plot: plot(x, option = "scores", i = 1, j = 2, pop = poplist.names)
-
-quartz("",10,10,dpi=80,pointsize=14)
-par(mfrow=c(5,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
-for (i in seq(1,ncol(x$scores),2)){
-pc1<-x$scores[,i]
-pc2<-x$scores[,i+1]
-plot(pc1,pc2,col=rainbow(length(unique(poplist.names))),xlab="",ylab="",pch=20)
-title(xlab=paste("PC",i,sep=""),cex.lab=1)
-title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
-}
-par(xpd=NA)
-legend(-1.9,-0.43,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
-
-# 10-25 pcs needed to explain variation
 
 ### --- *** SET K *** --- ###
+
+library(pcadapt)
 
 K<-10
 x <- pcadapt(input = filename, K = K) 
 summary(x)
 
+
+# > summary(x)
+# Length Class  Mode   
+# scores             930 -none- numeric
+# singular.values     10 -none- numeric
+# loadings        407110 -none- numeric
+# zscores         407110 -none- numeric
+# af               40711 -none- numeric
+# maf              40711 -none- numeric
+# chi2.stat        40711 -none- numeric
+# stat             40711 -none- numeric
+# gif                  1 -none- numeric
+# pvalues          40711 -none- numeric
+# pass             34752 -none- numeric
+
+
+
 # Check for LD 
-quartz("",10,4,dpi=80,pointsize=14)
+quartz("",10,4,dpi=80,pointsize=14) # Error
 par(mfrow=c(2,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in 1:ncol(x$loadings))
   plot(x$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
 
 # Reproduce PC plot:
 
-quartz("",10,4,dpi=80,pointsize=14)
+quartz("",10,4,dpi=80,pointsize=14) # Error
 par(mfrow=c(2,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in seq(1,ncol(x$scores),2)){
 pc1<-x$scores[,i]
@@ -238,20 +259,53 @@ title(xlab=paste("PC",i,sep=""),cex.lab=1)
 title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
 }
 par(xpd=NA)
-legend(-2.8,-0.4,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+legend(-5,-1,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
 
 # Get outliers based on q values:
-qval <- qvalue(x$pvalues)$qvalues
+
+## be careful with NA, qvalue: no NA, p or pval has NA, and is.na_remove is pval without NAs
+
+pval <-x$pvalues
+write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
+is.na_remove<-x$pvalues[!is.na(x$pvalues)]
+qval <- qvalue(is.na_remove)$qvalues
+
+# --------------------------------------------
+# https://statisticsglobe.com/r-is-na-function/
+# Detect if there are any NAs
+any(is.na(pval))
+
+# Locate NA in data set via which()
+which(is.na(pval))
+
+
+# if game
+for (i in 1:length(pval)) {
+ if(is.na(pval[i])) {
+   print("Damn, it's NA")
+ }  
+  else {
+    print("Wow, that's awesome")
+  }
+}
+
+ifelse(is.na(pval), "Damn, it's NA", "WOW, that's awesome")
+
+# ---------------------------
+
+
+
 alpha <- 0.05
 outliers <- which(qval < alpha)
 length(outliers)
 
-# Associate outliers with PCs:
+# Associate outliers with PCs: library(pcadapt)
 snp_pc <- get.pc(x, outliers)
 head(snp_pc)
 
 # Reproduce manhattan plot:
-qp<-data.frame(q=qval,p=x$pvalues)
+
+qp<-data.frame(q = qval,p = is.na_remove)
 head(qp)
 plot(1:nrow(qp),-log(qp$p,10),type="n")
 points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
@@ -259,8 +313,16 @@ points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
 
 # get locus indices for outliers:
 pca_loc<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_filt2_loci.txt",header=T)
+pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = T)
+
 pca_loc$pca_outl<-ifelse(pca_loc$lind %in% outliers,1,0)
 table(pca_loc$pca_outl)
+
+
+# > table(pca_loc$pca_outl)
+
+# 0     1 
+# 32653  8058 
 
 } # close pcadapt
 
