@@ -157,7 +157,7 @@ library(qvalue)
 # browseVignettes("pcadapt")
 
 path_to_file <- "../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_files"
-path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/"
+path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
 path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
 
 dir(path_to_file)
@@ -224,7 +224,7 @@ legend(-5, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.nam
 
 library(pcadapt)
 
-K<-10
+K<-3
 x <- pcadapt(input = filename, K = K) 
 summary(x)
 
@@ -246,30 +246,45 @@ summary(x)
 
 
 # Check for LD 
-quartz("",10,4,dpi=80,pointsize=14) # Error
-par(mfrow=c(2,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
+dev.new("",10,4,dpi=80,pointsize=14) # Error
+par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in 1:ncol(x$loadings))
   plot(x$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
 
 # Reproduce PC plot:
 
-quartz("",10,4,dpi=80,pointsize=14) # Error
-par(mfrow=c(2,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
-for (i in seq(1,ncol(x$scores),2)){
-pc1<-x$scores[,i]
-pc2<-x$scores[,i+1]
-plot(pc1,pc2,col=rainbow(length(unique(poplist.names))),xlab="",ylab="",pch=20)
+head(x$scores)
+
+dev.new("",10,4) # Error
+par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
+pc1<-x$scores[,1]
+pc2<-x$scores[,2]
+pc3<-x$scores[,3]
+
+colour_codes<-unique(poplist.names)
+colour_codes[grep("b",unique(poplist.names))]<-"red"
+colour_codes[grep("u",unique(poplist.names))]<-"blue"
+
+plot(pc1,pc2,col=colour_codes,xlab="",ylab="",pch=20, cex=3)
+plot(pc1,pc3,col=colour_codes,xlab="",ylab="",pch=20, cex=3)
+plot(pc2,pc3,col=colour_codes,xlab="",ylab="",pch=20, cex=3)
+
 title(xlab=paste("PC",i,sep=""),cex.lab=1)
 title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
-}
+
 par(xpd=NA)
 legend(-5,-1,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
 
 # Get outliers based on q values:
 
 ## be careful with NA, qvalue: no NA, p or pval has NA, and is.na_remove is pval without NAs
+loci <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
+
+
 
 pval <-x$pvalues
+
+length(pval)
 write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
 is.na_remove<-x$pvalues[!is.na(x$pvalues)]
 qval <- qvalue(is.na_remove)$qvalues
@@ -318,10 +333,19 @@ points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
 # get locus indices for outliers:
 pca_loc<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_filt2_loci.txt",header=T)
 pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = T)
-
+pca_loc<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = T)
 pca_loc$pca_outl<-ifelse(pca_loc$lind %in% outliers,1,0)
 table(pca_loc$pca_outl)
 
+
+maindir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+orig_loci<-read.table(paste(maindir, "Cenchrus_filt1_loci.txt", sep="/"), header=T)
+head(orig_loci)
+head(pca_loc)
+
+table(orig_loci$locus == pca_loc$locus)
+
+dir()
 
 # > table(pca_loc$pca_outl)
 
