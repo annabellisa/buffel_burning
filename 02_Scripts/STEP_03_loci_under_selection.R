@@ -28,6 +28,7 @@ gt_data<-snp_onerow
 
 # Directory with bayescan results:
 bs_dir<-"../Offline_Analysis/BayeScan/Cenchrus_filt1/Cenchrus_BS_po400_RESULTS"
+bs_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/Cenchrus_BS_po400_RESULTS"
 dir(bs_dir)
 
 bs_fst<-paste(bs_dir,"Cenchrus_BS_po400_fst.txt",sep="/")
@@ -41,6 +42,7 @@ bs_n_outl<-bsres$nb_outliers
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
 bslinf<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bs_loci_filt3.txt",header=T)
+bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = TRUE) # no such file called bs_loci_filt3.txt, use "Cenchrus_filt1_loci.txt"
 head(bslinf)
 
 bsoutl<-data.frame(lind=bs_outl,outl=1)
@@ -58,15 +60,15 @@ colnames(bslinf)[which(colnames(bslinf)=="outl")]<-"bs_outl"
 
 # *** PLOT DIAGNOSTICS:
 
-bs_sel<-paste(bs_dir,"bayescan_filt3_out.sel",sep="/")
+bs_sel<-paste(bs_dir,"Cenchrus_BS_po400.sel",sep="/")
 seldat<-read.table(bs_sel,colClasses="numeric")
 
 # Plot log likelihood:
-parameter<-"logL"
+parameter<-"logL" # a few minutes
 plot(density(seldat[[parameter]]),xlab=parameter,main=paste(parameter,"posterior distribution PO=200"))
 
 # Plot FST:
-quartz("",5,8,dpi=100)
+quartz("",5,8,dpi=100) # Error
 par(mfrow=c(10,6),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
 for (i in grep("Fst",colnames(seldat))){
 par.thisrun<-colnames(seldat)[i]
@@ -82,6 +84,9 @@ outl_alpha<-paste("alpha",bs_outl,sep="")
 head(outl_alpha)
 table(outl_alpha %in% alphacols)
 
+# TRUE 
+# 2561
+
 # Plot alpha for a random selection of loci:
 quartz("",12,8,dpi=80)
 par(mfrow=c(5,10),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
@@ -93,15 +98,18 @@ legend("bottom",legend=par.thisrun,cex=1,bty="n")
 }
 
 # *** PLOT OUTLIER LOCI:
-loc.toanalyse<-as.character(bslinf$locus[which(bslinf$outl==1)])
+loc.toanalyse<-as.character(bslinf$locus[which(bslinf$outl==1)]) # failure to convert levels/factors to characters
+# 0 output
 length(loc.toanalyse)
 head(loc.toanalyse)
 
 # Put files here:	
 out.dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bayescan_filt3_50_random_heatmaps"
+out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan"
 
+out.dir
 # Make sure they're all in site data
-unique(gt_data$site) %in% sdat$site_code
+unique(gt_data$site) %in% sdat$site_code # False
 
 # PLOT GENOTYPE FREQUENCIES BY LOCATION:
 
@@ -129,10 +137,14 @@ parameter<-"alpha41121"
 parameter<-"logL"
 
 # if you have the package "boa" installed, you can very easily obtain Highest Probability 
-library("boa")
+library(boa)
 
 # Density Interval (HPDI) for your parameter of interest (example for the 95% interval):
 boa.hpd(seldat[[parameter]],0.05)
+
+# Lower Bound Upper Bound 
+# -995514.0   -994271.8 
+
 
 # close BayeScan ----
 
@@ -165,8 +177,9 @@ dir(path_to_file)
 filename <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
 
 ### --- *** CHOOSE K *** --- ###
-
-x <- pcadapt(input = filename, K = 40) 
+K <- 22 # Capitalised K
+  
+x <- pcadapt(input = filename, K = 22) 
 
 # CHOOSE K FROM SCREE PLOT: reproduce built in plot: plot(x, option = "screeplot")
 
@@ -224,7 +237,7 @@ legend(-5, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.nam
 
 library(pcadapt)
 
-K<-3
+K<-3 # return # 182
 x <- pcadapt(input = filename, K = K) 
 summary(x)
 
@@ -265,15 +278,77 @@ colour_codes<-unique(poplist.names)
 colour_codes[grep("b",unique(poplist.names))]<-"red"
 colour_codes[grep("u",unique(poplist.names))]<-"blue"
 
-plot(pc1,pc2,col=colour_codes,xlab="",ylab="",pch=20, cex=3)
-plot(pc1,pc3,col=colour_codes,xlab="",ylab="",pch=20, cex=3)
-plot(pc2,pc3,col=colour_codes,xlab="",ylab="",pch=20, cex=3)
+plot(pc1,pc2,col=colour_codes,xlab="pc1",ylab="pc2",pch=20, cex=3)
+plot(pc1,pc3,col=colour_codes,xlab="pc1",ylab="pc3",pch=20, cex=3)
+plot(pc2,pc3,col=colour_codes,xlab="pc2",ylab="pc3",pch=20, cex=3)
 
-title(xlab=paste("PC",i,sep=""),cex.lab=1)
-title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
+# title(xlab=paste("PC",i,sep=""),cex.lab=1)
+# title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
 
 par(xpd=NA)
 legend(-5,-1,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+
+# lattice methods 
+
+install.packages("lattice", dependencies = TRUE)
+library(lattice)
+show.settings()
+
+
+install.packages("gridExtra")
+library(gridExtra)
+require(gridExtra) 
+require(lattice)
+grid <- expand.grid(x=x, y=y)
+plot1<-xyplot(pc1~pc2, scales=list(cex=1, col="red"),
+              col=colour_codes, 
+              xlab="pc1", ylab="pc2",
+              main="pc1 v pc2") 
+  
+plot2<-xyplot(pc2~pc3, scales=list(cex=1, col="red"),
+              col=colour_codes,
+              xlab="pc2", ylab="pc3",
+              main="pc2 v pc3")  
+  
+plot3<-xyplot(pc1~pc3, scales=list(cex=1, col="red"),
+              col=colour_codes,
+              xlab="pc1", ylab="pc3",
+              main="pc1 v pc3")
+
+grid.arrange(plot1,plot2,plot3, ncol=3) 
+
+
+# Tidyverse, ggplot
+install.packages("directlabels", repos = "http://r-forge.r-project.org", dependencies = TRUE)
+install.packages("grid")
+install.packages("quadprog")
+library(directlabels)
+library(tidyverse)
+
+plot1<-ggplot(mapping = aes(x = pc1, y = pc2),
+              colour = colour_codes, 
+              xlab="pc1", ylab="pc2",
+              main="pc1 v pc2") +
+  geom_point()
+
+
+plot2<-ggplot(mapping = aes(x = pc2, y = pc3),
+             colour = colour_codes, 
+              xlab="pc2", ylab="pc3",
+              main="pc2 v pc3")  +
+  geom_point()
+
+plot3<-ggplot(mapping = aes(x = pc1, y = pc3),
+              colour = colour_codes, 
+              xlab="pc1", ylab="pc3",
+              main="pc1 v pc3") +
+  geom_point()
+install.packages("Rmisc", dependencies = TRUE) # or install.packages("scater")
+library(Rmisc)
+multiplot(plot1, plot2, plot3, cols=3)
+
+
+
 
 # Get outliers based on q values:
 
@@ -288,6 +363,8 @@ length(pval)
 write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
 is.na_remove<-x$pvalues[!is.na(x$pvalues)]
 qval <- qvalue(is.na_remove)$qvalues
+
+length(qval)
 
 # --------------------------------------------
 # https://statisticsglobe.com/r-is-na-function/
@@ -317,6 +394,7 @@ ifelse(is.na(pval), "Damn, it's NA", "WOW, that's awesome")
 alpha <- 0.05
 outliers <- which(qval < alpha)
 length(outliers)
+# 4070
 
 # Associate outliers with PCs: library(pcadapt)
 snp_pc <- get.pc(x, outliers)
