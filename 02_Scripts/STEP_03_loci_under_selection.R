@@ -42,7 +42,7 @@ bs_n_outl<-bsres$nb_outliers
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
 bslinf<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bs_loci_filt3.txt",header=T)
-bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = TRUE) # no such file called bs_loci_filt3.txt, use "Cenchrus_filt1_loci.txt"
+bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/bs_loci_filt1.txt", header = TRUE) # bs_loci_filt1.txt
 head(bslinf)
 
 bsoutl<-data.frame(lind=bs_outl,outl=1)
@@ -109,7 +109,9 @@ out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyi
 
 out.dir
 # Make sure they're all in site data
-unique(gt_data$site) %in% sdat$site_code # False
+
+sdat$site_code <- sub("buf","X",sdat$site)
+unique(gt_data$site) %in% sdat$site_code # add a new column
 
 # PLOT GENOTYPE FREQUENCIES BY LOCATION:
 
@@ -275,12 +277,22 @@ pc2<-x$scores[,2]
 pc3<-x$scores[,3]
 
 colour_codes<-unique(poplist.names)
+# colour_codes<-unique(poplist.names) # no need
 colour_codes[grep("b",unique(poplist.names))]<-"red"
 colour_codes[grep("u",unique(poplist.names))]<-"blue"
 
+
+# PC should be a square shape when exporting the plots
+
 plot(pc1,pc2,col=colour_codes,xlab="pc1",ylab="pc2",pch=20, cex=3)
+text(pc1,pc2, labels = poplist.names)
+
 plot(pc1,pc3,col=colour_codes,xlab="pc1",ylab="pc3",pch=20, cex=3)
+text(pc1,pc3, labels = poplist.names)
+
+
 plot(pc2,pc3,col=colour_codes,xlab="pc2",ylab="pc3",pch=20, cex=3)
+text(pc2,pc3, labels = poplist.names)
 
 # title(xlab=paste("PC",i,sep=""),cex.lab=1)
 # title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
@@ -299,11 +311,13 @@ install.packages("gridExtra")
 library(gridExtra)
 require(gridExtra) 
 require(lattice)
-grid <- expand.grid(x=x, y=y)
-plot1<-xyplot(pc1~pc2, scales=list(cex=1, col="red"),
+
+plot1<-xyplot(pc2~pc1, scales=list(cex=1, col="red"),
               col=colour_codes, 
               xlab="pc1", ylab="pc2",
-              main="pc1 v pc2") 
+              main="pc1 v pc2",
+              panel.text(pc1, pc2, labels = poplist.names))
+
   
 plot2<-xyplot(pc2~pc3, scales=list(cex=1, col="red"),
               col=colour_codes,
@@ -318,34 +332,47 @@ plot3<-xyplot(pc1~pc3, scales=list(cex=1, col="red"),
 grid.arrange(plot1,plot2,plot3, ncol=3) 
 
 
+
+
+text(pc1~pc3, labels = unique(poplist.names))
+
 # Tidyverse, ggplot
 install.packages("directlabels", repos = "http://r-forge.r-project.org", dependencies = TRUE)
 install.packages("grid")
 install.packages("quadprog")
 library(directlabels)
+
+
+
 library(tidyverse)
 
-plot1<-ggplot(mapping = aes(x = pc1, y = pc2),
-              colour = colour_codes, 
+ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names),
+       xlab="pc1", ylab="pc2",
+       main="pc1 v pc2") +
+  geom_point() 
+
+ggplot(mapping = aes(x = pc1, y = pc3, colour = poplist.names),
+       xlab="pc1", ylab="pc3",
+       main="pc1 v pc3") +
+  geom_point() 
+
+ggplot(mapping = aes(x = pc2, y = pc3, colour = poplist.names),
+       xlab="pc2", ylab="pc3",
+       main="pc2 v pc3") +
+  geom_point() 
+
+# Original plots 
+
+ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names, shape = poplist.names),
               xlab="pc1", ylab="pc2",
               main="pc1 v pc2") +
-  geom_point()
+  geom_point() +
+  geom_text(aes(label = poplist.names))
 
-
-plot2<-ggplot(mapping = aes(x = pc2, y = pc3),
-             colour = colour_codes, 
-              xlab="pc2", ylab="pc3",
-              main="pc2 v pc3")  +
-  geom_point()
-
-plot3<-ggplot(mapping = aes(x = pc1, y = pc3),
-              colour = colour_codes, 
-              xlab="pc1", ylab="pc3",
-              main="pc1 v pc3") +
-  geom_point()
-install.packages("Rmisc", dependencies = TRUE) # or install.packages("scater")
-library(Rmisc)
-multiplot(plot1, plot2, plot3, cols=3)
+# note: y~x | x,y
+# install.packages("Rmisc", dependencies = TRUE) # or install.packages("scater")
+# library(Rmisc)
+# multiplot(plot1, plot2, plot3, cols=3)
 
 
 
@@ -355,16 +382,16 @@ multiplot(plot1, plot2, plot3, cols=3)
 ## be careful with NA, qvalue: no NA, p or pval has NA, and is.na_remove is pval without NAs
 loci <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
 
-
-
 pval <-x$pvalues
 
 length(pval)
-write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
+# write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
 is.na_remove<-x$pvalues[!is.na(x$pvalues)]
 qval <- qvalue(is.na_remove)$qvalues
 
 length(qval)
+
+# write.table(qval,file="qval.txt",quote=F,row.names=F,sep="\t")
 
 # --------------------------------------------
 # https://statisticsglobe.com/r-is-na-function/
@@ -378,14 +405,14 @@ which(is.na(pval))
 # if game
 for (i in 1:length(pval)) {
  if(is.na(pval[i])) {
-   print("Damn, it's NA")
+   print("Damn, it's an NA")
  }  
   else {
     print("Wow, that's awesome")
   }
 }
 
-ifelse(is.na(pval), "Damn, it's NA", "WOW, that's awesome")
+ifelse(is.na(pval), "Damn, it's an NA", "WOW, that's awesome")
 
 # ---------------------------
 
@@ -394,11 +421,13 @@ ifelse(is.na(pval), "Damn, it's NA", "WOW, that's awesome")
 alpha <- 0.05
 outliers <- which(qval < alpha)
 length(outliers)
-# 4070
+# [1st run]4070 [2nd run]7040
 
 # Associate outliers with PCs: library(pcadapt)
 snp_pc <- get.pc(x, outliers)
 head(snp_pc)
+
+# write.table(snp_pc,"outliers_PCAdapt_from_snp_pc.txt",sep="\t",row.names=F,quote=F)
 
 # Reproduce manhattan plot:
 
@@ -425,10 +454,22 @@ table(orig_loci$locus == pca_loc$locus)
 
 dir()
 
+
+# [1st run]
+
 # > table(pca_loc$pca_outl)
 
 # 0     1 
 # 32653  8058 
+
+
+# [2nd run]
+# > table(pca_loc$pca_outl)
+
+# 0     1 
+# 33671  7040 
+
+
 
 } # close pcadapt
 
