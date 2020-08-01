@@ -98,8 +98,7 @@ legend("bottom",legend=par.thisrun,cex=1,bty="n")
 }
 
 # *** PLOT OUTLIER LOCI:
-loc.toanalyse<-as.character(bslinf$locus[which(bslinf$outl==1)]) # failure to convert levels/factors to characters
-# 0 output
+loc.toanalyse<-as.character(bslinf$locus[which(bslinf$bs_outl==1)]) 
 length(loc.toanalyse)
 head(loc.toanalyse)
 
@@ -122,7 +121,7 @@ ghead(gt_data)
 head(sdat,3)
 dir(out.dir)
 
-plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50)
+plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50) # the missing function 
 
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
