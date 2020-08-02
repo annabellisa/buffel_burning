@@ -275,7 +275,7 @@ pc1<-x$scores[,1]
 pc2<-x$scores[,2]
 pc3<-x$scores[,3]
 
-colour_codes<-unique(poplist.names)
+colour_codes<-poplist.names
 # colour_codes<-unique(poplist.names) # no need
 colour_codes[grep("b",unique(poplist.names))]<-"red"
 colour_codes[grep("u",unique(poplist.names))]<-"blue"
@@ -320,18 +320,15 @@ plot1<-xyplot(pc2~pc1, scales=list(cex=1, col="red"),
   
 plot2<-xyplot(pc2~pc3, scales=list(cex=1, col="red"),
               col=colour_codes,
-              xlab="pc2", ylab="pc3",
+              xlab="pc3", ylab="pc2",
               main="pc2 v pc3")  
   
 plot3<-xyplot(pc1~pc3, scales=list(cex=1, col="red"),
               col=colour_codes,
-              xlab="pc1", ylab="pc3",
+              xlab="pc3", ylab="pc1",
               main="pc1 v pc3")
 
 grid.arrange(plot1,plot2,plot3, ncol=3) 
-
-
-
 
 text(pc1~pc3, labels = unique(poplist.names))
 
@@ -344,21 +341,38 @@ library(directlabels)
 
 
 library(tidyverse)
+library(ggrepel)
 
-ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names),
+plot1<-ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names),
        xlab="pc1", ylab="pc2",
        main="pc1 v pc2") +
-  geom_point() 
+  geom_point(size = 2,alpha = 0.6)
 
-ggplot(mapping = aes(x = pc1, y = pc3, colour = poplist.names),
+
+# label method 1
+
+plot1 + 
+geom_label_repel(aes(label = poplist.names),
+                 box.padding   = 0.1, 
+                 point.padding = 0.25,
+                 segment.color = 'grey50') +
+  theme_classic()
+
+# label method 2
+plot1 +
+  theme_bw()+
+  geom_text(aes(label=ifelse(pc2<-0.1,as.character(poplist.names),'')),hjust=0,vjust=0)
+
+
+plot2<-ggplot(mapping = aes(x = pc1, y = pc3, colour = poplist.names),
        xlab="pc1", ylab="pc3",
        main="pc1 v pc3") +
   geom_point() 
 
-ggplot(mapping = aes(x = pc2, y = pc3, colour = poplist.names),
+plot3<-ggplot(mapping = aes(x = pc2, y = pc3, colour = poplist.names),
        xlab="pc2", ylab="pc3",
        main="pc2 v pc3") +
-  geom_point() 
+  geom_point()
 
 # Original plots 
 
