@@ -65,7 +65,7 @@ seldat<-read.table(bs_sel,colClasses="numeric")
 
 # Plot log likelihood:
 parameter<-"logL" # a few minutes
-plot(density(seldat[[parameter]]),xlab=parameter,main=paste(parameter,"posterior distribution PO=200"))
+plot(density(seldat[[parameter]]),xlab=parameter,main=paste(parameter,"posterior distribution PO=400"))
 
 # Plot FST:
 quartz("",5,8,dpi=100) # Error
@@ -107,10 +107,10 @@ out.dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bayes
 out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan"
 
 out.dir
-# Make sure they're all in site data
+## Make sure they're all in site data
 
-sdat$site_code <- sub("buf","X",sdat$site)
-unique(gt_data$site) %in% sdat$site_code # add a new column
+# sdat$site_code <- sub("buf","X",sdat$site)
+# unique(gt_data$site) %in% sdat$site_code # add a new column
 
 # PLOT GENOTYPE FREQUENCIES BY LOCATION:
 
@@ -121,7 +121,8 @@ ghead(gt_data)
 head(sdat,3)
 dir(out.dir)
 
-plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50) # the missing function 
+
+plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50) # Error: requirement for site_data [c("site_code","native","country","region","latitude")] needs to be changed.
 
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
@@ -305,7 +306,6 @@ install.packages("lattice", dependencies = TRUE)
 library(lattice)
 show.settings()
 
-
 install.packages("gridExtra")
 library(gridExtra)
 require(gridExtra) 
@@ -332,6 +332,31 @@ grid.arrange(plot1,plot2,plot3, ncol=3)
 
 text(pc1~pc3, labels = unique(poplist.names))
 
+# alternative, multi-panel by ggpairs() 
+
+library("tidyr")
+pc_long <- x$scores %>%
+  data.frame() %>%
+  rename(PC1 = 1, PC2 = 2, PC3 = 3) %>%
+  pivot_longer(cols = 1:3, 
+               names_to = "PC",
+               values_to = "Scores")
+# class(x$scores)
+  
+pc_mat<-x$scores
+names(pc_mat)<-c("PC1", "PC2", "PC3")
+pairs(x$scores, upper.panel = NULL)
+
+# GGally::ggpairs()
+pc_df<-data.frame(pc_mat)
+install.packages("GGally")
+library(GGally)
+ggpairs(pc_df,  aes(colour = colour_codes), columns = 1:3) +
+  theme_bw() +
+  scale_color_manual(values=c("red"="red","blue"="blue")) +
+  theme(text = element_text(size = 25)) 
+
+
 # Tidyverse, ggplot
 install.packages("directlabels", repos = "http://r-forge.r-project.org", dependencies = TRUE)
 install.packages("grid")
@@ -342,37 +367,64 @@ library(directlabels)
 
 library(tidyverse)
 library(ggrepel)
+install.packages("egg")
+library(egg)
 
-plot1<-ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names),
+
+# colour-trtments
+# label-site_name
+
+site_name<-str_extract(poplist.names,"[0-9]+")
+colour_codes[grep("b",poplist.names)]<-"red"
+colour_codes[grep("u",poplist.names)]<-"blue"
+plotdata <- data.frame(pc1,pc2,pc3,colour_codes,site_name)
+
+plot1<-ggplot(plotdata,mapping = aes(x = pc1, y = pc2, colour = colour_codes),
        xlab="pc1", ylab="pc2",
        main="pc1 v pc2") +
-  geom_point(size = 2,alpha = 0.6)
-
+  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("red"="red","blue"="blue")) +
+  theme_bw() +
+  theme(text = element_text(size = 25)) 
+  
+# theme(axis.text = element_text(size = 20))               # Axis text size
+# For more: https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend
 
 # label method 1
+library(gghighlight)
 
-plot1 + 
-geom_label_repel(aes(label = poplist.names),
-                 box.padding   = 0.1, 
-                 point.padding = 0.25,
-                 segment.color = 'grey50') +
-  theme_classic()
+plot1_1<- plot1 +
+  #geom_label_repel(aes(label = site_name),nudge_y = .05) +
+  gghighlight() +
+  facet_wrap(~site_name)
+
 
 # label method 2
+plot1 + 
+geom_label_repel(aes(label = site_name),
+                 box.padding   = 0.01, 
+                 point.padding = 0.025) +
+  theme_article()
+
+# segment.color = 'grey50'
+# label method 3
 plot1 +
   theme_bw()+
   geom_text(aes(label=ifelse(pc2<-0.1,as.character(poplist.names),'')),hjust=0,vjust=0)
 
 
-plot2<-ggplot(mapping = aes(x = pc1, y = pc3, colour = poplist.names),
-       xlab="pc1", ylab="pc3",
-       main="pc1 v pc3") +
-  geom_point() 
+plot2<-ggplot(plotdata,mapping = aes(x = pc1, y = pc3, colour = colour_codes),
+              xlab="pc1", ylab="pc3",
+              main="pc1 v pc3") +
+  geom_point(size = 2,alpha = 0.25) + scale_color_manual(values=c("red"="red","blue"="blue")) +
+  theme_bw() +
+  theme(text = element_text(size = 25)) 
 
-plot3<-ggplot(mapping = aes(x = pc2, y = pc3, colour = poplist.names),
-       xlab="pc2", ylab="pc3",
-       main="pc2 v pc3") +
-  geom_point()
+plot3<-ggplot(plotdata,mapping = aes(x = pc2, y = pc3, colour = colour_codes),
+              xlab="pc2", ylab="pc3",
+              main="pc2 v pc3") +
+  geom_point(size = 2,alpha = 0.25) + scale_color_manual(values=c("red"="red","blue"="blue")) +
+  theme_bw() +
+  theme(text = element_text(size = 25)) 
 
 # Original plots 
 
@@ -385,7 +437,7 @@ ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names, shape = poplist.n
 # note: y~x | x,y
 # install.packages("Rmisc", dependencies = TRUE) # or install.packages("scater")
 # library(Rmisc)
-# multiplot(plot1, plot2, plot3, cols=3)
+# multiplot(plot1_1, plot2_1, plot3_1, cols=3)
 
 
 
@@ -495,6 +547,7 @@ library(qvalue)
 
 lfmm_dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/LFMM/lfmm_filt2"
 lfmm_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
+lfmm_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
 dir(lfmm_dir)
 
 # Genotype data:
@@ -507,8 +560,17 @@ lfsite<-read.table(paste(lfmm_dir,"lfmm_site.txt",sep="/"),header=T)
 head(lfsite)
 
 # Enviro data for each site:
-lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site_code"),which(colnames(sdat)=="elevation"):which(colnames(sdat)=="sm"))]
-lfsd<-lfsd[order(lfsd$site_code),]
+
+# Add site info
+# sdat$site_code <- sub("buf","X",sdat$site)
+# head(sdat$site_code) 
+
+
+# lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site_code"),which(colnames(sdat)=="elevation"):which(colnames(sdat)=="sm"))] # What are they? 
+lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site_code"))]
+
+# lfsd<-lfsd[order(lfsd$site_code),]
+
 lfsd<-tidy.df(lfsd)
 head(lfsd)
 
