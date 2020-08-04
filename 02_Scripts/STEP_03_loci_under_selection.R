@@ -435,11 +435,18 @@ ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names, shape = poplist.n
   geom_text(aes(label = poplist.names))
 
 # note: y~x | x,y
-# install.packages("Rmisc", dependencies = TRUE) # or install.packages("scater")
 # library(Rmisc)
 # multiplot(plot1_1, plot2_1, plot3_1, cols=3)
 
 
+# For future, 3D images: 
+install.packages("https://cran.r-project.org/src/contrib/Archive/plot3Drgl/plot3Drgl_1.0.tar.gz", repos = NULL, type = "source", dependencies = TRUE) 
+install.packages("plot3Drgl", dependencies = TRUE)
+install.packages("rgl")
+library(rgl)
+library(plot3Drgl)
+
+# plotrgl()
 
 
 # Get outliers based on q values:
