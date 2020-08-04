@@ -379,6 +379,17 @@ write.table(data[,1:2],"lfmm_site.txt",row.names=F,quote=F,sep="\t")
 
 # close format lfmm ----
 
+####   	 	 CHANGE SITE-names (BayeScan):	   	 ####
+
+ghead(filtered_data); dim(filtered_data)
+old.site.name<-filtered_data$site
+new.site.name<-filtered_data$site
+# this is a hack that uses the first three characters and replaces them directly; not generalisable to other data sets and use with caution
+new.site.name<-substr(new.site.name,start=1,stop=3)
+filtered_data$site<-as.factor(new.site.name)
+
+# close change site names ----
+
 ####   	 	 FORMAT STRUCTURE:	   	 ####
   
   # Single row data:
@@ -390,7 +401,7 @@ ghead(filtered_data); dim(filtered_data)
 
   # List parameters:
   data<-filtered_data
-  headline<-"Cenchrus_filt1"
+  headline<-"Cenchrus_filt2"
   param.sites<-levels(data$site)
   param.nosites<-length(param.sites)
   param.noloci<-ncol(data)-2
@@ -411,10 +422,10 @@ ghead(filtered_data); dim(filtered_data)
   format_structure(data,headline)
   
   # Output locus info index:
-  bs_loci_filt1<-data.frame(lind=1:length(colnames(data)[3:ncol(data)]),locus=colnames(data)[3:ncol(data)])
-  head(bs_loci_filt1)
+  bs_loci_filt2<-data.frame(lind=1:length(colnames(data)[3:ncol(data)]),locus=colnames(data)[3:ncol(data)])
+  head(bs_loci_filt2)
   
-  # write.table(bs_loci_filt1,"bs_loci_filt1.txt",row.names=F,quote=F,sep="\t")
+  # write.table(bs_loci_filt2,"bs_loci_filt2.txt",row.names=F,quote=F,sep="\t")
   
   # close format strucutre ----
 
