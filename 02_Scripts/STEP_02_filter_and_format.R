@@ -319,11 +319,11 @@ param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
 param.noindiv<-nrow(data)
 param.mono<-T
-param.repavg<-T
+param.repavg<-F
 param.callrate<-T
-param.MAF<-T
-param.LD<-T
-param.HWE<-T
+param.MAF<-F
+param.LD<-F
+param.HWE<-F
 param.neu<-F
 param.dup<-T
 
