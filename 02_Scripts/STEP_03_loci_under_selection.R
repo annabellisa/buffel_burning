@@ -558,7 +558,7 @@ lfmm_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Biny
 dir(lfmm_dir)
 
 # Genotype data:
-lfdat<-as.matrix(read.table(paste(lfmm_dir,"lfmm.txt",sep="/"),header=F))
+lfdat<-as.matrix(read.table(paste(lfmm_dir,"lfmm.txt",sep="/"),header=F)) # a few seconds 
 colnames(lfdat)<-NULL
 ghead(lfdat)
 
@@ -573,8 +573,8 @@ head(lfsite)
 # head(sdat$site_code) 
 
 
-# lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site_code"),which(colnames(sdat)=="elevation"):which(colnames(sdat)=="sm"))] # What are they? 
-lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site_code"))]
+lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site_code"),which(colnames(sdat)=="elevation"):which(colnames(sdat)=="sm"))] # What are they? 
+
 
 # lfsd<-lfsd[order(lfsd$site_code),]
 
