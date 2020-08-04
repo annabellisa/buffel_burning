@@ -8,6 +8,7 @@
 
 # Load workspace (not updated for Cenchrus):
 # load("03_Workspaces/STEP03_sel_wksp")
+# load("03_Workspaces/STEP03_sel_wksp_BD.RData")
 
 # AS Load and tidy workspace and remove everything except necessary objects:
 load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
@@ -27,6 +28,7 @@ gt_data<-snp_onerow
 
 # Directory with bayescan results:
 bs_dir<-"../Offline_Analysis/BayeScan/Cenchrus_filt1/Cenchrus_BS_po400_RESULTS"
+bs_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/Cenchrus_BS_po400_RESULTS"
 dir(bs_dir)
 
 bs_fst<-paste(bs_dir,"Cenchrus_BS_po400_fst.txt",sep="/")
@@ -40,6 +42,7 @@ bs_n_outl<-bsres$nb_outliers
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
 bslinf<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bs_loci_filt3.txt",header=T)
+bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/bs_loci_filt1.txt", header = TRUE) # bs_loci_filt1.txt
 head(bslinf)
 
 bsoutl<-data.frame(lind=bs_outl,outl=1)
@@ -57,15 +60,15 @@ colnames(bslinf)[which(colnames(bslinf)=="outl")]<-"bs_outl"
 
 # *** PLOT DIAGNOSTICS:
 
-bs_sel<-paste(bs_dir,"bayescan_filt3_out.sel",sep="/")
+bs_sel<-paste(bs_dir,"Cenchrus_BS_po400.sel",sep="/")
 seldat<-read.table(bs_sel,colClasses="numeric")
 
 # Plot log likelihood:
-parameter<-"logL"
+parameter<-"logL" # a few minutes
 plot(density(seldat[[parameter]]),xlab=parameter,main=paste(parameter,"posterior distribution PO=200"))
 
 # Plot FST:
-quartz("",5,8,dpi=100)
+quartz("",5,8,dpi=100) # Error
 par(mfrow=c(10,6),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
 for (i in grep("Fst",colnames(seldat))){
 par.thisrun<-colnames(seldat)[i]
@@ -81,6 +84,9 @@ outl_alpha<-paste("alpha",bs_outl,sep="")
 head(outl_alpha)
 table(outl_alpha %in% alphacols)
 
+# TRUE 
+# 2561
+
 # Plot alpha for a random selection of loci:
 quartz("",12,8,dpi=80)
 par(mfrow=c(5,10),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
@@ -92,15 +98,19 @@ legend("bottom",legend=par.thisrun,cex=1,bty="n")
 }
 
 # *** PLOT OUTLIER LOCI:
-loc.toanalyse<-as.character(bslinf$locus[which(bslinf$outl==1)])
+loc.toanalyse<-as.character(bslinf$locus[which(bslinf$bs_outl==1)]) 
 length(loc.toanalyse)
 head(loc.toanalyse)
 
 # Put files here:	
 out.dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bayescan_filt3_50_random_heatmaps"
+out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan"
 
+out.dir
 # Make sure they're all in site data
-unique(gt_data$site) %in% sdat$site_code
+
+sdat$site_code <- sub("buf","X",sdat$site)
+unique(gt_data$site) %in% sdat$site_code # add a new column
 
 # PLOT GENOTYPE FREQUENCIES BY LOCATION:
 
@@ -111,7 +121,7 @@ ghead(gt_data)
 head(sdat,3)
 dir(out.dir)
 
-plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50)
+plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50) # the missing function 
 
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
@@ -128,10 +138,14 @@ parameter<-"alpha41121"
 parameter<-"logL"
 
 # if you have the package "boa" installed, you can very easily obtain Highest Probability 
-library("boa")
+library(boa)
 
 # Density Interval (HPDI) for your parameter of interest (example for the 95% interval):
 boa.hpd(seldat[[parameter]],0.05)
+
+# Lower Bound Upper Bound 
+# -995514.0   -994271.8 
+
 
 # close BayeScan ----
 
@@ -141,6 +155,10 @@ boa.hpd(seldat[[parameter]],0.05)
 ####	    	PCADAPT:	    	 ####
 #########################################
 {
+
+  
+# Tutorial: https://bcm-uga.github.io/pcadapt/articles/pcadapt.html  
+  
 
 install.packages("pcadapt")  
 install.packages("https://cran.r-project.org/src/contrib/Archive/qvalue/qvalue_1.26.0.tar.gz", repos = NULL, type = "source")  
@@ -152,20 +170,26 @@ library(qvalue)
 # browseVignettes("pcadapt")
 
 path_to_file <- "../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_files"
-path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/LOCI_UNDER_SELECTION"
+path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+
 dir(path_to_file)
 
-filename <- read.pcadapt(paste(path_to_file,"pcadapt_filt2.bed",sep="/"), type = "bed")
+filename <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
 
 ### --- *** CHOOSE K *** --- ###
-
-K<-40
-
-x <- pcadapt(input = filename, K = K) 
+K <- 22 # Capitalised K
+  
+x <- pcadapt(input = filename, K = 22) 
 
 # CHOOSE K FROM SCREE PLOT: reproduce built in plot: plot(x, option = "screeplot")
 
-quartz("",4,4,dpi=160,pointsize=12)
+# plot(x, option = "screeplot")
+
+# install.packages("grDevices")
+# library(grDevices)
+
+quartz("",4,4,dpi=160,pointsize=12) # Error
 par(mar=c(4,4,0.5,0.5))
 plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
 title(xlab="PC",mgp=c(2.5,1,0))
@@ -176,14 +200,14 @@ points(1:K,x$singular.values^2,pch=20)
 # CHOOSE K FROM PCs:
 
 # Get population names from the fam file:
-famf<-read.table(paste(path_to_file,"pcadapt_filt2.fam",sep="/"),header=F)
+famf<-read.table(paste(path_to_file,"Cenchrus_filt1.fam",sep="/"),header=F)
 head(famf)
 poplist.names <- as.character(famf$V1)
 head(poplist.names)
 
 # Reproduce inbuilt PC plot: plot(x, option = "scores", i = 1, j = 2, pop = poplist.names)
 
-quartz("",10,10,dpi=80,pointsize=14)
+quartz("",10,10,dpi=80,pointsize=14) # Error
 par(mfrow=c(5,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in seq(1,ncol(x$scores),2)){
 pc1<-x$scores[,i]
@@ -193,48 +217,234 @@ title(xlab=paste("PC",i,sep=""),cex.lab=1)
 title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
 }
 par(xpd=NA)
-legend(-1.9,-0.43,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+legend(-5, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
 
 # 10-25 pcs needed to explain variation
 
+# Score plot - Example
+# poplist.int<-c(rep(1,50), rep(2,50), rep(3,50))
+# print(poplist.int)
+
+# poplist.names<-c(rep("POP1", 50), rep("POP2",50), rep("POP3",50))
+# print(poplist.names)
+
+# plot(x, option = "scores", pop = poplist.int)
+# plot(x, option = "scores", pop = poplist.names)
+
+
+
+
 ### --- *** SET K *** --- ###
 
-K<-10
+library(pcadapt)
+
+K<-3 # return # 182
 x <- pcadapt(input = filename, K = K) 
 summary(x)
 
+
+# > summary(x)
+# Length Class  Mode   
+# scores             930 -none- numeric
+# singular.values     10 -none- numeric
+# loadings        407110 -none- numeric
+# zscores         407110 -none- numeric
+# af               40711 -none- numeric
+# maf              40711 -none- numeric
+# chi2.stat        40711 -none- numeric
+# stat             40711 -none- numeric
+# gif                  1 -none- numeric
+# pvalues          40711 -none- numeric
+# pass             34752 -none- numeric
+
+
+
 # Check for LD 
-quartz("",10,4,dpi=80,pointsize=14)
-par(mfrow=c(2,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
+dev.new("",10,4,dpi=80,pointsize=14) # Error
+par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in 1:ncol(x$loadings))
   plot(x$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
 
 # Reproduce PC plot:
 
-quartz("",10,4,dpi=80,pointsize=14)
-par(mfrow=c(2,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
-for (i in seq(1,ncol(x$scores),2)){
-pc1<-x$scores[,i]
-pc2<-x$scores[,i+1]
-plot(pc1,pc2,col=rainbow(length(unique(poplist.names))),xlab="",ylab="",pch=20)
-title(xlab=paste("PC",i,sep=""),cex.lab=1)
-title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
-}
+head(x$scores)
+
+dev.new("",10,4) # Error
+par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
+pc1<-x$scores[,1]
+pc2<-x$scores[,2]
+pc3<-x$scores[,3]
+
+colour_codes<-poplist.names
+# colour_codes<-unique(poplist.names) # no need
+colour_codes[grep("b",unique(poplist.names))]<-"red"
+colour_codes[grep("u",unique(poplist.names))]<-"blue"
+
+
+# PC should be a square shape when exporting the plots
+
+plot(pc1,pc2,col=colour_codes,xlab="pc1",ylab="pc2",pch=20, cex=3)
+text(pc1,pc2, labels = poplist.names)
+
+plot(pc1,pc3,col=colour_codes,xlab="pc1",ylab="pc3",pch=20, cex=3)
+text(pc1,pc3, labels = poplist.names)
+
+
+plot(pc2,pc3,col=colour_codes,xlab="pc2",ylab="pc3",pch=20, cex=3)
+text(pc2,pc3, labels = poplist.names)
+
+# title(xlab=paste("PC",i,sep=""),cex.lab=1)
+# title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
+
 par(xpd=NA)
-legend(-2.8,-0.4,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+legend(-5,-1,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+
+# lattice methods 
+
+install.packages("lattice", dependencies = TRUE)
+library(lattice)
+show.settings()
+
+
+install.packages("gridExtra")
+library(gridExtra)
+require(gridExtra) 
+require(lattice)
+
+plot1<-xyplot(pc2~pc1, scales=list(cex=1, col="red"),
+              col=colour_codes, 
+              xlab="pc1", ylab="pc2",
+              main="pc1 v pc2",
+              panel.text(pc1, pc2, labels = poplist.names))
+
+  
+plot2<-xyplot(pc2~pc3, scales=list(cex=1, col="red"),
+              col=colour_codes,
+              xlab="pc3", ylab="pc2",
+              main="pc2 v pc3")  
+  
+plot3<-xyplot(pc1~pc3, scales=list(cex=1, col="red"),
+              col=colour_codes,
+              xlab="pc3", ylab="pc1",
+              main="pc1 v pc3")
+
+grid.arrange(plot1,plot2,plot3, ncol=3) 
+
+text(pc1~pc3, labels = unique(poplist.names))
+
+# Tidyverse, ggplot
+install.packages("directlabels", repos = "http://r-forge.r-project.org", dependencies = TRUE)
+install.packages("grid")
+install.packages("quadprog")
+library(directlabels)
+
+
+
+library(tidyverse)
+library(ggrepel)
+
+plot1<-ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names),
+       xlab="pc1", ylab="pc2",
+       main="pc1 v pc2") +
+  geom_point(size = 2,alpha = 0.6)
+
+
+# label method 1
+
+plot1 + 
+geom_label_repel(aes(label = poplist.names),
+                 box.padding   = 0.1, 
+                 point.padding = 0.25,
+                 segment.color = 'grey50') +
+  theme_classic()
+
+# label method 2
+plot1 +
+  theme_bw()+
+  geom_text(aes(label=ifelse(pc2<-0.1,as.character(poplist.names),'')),hjust=0,vjust=0)
+
+
+plot2<-ggplot(mapping = aes(x = pc1, y = pc3, colour = poplist.names),
+       xlab="pc1", ylab="pc3",
+       main="pc1 v pc3") +
+  geom_point() 
+
+plot3<-ggplot(mapping = aes(x = pc2, y = pc3, colour = poplist.names),
+       xlab="pc2", ylab="pc3",
+       main="pc2 v pc3") +
+  geom_point()
+
+# Original plots 
+
+ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names, shape = poplist.names),
+              xlab="pc1", ylab="pc2",
+              main="pc1 v pc2") +
+  geom_point() +
+  geom_text(aes(label = poplist.names))
+
+# note: y~x | x,y
+# install.packages("Rmisc", dependencies = TRUE) # or install.packages("scater")
+# library(Rmisc)
+# multiplot(plot1, plot2, plot3, cols=3)
+
+
+
 
 # Get outliers based on q values:
-qval <- qvalue(x$pvalues)$qvalues
+
+## be careful with NA, qvalue: no NA, p or pval has NA, and is.na_remove is pval without NAs
+loci <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
+
+pval <-x$pvalues
+
+length(pval)
+# write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
+is.na_remove<-x$pvalues[!is.na(x$pvalues)]
+qval <- qvalue(is.na_remove)$qvalues
+
+length(qval)
+
+# write.table(qval,file="qval.txt",quote=F,row.names=F,sep="\t")
+
+# --------------------------------------------
+# https://statisticsglobe.com/r-is-na-function/
+# Detect if there are any NAs
+any(is.na(pval))
+
+# Locate NA in data set via which()
+which(is.na(pval))
+
+
+# if game
+for (i in 1:length(pval)) {
+ if(is.na(pval[i])) {
+   print("Damn, it's an NA")
+ }  
+  else {
+    print("Wow, that's awesome")
+  }
+}
+
+ifelse(is.na(pval), "Damn, it's an NA", "WOW, that's awesome")
+
+# ---------------------------
+
+
+
 alpha <- 0.05
 outliers <- which(qval < alpha)
 length(outliers)
+# [1st run]4070 [2nd run]7040
 
-# Associate outliers with PCs:
+# Associate outliers with PCs: library(pcadapt)
 snp_pc <- get.pc(x, outliers)
 head(snp_pc)
 
+# write.table(snp_pc,"outliers_PCAdapt_from_snp_pc.txt",sep="\t",row.names=F,quote=F)
+
 # Reproduce manhattan plot:
-qp<-data.frame(q=qval,p=x$pvalues)
+
+qp<-data.frame(q = qval,p = is.na_remove)
 head(qp)
 plot(1:nrow(qp),-log(qp$p,10),type="n")
 points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
@@ -242,8 +452,37 @@ points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
 
 # get locus indices for outliers:
 pca_loc<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_filt2_loci.txt",header=T)
+pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = T)
+pca_loc<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = T)
 pca_loc$pca_outl<-ifelse(pca_loc$lind %in% outliers,1,0)
 table(pca_loc$pca_outl)
+
+
+maindir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+orig_loci<-read.table(paste(maindir, "Cenchrus_filt1_loci.txt", sep="/"), header=T)
+head(orig_loci)
+head(pca_loc)
+
+table(orig_loci$locus == pca_loc$locus)
+
+dir()
+
+
+# [1st run]
+
+# > table(pca_loc$pca_outl)
+
+# 0     1 
+# 32653  8058 
+
+
+# [2nd run]
+# > table(pca_loc$pca_outl)
+
+# 0     1 
+# 33671  7040 
+
+
 
 } # close pcadapt
 
@@ -255,6 +494,7 @@ library(lfmm)
 library(qvalue)
 
 lfmm_dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/LFMM/lfmm_filt2"
+lfmm_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
 dir(lfmm_dir)
 
 # Genotype data:

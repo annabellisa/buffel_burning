@@ -226,14 +226,15 @@ param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
 param.noindiv<-nrow(data)
+param.dup<-T
 param.mono<-T
-param.repavg<-T
 param.callrate<-T
-param.MAF<-T
-param.LD<-T
+param.repavg<-F
+param.MAF<-F
+param.LD<-F
 param.HWE<-F
 param.neu<-F
-param.dup<-T
+
 
 
 ghead(data); dim(data)
