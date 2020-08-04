@@ -68,6 +68,50 @@ ls $proj_dir
 proj_dir='/Users/annabelsmith/OneDrive - The University of Queensland/TEACHING/STUDENTS/Binyin_Winter/Analysis/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1'
 ls $(proj_dir)
 
+# problem # 1 keep getting the error message "uqasmi57 is not in the sudoers file.  This incident will be reported." when trying to update or install software
+
+# I've done the changing ownership, but also need to do the make sure the user (uqasmi57) has write permission... didn't get that far
+
+# this is what brew is telling me to do:
+
+You should change the ownership and permissions of /usr/local/Cellar back to your
+user account:
+
+# this works
+sudo chown -R $uqasmi57 /usr/local/Cellar
+
+You should change the ownership of these directories to your user.
+
+# these work but I had to do them individually:
+
+sudo chown -R $uqasmi57 /usr/local/Cellar /usr/local/Frameworks /usr/local/Homebrew /usr/local/bin /usr/local/etc /usr/local/etc/bash_completion.d /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig /usr/local/opt /usr/local/sbin /usr/local/share /usr/local/share/aclocal /usr/local/share/doc /usr/local/share/info /usr/local/share/man /usr/local/share/man/man1 /usr/local/share/man/man3 /usr/local/share/man/man5 /usr/local/share/man/man7 /usr/local/share/zsh /usr/local/share/zsh/site-functions /usr/local/var/homebrew/linked /usr/local/var/homebrew/locks
+
+And make sure that your user has write permission.
+  chmod u+w /usr/local/Cellar /usr/local/Frameworks /usr/local/Homebrew /usr/local/bin /usr/local/etc /usr/local/etc/bash_completion.d /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig /usr/local/opt /usr/local/sbin /usr/local/share /usr/local/share/aclocal /usr/local/share/doc /usr/local/share/info /usr/local/share/man /usr/local/share/man/man1 /usr/local/share/man/man3 /usr/local/share/man/man5 /usr/local/share/man/man7 /usr/local/share/zsh /usr/local/share/zsh/site-functions /usr/local/var/homebrew/linked /usr/local/var/homebrew/locks
+
+# unfort. ended up doing this in uqasmi57_local
+
+brew install python3
+pip3 install numpy
+pip3 install cython
+pip3 install scipy
+
+# these are the paths to the libraries and header files that faststructure needs. I can only guess that the .so files are on mac the .dylib files (some info on that here: https://stackoverflow.com/questions/2339679/what-are-the-differences-between-so-and-dylib-on-osx)
+
+/usr/local/Cellar/gsl/2.6/lib/libgslcblas.dylib
+/usr/local/Cellar/gsl/2.6/lib/libgsl.dylib
+/usr/local/Cellar/gsl/2.6/include/gsl/gsl_sf_psi.h
+
+# here is some info on the bash_profile file on mac: https://stackoverflow.com/questions/19662713/where-do-i-find-the-bashrc-file-on-mac
+
+## UPT TO HERE:
+# IN FASTSTRUCTURE INSTRUCTIONS:
+# https://rajanil.github.io/fastStructure/
+
+open ~/.bash_profile
+# THIS shows the hidden files in the root dir, including bash_profile:
+ls -a ~/
+
 
 # test site codes in str file:
 
