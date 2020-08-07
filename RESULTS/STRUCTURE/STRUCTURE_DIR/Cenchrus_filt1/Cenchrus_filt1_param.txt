@@ -12,3 +12,11 @@ No LD filter
 No HWE filter
 Non-neutral markers not removed
 Duplicate sequences removed = TRUE
+
+# Results
+
+Model complexity that maximizes marginal likelihood = 3
+Model components used to explain structure in data = 4
+asmiths-MBP:fastStructure annabelsmith$ 
+
+

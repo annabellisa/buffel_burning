@@ -5,7 +5,9 @@
 plink --version
 
 # cd into one drive cos I haven't figure out how to handle the spaces when assigning names to dirs:
+cd ~
 cd "OneDrive - The University of Queensland"
+ls
 
 # base dir
 base_dir='TEACHING/STUDENTS/Binyin_Winter/Analysis/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR'
@@ -33,7 +35,7 @@ head $ped_file | cut -c 1-30
 
 # make bed:
 plink --ped $ped_file --map $map_file --make-bed --out ${analysis_dir}/$analysis_name
-	
+
 trash ${analysis_dir}/*nosex ${analysis_dir}/*.log
 ls $analysis_dir
 
@@ -60,13 +62,60 @@ cd $soft_dir
 ls
 
 # set project folders, subfolders and file names:
-proj_dir=$analysis_dir
+
+# I can't get this working with one drive
+
+# when there are spaces in the file name the usual call (e.g. ls $proj_dir) doesn't work. It does work with double quotes (ls "$proj_dir") but not with single quotes. This seems to work across the board with different functions...
+
+# But the program did not recognise the output file, so I'm just putting the files in the soft_dir... sigh
+
+proj_dir="Cenchrus_filt1"
 ls $proj_dir
+echo $proj_dir
 
-# need to get this working with one drive
+infile="$proj_dir/Cenchrus_filt1"
+out_dir="$proj_dir/Cenchrus_filt1_results"
+out_prefix="$out_dir/Cenchrus_filt1"
 
-proj_dir='/Users/annabelsmith/OneDrive - The University of Queensland/TEACHING/STUDENTS/Binyin_Winter/Analysis/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1'
-ls $(proj_dir)
+echo $infile
+echo $out_dir
+
+# make out dir if it doesn't exist
+# mkdir "$out_dir"
+
+echo $out_dir
+echo $infile
+ls $proj_dir
+echo $proj_dir
+echo $out_prefix
+
+# 1-10 start ~ 1446, end 1457
+
+# Set max K and run analysis:
+for i in {1..10} 
+do
+
+K_thisrun=$i
+
+python2 structure.py -K $i --input=$infile --output=$out_prefix --format=bed --seed=100
+
+done
+
+ls $out_dir
+
+# remove allele frequency files:
+rm ${out_dir}/*meanP
+
+python2 chooseK.py --input=$out_prefix
+
+
+
+
+
+
+
+
+# The following is me trying to get it working on the BigMac at Gatton:
 
 # problem # 1 keep getting the error message "uqasmi57 is not in the sudoers file.  This incident will be reported." when trying to update or install software
 
@@ -112,42 +161,4 @@ open ~/.bash_profile
 # THIS shows the hidden files in the root dir, including bash_profile:
 ls -a ~/
 
-
 # test site codes in str file:
-
-infile="$proj_dir/Cenchrus_filt1"
-out_dir="$proj_dir/Cenchrus_filt1_results"
-out_prefix="$out_dir/Cenchrus_filt1"
-
-head $(infile) | cut -c 1-30
-
-
-# make out dir if it doesn't exist
-mkdir $(out_dir)
-
-echo $out_dir
-echo $infile
-ls $proj_dir
-echo $proj_dir
-
-# 1-20 start ~ 1124
-
-# Set max K and run analysis:
-for i in {1..10} 
-do
-
-K_thisrun=$i
-
-python2 structure.py -K $i --input=$infile --output=$out_prefix --format=bed --seed=100
-
-done
-
-
-ls $out_dir
-
-# remove allele frequency files:
-rm ${out_dir}/*meanP
-
-python2 chooseK.py --input=$out_prefix
-
-	
