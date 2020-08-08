@@ -28,10 +28,10 @@ gt_data<-snp_onerow
 
 # Directory with bayescan results:
 bs_dir<-"../Offline_Analysis/BayeScan/Cenchrus_filt1/Cenchrus_BS_po400_RESULTS"
-bs_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/Cenchrus_BS_po400_RESULTS"
+bs_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
 dir(bs_dir)
 
-bs_fst<-paste(bs_dir,"Cenchrus_BS_po400_fst.txt",sep="/")
+bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_fst.txt",sep="/")
 
 # FST Outlier loci:
 bsres<-plot_bayescan(bs_fst,FDR=0.05)
@@ -42,25 +42,33 @@ bs_n_outl<-bsres$nb_outliers
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
 bslinf<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bs_loci_filt3.txt",header=T)
-bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/bs_loci_filt1.txt", header = TRUE) # bs_loci_filt1.txt
+bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/bs_loci_filt1.txt", header = TRUE) # bs_loci_filt1.txt, no need to change since 40711 loci.
 head(bslinf)
 
 bsoutl<-data.frame(lind=bs_outl,outl=1)
 head(bsoutl)
 
 # Outlier loci:
-bslinf<-merge(bslinf,bsoutl,by="lind",all.x=T,all.y=F)
+bslinf<-merge(bslinf,bsoutl,by="lind", all.x = T, all.y = F)
 bslinf$outl[which(is.na(bslinf$outl))]<-0
 head(bslinf)
 table(bslinf$outl)
+# > table(bslinf$outl)
+# 0     1 
+# 40706     5 
 check.rows(bslinf)
 colnames(bslinf)[which(colnames(bslinf)=="outl")]<-"bs_outl"
+
+# > count(bslinf$bs_outl) #plyr
+# x  freq
+# 1 0 40706
+# 2 1     5
 
 # write.table(bslinf,file="bayescan_outliers.txt",quote=F,row.names=F,sep="\t")
 
 # *** PLOT DIAGNOSTICS:
 
-bs_sel<-paste(bs_dir,"Cenchrus_BS_po400.sel",sep="/")
+bs_sel<-paste(bs_dir,"Cenchrus_filt2_BS_po400.sel",sep="/")
 seldat<-read.table(bs_sel,colClasses="numeric")
 
 # Plot log likelihood:
@@ -69,7 +77,7 @@ plot(density(seldat[[parameter]]),xlab=parameter,main=paste(parameter,"posterior
 
 # Plot FST:
 quartz("",5,8,dpi=100) # Error
-par(mfrow=c(10,6),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
+par(mfrow=c(3,3),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
 for (i in grep("Fst",colnames(seldat))){
 par.thisrun<-colnames(seldat)[i]
 plot(density(seldat[[par.thisrun]]),xlab=par.thisrun,main="",cex.axis=0.75)
@@ -85,7 +93,7 @@ head(outl_alpha)
 table(outl_alpha %in% alphacols)
 
 # TRUE 
-# 2561
+# 5
 
 # Plot alpha for a random selection of loci:
 quartz("",12,8,dpi=80)
@@ -104,7 +112,7 @@ head(loc.toanalyse)
 
 # Put files here:	
 out.dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bayescan_filt3_50_random_heatmaps"
-out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan"
+out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Cenchrus_filt2_BS_po400"
 
 out.dir
 ## Make sure they're all in site data
@@ -122,7 +130,7 @@ head(sdat,3)
 dir(out.dir)
 
 
-plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50) # Error: requirement for site_data [c("site_code","native","country","region","latitude")] needs to be changed.
+plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50) # Error. 
 
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
@@ -147,9 +155,11 @@ boa.hpd(seldat[[parameter]],0.05)
 # Lower Bound Upper Bound 
 # -995514.0   -994271.8 
 
+# fit2 results
+# Lower Bound Upper Bound 
+# -741983.2   -741369.6 
 
 # close BayeScan ----
-
 
 
 #########################################
@@ -569,17 +579,18 @@ head(lfsite)
 # Enviro data for each site:
 
 # Add site info
-# sdat$site_code <- sub("buf","X",sdat$site)
+sdat$site_code <- sub("buf","X",sdat$site)
 # head(sdat$site_code) 
 
-
-lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site_code"),which(colnames(sdat)=="elevation"):which(colnames(sdat)=="sm"))] # What are they? 
-
+# just need site_code, and long/lat?
+lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site"),which(colnames(sdat)=="burn_unburnt"),which(colnames(sdat)=="lat"):which(colnames(sdat)=="site_code"))] 
 
 # lfsd<-lfsd[order(lfsd$site_code),]
+lfsd<-lfsd[order(lfsd$site),]
 
 lfsd<-tidy.df(lfsd)
 head(lfsd)
+
 
 # Make sure they're in the same order, these should all be T:
 lfsd$site_code==unique(lfsite$site)
@@ -588,14 +599,15 @@ lfsd$site_code==unique(lfsite$site)
 rownames(lfsd)<-lfsd[,"site_code"] 
 
 # Make PCs:
-lf_pc<-princomp(lfsd[,2:ncol(lfsd)],cor=T)
+# lfsd <- lfsd[,c(-1,-2,-5)] # delete columns https://howtoprogram.xyz/2018/01/10/r-remove-delete-column-data-frame/
+lf_pc<-princomp(lfsd[,2:ncol(lfsd)],cor=T) #  No NAs, no characters
 summary(lf_pc)
 # biplot(lf_pc,xlab="PC1",ylab="PC2",cex=0.7)
 lf_pc$loadings
 head(lf_pc$scores)
 
 # Add PCs to individual level data:
-lfpcs<-data.frame(site=rownames(lfsd),lf_pc$scores[,1:3])
+lfpcs<-data.frame(site=rownames(lfsd),lf_pc$scores[,1])
 lfpcs<-tidy.df(lfpcs)
 head(lfpcs)
 
@@ -635,7 +647,7 @@ head(lfs) # The environmental matrix (X):
 ghead(lfdat) # The genotype matrix (Y):
 
 ## Fit an LFMM, i.e, compute B, U, V estimates
-mod.lfmm <- lfmm_ridge(Y = lfdat, X = lfs, K = 10)
+mod.lfmm <- lfmm_ridge(Y = lfdat, X = lfs, K = 5)
 summary(mod.lfmm)
 head(mod.lfmm$B)
 
@@ -646,12 +658,12 @@ head(pvalues)
 length(pvalues)
 
 # Direct effect sizes estimated from latent factor models:
-efs.lfmm1<-effect_size(Y = lfdat, X = as.matrix(lfs[,1]),  lfmm = mod.lfmm)
-efs.lfmm2<-effect_size(Y = lfdat, X = as.matrix(lfs[,2]),  lfmm = mod.lfmm)
-efs.lfmm3<-effect_size(Y = lfdat, X = as.matrix(lfs[,3]),  lfmm = mod.lfmm)
+efs.lfmm1<-effect_size(Y = lfdat, X = as.matrix(lfs[,1]),  lfmm = mod.lfmm) # a few minutes
+# efs.lfmm2<-effect_size(Y = lfdat, X = as.matrix(lfs[,2]),  lfmm = mod.lfmm)
+# efs.lfmm3<-effect_size(Y = lfdat, X = as.matrix(lfs[,3]),  lfmm = mod.lfmm)
 
 head(efs.lfmm1)
-length(efs.lfmm3)
+# length(efs.lfmm3)
 
 lfmm_loci<-read.table(paste(lfmm_dir,"lfmm_loci_filt2.txt",sep="/"),header=T)
 head(lfmm_loci)
@@ -661,32 +673,47 @@ dim(lfmm_loci)
 lfres<-data.frame(locus=lfmm_loci$locus,pvalues)
 colnames(lfres)<-paste(colnames(lfres),"_p",sep="")
 
-lfqs<-apply(lfres[,2:ncol(lfres)],2,function(x)qvalue(x)$qvalues)
+lfqs<-apply(as.matrix(lfres[,2:ncol(lfres)]),2,function(x)qvalue(x)$qvalues)
 colnames(lfqs)<-paste(substr(colnames(lfqs),1,6),"_q",sep="")
 lfres<-cbind(lfres,lfqs)
 head(lfres)
 
 # Get outliers based on q values:
 alpha <- 0.1
-lf_outl<-apply(lfres[,5:ncol(lfres)],2,function(x) which(x<alpha))
+lf_outl<-apply(as.matrix(lfres[,2:ncol(lfres)]),2,function(x) which(x<alpha))
 
-lfres$Comp.1_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.1_q,1,0)
-lfres$Comp.2_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.2_q,1,0)
-lfres$Comp.3_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.3_q,1,0)
+lfres$Comp.1_outl<-ifelse(rownames(lfres) %in% lf_outl$`_q`,1,0)
+# lfres$Comp.1_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.1_q,1,0)
+# lfres$Comp.2_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.2_q,1,0)
+# lfres$Comp.3_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.3_q,1,0)
 head(lfres)
 
 table(lfres$Comp.1_outl)
-table(lfres$Comp.2_outl)
-table(lfres$Comp.3_outl)
+# > table(lfres$Comp.1_outl)
+
+# 0     1 
+# 40664    47 
+# table(lfres$Comp.2_outl)
+# table(lfres$Comp.3_outl)
 
 # Reproduce manhattan plot:
-lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="Comp.1_outl"):ncol(lfres)])
+# lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="Comp.1_outl"):ncol(lfres)])
+lfres$never_outl<-rowSums(lfres[,4,drop = FALSE]) # not sure
 head(lfres)
 
 quartz("",8,4,dpi=100)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
-plot(1:nrow(lfres),-log(lfres$Comp.1_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim=c(0,max(-log(lfres[,2:4],10))))
+# plot(1:nrow(lfres),-log(lfres$Comp.1_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim=c(0,max(-log(lfres[,2:4],10))))
+plot(1:nrow(lfres),-log(lfres$pvalues_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim= c(0,max(-log(lfres$pvalues_p,10)))) # Error
 
+ggplot(mapping = aes(x= 1:nrow(lfres), y = -log(lfres$pvalues_p,10))) +
+  labs(y ="-log10(p value)",
+       x ="locus") +
+  geom_path() +
+  theme_bw()
+
+# no need for following scripts        
+       
 points(rownames(lfres)[lfres$never_outl==0],-log(lfres$Comp.1_p[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
 points(rownames(lfres)[lfres$never_outl==0],-log(lfres$Comp.2_p[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
 points(rownames(lfres)[lfres$never_outl==0],-log(lfres$Comp.3_p[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
@@ -699,8 +726,8 @@ legend("topleft",legend=c("PC1 mt,sp,mm,sm","PC2 st,ap","PC3 Elevation"),pch=20,
 
 # Plot effect sizes:
 lfres$efs1<-efs.lfmm1
-lfres$efs2<-efs.lfmm2
-lfres$efs3<-efs.lfmm3
+# lfres$efs2<-efs.lfmm2
+# lfres$efs3<-efs.lfmm3
 head(lfres)
 
 quartz("",8,4,dpi=100)

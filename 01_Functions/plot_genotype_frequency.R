@@ -49,7 +49,7 @@ if(plot_order=="descending") prop.df<-prop.df[order(prop.df[,which(colnames(prop
 prop.df<-tidy.df(prop.df)
 head(prop.df)
 
-quartz("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(plot_by,"_",plot_order,"_",loc.thisrun,".pdf",sep=""),sep="/"),type="pdf")
+# quartz("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(plot_by,"_",plot_order,"_",loc.thisrun,".pdf",sep=""),sep="/"),type="pdf")
 # quartz("",8,2,dpi=120,pointsize=10)
 par(mfrow=c(1,1),mar=c(4,5,2,1.5),oma=c(0,0,0,0))
 
@@ -118,7 +118,7 @@ if(plot_order=="descending") prop.df<-prop.df[order(prop.df[,which(colnames(prop
 prop.df<-tidy.df(prop.df)
 head(prop.df)
 
-quartz("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(plot_by,"_",plot_order,"_",loc.thisrun,".pdf",sep=""),sep="/"),type="pdf")
+# quartz("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(plot_by,"_",plot_order,"_",loc.thisrun,".pdf",sep=""),sep="/"),type="pdf")
 # quartz("",8,2,dpi=120,pointsize=10)
 par(mfrow=c(1,1),mar=c(4,5,2,1.5),oma=c(0,0,0,0))
 
@@ -174,19 +174,19 @@ prop.df<-data.frame(site=rownames(prop.df),prop.df)
 colnames(prop.df)<-c("site","0","1","2")
 prop.df<-tidy.df(prop.df)
 head(prop.df)
-plr2<-site_data[,c("site_code","native","country","region","latitude")]
+# plr2<-site_data[,c("site_code","native","country","region","latitude")]
+plr2<-site_data[,c("site_code","burn_unburnt","lat","long")] 
 if(length(which(duplicated(plr2$site_code)))>0) plr2<-plr2[-which(duplicated(plr2$site_code)),]
 prop.df<-merge(prop.df,plr2,by.x="site",by.y="site_code",all.x=T,all.y=F)
-prop.df<-prop.df[order(prop.df$native,prop.df$region,prop.df$country),]
-prop.df<-tidy.df(prop.df)
-head(prop.df) 
+# prop.df<-prop.df[order(prop.df$native,prop.df$region,prop.df$country),]
 
 # Order by native / non_native and latitude:
-prop.df<-prop.df[order(prop.df$native,prop.df$region,-prop.df$latitude),]
+# prop.df<-prop.df[order(prop.df$native,prop.df$region,-prop.df$latitude),]
+prop.df<-prop.df[order(prop.df$burn_unburnt, prop.df$long),]# rewriten by BD
 prop.df<-tidy.df(prop.df)
 head(prop.df)
 
-quartz("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(loc.thisrun,".pdf",sep=""),sep="/"),type="pdf")
+# quartz("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(loc.thisrun,".pdf",sep=""),sep="/"),type="pdf")
 # quartz("",8,2,dpi=120,pointsize=10)
 par(mfrow=c(1,1),mar=c(4,5,2,1.5),oma=c(0,0,0,0))
 
