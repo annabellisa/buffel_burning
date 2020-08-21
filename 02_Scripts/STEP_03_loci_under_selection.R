@@ -130,7 +130,9 @@ head(sdat,3)
 dir(out.dir)
 
 
-plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,50) # Error. 
+sdat$site_code <- sub("buf","X",sdat$site)
+site_data<-sdat
+plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,5) # Error. 
 
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
@@ -559,7 +561,7 @@ dir()
 ####	    	 LFMM:	    	 	 ####
 #########################################
 {
-library(lfmm)
+library(lfmm) # https://bcm-uga.github.io/lfmm/articles/lfmm
 library(qvalue)
 
 lfmm_dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/LFMM/lfmm_filt2"
@@ -583,7 +585,7 @@ sdat$site_code <- sub("buf","X",sdat$site)
 # head(sdat$site_code) 
 
 # just need site_code, and long/lat?
-lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site"),which(colnames(sdat)=="burn_unburnt"),which(colnames(sdat)=="lat"):which(colnames(sdat)=="site_code"))] 
+lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site"),which(colnames(sdat)=="burn_unburnt"),which(colnames(sdat)=="long"):which(colnames(sdat)=="site_code"))] 
 
 # lfsd<-lfsd[order(lfsd$site_code),]
 lfsd<-lfsd[order(lfsd$site),]
@@ -600,7 +602,14 @@ rownames(lfsd)<-lfsd[,"site_code"]
 
 # Make PCs:
 # lfsd <- lfsd[,c(-1,-2,-5)] # delete columns https://howtoprogram.xyz/2018/01/10/r-remove-delete-column-data-frame/
-lf_pc<-princomp(lfsd[,2:ncol(lfsd)],cor=T) #  No NAs, no characters
+# lfsd$burn_unburnt[1,]<-lfsd$burn_unburnt[b,]
+# lfsd$burn_unburnt[0,]<-lfsd$burn_unburnt[u,]
+
+
+# burn_unburn to binary code: burnt is 1, otherwise, 0/
+lfsd$burn_unburnt<-ifelse(lfsd$burn_unburnt =="b",1,0)
+
+lf_pc<-princomp(lfsd[,c(2,3)],cor=T) 
 summary(lf_pc)
 # biplot(lf_pc,xlab="PC1",ylab="PC2",cex=0.7)
 lf_pc$loadings
@@ -611,13 +620,21 @@ lfpcs<-data.frame(site=rownames(lfsd),lf_pc$scores[,1])
 lfpcs<-tidy.df(lfpcs)
 head(lfpcs)
 
-lfs<-data.frame(site=lfsite[,1])
+lfsd2<-lfsite
+
+lfsd3<-merge(lfsd2, lfsd, by.y = "site_code", by.x = "site", all.x = TRUE, all.y = FALSE)
+
+
+lfsite$ind == lfsd3$ind
+
+
+lfs<-lfsd3[,c(4,5)]
 head(lfs)
-lfs<-merge(lfs,lfpcs,by="site",all.x=T,all.y=F)
+# lfs<-merge(lfs,lfpcs,by="site",all.x=T,all.y=F)
 head(lfs); dim(lfs)
 
 # The environmental matrix (X):
-lfs<-as.matrix(lfs[,2:ncol(lfs)])
+lfs<-as.matrix(lfs[,1:2])
 head(lfs)
 
 # The genotype matrix (Y):
@@ -632,7 +649,7 @@ str(pc)
 head(summary(pc)$importance[2,])
 
 # Plot prop var explained for comparison with pcadapt (instead of stdev^2 used in example):
-quartz("",4,4,dpi=160,pointsize=12)
+dev.new("",4,4,dpi=160,pointsize=12)
 par(mar=c(4,4,0.5,0.5))
 plot(1:40,summary(pc)$importance[2,][1:40],xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
 title(xlab="PC",mgp=c(2.5,1,0))
@@ -658,12 +675,12 @@ head(pvalues)
 length(pvalues)
 
 # Direct effect sizes estimated from latent factor models:
-efs.lfmm1<-effect_size(Y = lfdat, X = as.matrix(lfs[,1]),  lfmm = mod.lfmm) # a few minutes
-# efs.lfmm2<-effect_size(Y = lfdat, X = as.matrix(lfs[,2]),  lfmm = mod.lfmm)
-# efs.lfmm3<-effect_size(Y = lfdat, X = as.matrix(lfs[,3]),  lfmm = mod.lfmm)
+efs.lfmm1<-effect_size(Y = lfdat, X = as.matrix(lfs[,1]), lfmm = mod.lfmm) # a few minutes
+efs.lfmm2<-effect_size(Y = lfdat, X = as.matrix(lfs[,2]), lfmm = mod.lfmm)
+
 
 head(efs.lfmm1)
-# length(efs.lfmm3)
+head(efs.lfmm2)
 
 lfmm_loci<-read.table(paste(lfmm_dir,"lfmm_loci_filt2.txt",sep="/"),header=T)
 head(lfmm_loci)
@@ -673,38 +690,31 @@ dim(lfmm_loci)
 lfres<-data.frame(locus=lfmm_loci$locus,pvalues)
 colnames(lfres)<-paste(colnames(lfres),"_p",sep="")
 
-lfqs<-apply(as.matrix(lfres[,2:ncol(lfres)]),2,function(x)qvalue(x)$qvalues)
-colnames(lfqs)<-paste(substr(colnames(lfqs),1,6),"_q",sep="")
+lfqs<-apply(as.matrix(lfres[,2:ncol(lfres)]),2,function(x) qvalue(x)$qvalues)
+colnames(lfqs)<-paste(substr(colnames(lfqs),1,2),"_q",sep="")
 lfres<-cbind(lfres,lfqs)
 head(lfres)
 
 # Get outliers based on q values:
-alpha <- 0.1
+alpha <- 0.05
 lf_outl<-apply(as.matrix(lfres[,2:ncol(lfres)]),2,function(x) which(x<alpha))
 
-lfres$Comp.1_outl<-ifelse(rownames(lfres) %in% lf_outl$`_q`,1,0)
-# lfres$Comp.1_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.1_q,1,0)
-# lfres$Comp.2_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.2_q,1,0)
-# lfres$Comp.3_outl<-ifelse(rownames(lfres) %in% lf_outl$Comp.3_q,1,0)
+
+table(lfres$bu_q<0.1)
+
+lfres$bu_outl<-ifelse(rownames(lfres) %in% lf_outl$bu_q,1,0)
+lfres$lo_outl<-ifelse(rownames(lfres) %in% lf_outl$lo_q,1,0)
 head(lfres)
 
-table(lfres$Comp.1_outl)
-# > table(lfres$Comp.1_outl)
-
-# 0     1 
-# 40664    47 
-# table(lfres$Comp.2_outl)
-# table(lfres$Comp.3_outl)
+table(lfres$bu_outl)
+table(lfres$lo_outl)
 
 # Reproduce manhattan plot:
-# lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="Comp.1_outl"):ncol(lfres)])
-lfres$never_outl<-rowSums(lfres[,4,drop = FALSE]) # not sure
+lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="bu_outl"):ncol(lfres)])
+lfres$never_outl<-rowSums(lfres[,8,drop = FALSE]) 
 head(lfres)
 
-quartz("",8,4,dpi=100)
-par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
-# plot(1:nrow(lfres),-log(lfres$Comp.1_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim=c(0,max(-log(lfres[,2:4],10))))
-plot(1:nrow(lfres),-log(lfres$pvalues_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim= c(0,max(-log(lfres$pvalues_p,10)))) # Error
+
 
 ggplot(mapping = aes(x= 1:nrow(lfres), y = -log(lfres$pvalues_p,10))) +
   labs(y ="-log10(p value)",
@@ -712,42 +722,62 @@ ggplot(mapping = aes(x= 1:nrow(lfres), y = -log(lfres$pvalues_p,10))) +
   geom_path() +
   theme_bw()
 
-# no need for following scripts        
-       
-points(rownames(lfres)[lfres$never_outl==0],-log(lfres$Comp.1_p[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
-points(rownames(lfres)[lfres$never_outl==0],-log(lfres$Comp.2_p[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
-points(rownames(lfres)[lfres$never_outl==0],-log(lfres$Comp.3_p[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
 
-points(rownames(lfres)[lfres$Comp.1_q<alpha],-log(lfres$Comp.1_p[lfres$Comp.1_q<alpha],10),pch=20,col="red")
-points(rownames(lfres)[lfres$Comp.2_q<alpha],-log(lfres$Comp.2_p[lfres$Comp.2_q<alpha],10),pch=20,col="green")
-points(rownames(lfres)[lfres$Comp.3_q<alpha],-log(lfres$Comp.3_p[lfres$Comp.3_q<alpha],10),pch=20,col="blue")
 
-legend("topleft",legend=c("PC1 mt,sp,mm,sm","PC2 st,ap","PC3 Elevation"),pch=20,col=c("red","green","blue"))
+dev.new("",8,4,dpi=100)
+
+
+plot(1:nrow(lfres),-log(lfres$burn_unburnt_p,10),type="n")
+points(1:nrow(lfres),-log(lfres$burn_unburnt_p,10),pch=20,col=as.factor(lfres$bu_q<0.05))
+
+plot(1:nrow(lfres),-log(lfres$long_p,10),type="n")
+points(1:nrow(lfres),-log(lfres$long_p,10),pch=20,col=as.factor(lfres$lo_q<0.05))
+
+
+
+
+par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
+# plot(1:nrow(lfres),-log(lfres$Comp.1_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim=c(0,max(-log(lfres[,2:4],10))))
+plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim= c(0,max(-log(lfres[,2:4],10))))
+
+     
+points(rownames(lfres)[lfres$never_outl==0],-log(lfres$bu_outl[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
+points(rownames(lfres)[lfres$never_outl==0],-log(lfres$lo_outl[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
+
+
+points(rownames(lfres)[lfres$bu_q<alpha],-log(lfres$burn_unburnt_p[lfres$bu_q<alpha],10),pch=20,col="green")
+points(rownames(lfres)[lfres$lo_q<alpha],-log(lfres$long_p[lfres$lo_q<alpha],10),pch=20,col="blue")
+
+
+legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=10,col=c("green","blue"))
 
 # Plot effect sizes:
 lfres$efs1<-efs.lfmm1
-# lfres$efs2<-efs.lfmm2
-# lfres$efs3<-efs.lfmm3
+lfres$efs2<-efs.lfmm2
+
 head(lfres)
 
-quartz("",8,4,dpi=100)
+dev.new("",8,4,dpi=100)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 plot(1:nrow(lfres),lfres$efs1,type="n",ylab="Effect size",las=1,xlab="Locus",ylim=c(min(c(lfres$efs1,lfres$efs2,lfres$efs3))+-0.5,max(c(lfres$efs1,lfres$efs2,lfres$efs3))+0.5))
 
 points(rownames(lfres)[lfres$never_outl==0],lfres$efs1[lfres$never_outl==0],pch=20,cex=1,col=rgb(0,0,0,0.08))
 points(rownames(lfres)[lfres$never_outl==0],lfres$efs2[lfres$never_outl==0],pch=20,cex=1,col=rgb(0,0,0,0.08))
-points(rownames(lfres)[lfres$never_outl==0],lfres$efs3[lfres$never_outl==0],pch=20,cex=1,col=rgb(0,0,0,0.08))
 
-points(rownames(lfres)[lfres$Comp.1_q<alpha],lfres$efs1[lfres$Comp.1_q<alpha],pch=20,col="red")
-points(rownames(lfres)[lfres$Comp.2_q<alpha],lfres$efs2[lfres$Comp.2_q<alpha],pch=20,col="green")
-points(rownames(lfres)[lfres$Comp.3_q<alpha],lfres$efs3[lfres$Comp.3_q<alpha],pch=20,col="blue")
+points(rownames(lfres)[lfres$bu_q<alpha],lfres$efs1[lfres$bu_q<alpha],pch=20,col="red")
+points(rownames(lfres)[lfres$lo_q<alpha],lfres$efs2[lfres$lo_q<alpha],pch=20,col="green")
 
 abline(0,0,col="purple")
 
-xofs<-rep(c(700,-700),length(which(abs(lfres$efs1)>0.5 & lfres$Comp.1_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$Comp.1_outl==1))]
-yofs<-rep(c(0.04,-0.04),length(which(abs(lfres$efs1)>0.5 & lfres$Comp.1_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$Comp.1_outl==1))]
+# xofs<-rep(c(700,-700),length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1))]
+# yofs<-rep(c(0.04,-0.04),length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1))]
+# > max(abs(lfres$efs1))
+# [1] 0.3573889
+# > max(abs(lfres$efs2))
+# [1] 0.1197811
 
-text(which(abs(lfres$efs1)>0.5 & lfres$Comp.1_outl==1)+xofs,lfres$efs1[which(abs(lfres$efs1)>0.5 & lfres$Comp.1_outl==1)]+yofs,labels=lfres$locus_p[which(abs(lfres$efs1)>0.5 & lfres$Comp.1_outl==1)])
+text(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)+xofs,lfres$efs1[which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)]+yofs,labels=lfres$locus_p[which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)])
+# text(which(abs(lfres$efs2)>0.5 & lfres$lo_outl==1)+xofs,lfres$efs2[which(abs(lfres$efs2)>0.5 & lfres$lo_outl==1)]+yofs,labels=lfres$locus_p[which(abs(lfres$efs2)>0.5 & lfres$lo_outl==1)])
 
 ## QQ plot:
 qqplot(rexp(length(pvalues), rate = log(10)),   -log10(pvalues), xlab = "Expected quantile",  pch = 19, cex = .4)
@@ -757,18 +787,19 @@ abline(0,1)
 # Old version was "lfr", saved in wksp but not defined in script
 # lfres however, has been updated:
 
-lfr_old<-lfr
-lfr_new<-lfres[,c("locus_p","Comp.1_outl","Comp.2_outl","Comp.3_outl")]
-colnames(lfr_new)<-c("locus","lfmm_PC1","lfmm_PC2","lfmm_PC3")
+lfr_old<-lfres
+
+lfr_new<-lfres[,c("locus_p","bu_outl","lo_outl")]
+colnames(lfr_new)<-c("locus","lfmm_PC1","lfmm_PC2")
 head(lfr_new)
 
 # the loci detected with the new enviro data are DIFFERENT!
 head(lfr_old); dim(lfr_old)
 head(lfr_new); dim(lfr_new)
 check.rows(cbind(lfr_old,lfr_new))
-cbind(lfr_old,lfr_new)[which(lfr_old$lfmm_PC1==1),]
-cbind(lfr_old,lfr_new)[which(lfr_old$lfmm_PC2==1),]
-cbind(lfr_old,lfr_new)[which(lfr_old$lfmm_PC3==1),]
+cbind(lfr_old,lfr_new)[which(lfr_new$lfmm_PC1==1),]
+cbind(lfr_old,lfr_new)[which(lfr_new$lfmm_PC2==1),]
+
 
 head(lfres)
 

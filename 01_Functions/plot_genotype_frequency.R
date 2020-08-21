@@ -162,6 +162,8 @@ plot_freq_location<-function(loci,genotype_data,site_data,out.dir,number_to_plot
 
 for(i in 1:number_to_plot){
 
+  
+  
 loc.thisrun<-loc.toanalyse[i]
 dat.thisrun<-data.frame(site=gt_data$site,locus=factor(gt_data[,loc.thisrun],levels=c(0,1,2)))
 head(dat.thisrun)
@@ -186,12 +188,13 @@ prop.df<-prop.df[order(prop.df$burn_unburnt, prop.df$long),]# rewriten by BD
 prop.df<-tidy.df(prop.df)
 head(prop.df)
 
-# quartz("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(loc.thisrun,".pdf",sep=""),sep="/"),type="pdf")
+dev.new("",8,2,dpi=120,pointsize=10,file=paste(out.dir,paste(loc.thisrun,".png",sep=""),sep="/"),type="pdf")
 # quartz("",8,2,dpi=120,pointsize=10)
 par(mfrow=c(1,1),mar=c(4,5,2,1.5),oma=c(0,0,0,0))
 
 bk <- c(-100,seq(0,100,by=10))
 mc<-c("grey50",colorRampPalette(colors = c("white","blue"))(length(bk)-2))
+library("fields")
 image.thisrun<-image.plot(as.matrix(prop.df[,which(colnames(prop.df) %in% c("0","1","2"))][,3:1]),xaxt="n",yaxt="n",col=mc)
 
 seq.thisrun<-seq(par("usr")[1],par("usr")[2],length.out=nrow(prop.df)+1)
@@ -204,13 +207,13 @@ axis(side=2,at=c(-0.25,0.25,0.75,1.25),labels=F)
 arrows(-1,c(0.25,0.75),2,c(0.25,0.75),code=3,length=0)
 arrows(seq.thisrun,-1,seq.thisrun,2,col="grey40")
 
-axis(side=3,at=seq.thisrun[which(!duplicated(prop.df$region))],labels=F)
+# axis(side=3,at=seq.thisrun[which(!duplicated(prop.df$region))],labels=F)
 
-axis(side=3,at=seq.thisrun[which(!duplicated(prop.df$region[-which(prop.df$region=="Africa")]))]+(incr.thisrun*3),labels=as.character(unique(prop.df$region))[-which(as.character(unique(prop.df$region))=="Africa")],line=-1,tick=F,hadj=0,cex.axis=1)
+# axis(side=3,at=seq.thisrun[which(!duplicated(prop.df$region[-which(prop.df$region=="Africa")]))]+(incr.thisrun*3),labels=as.character(unique(prop.df$region))[-which(as.character(unique(prop.df$region))=="Africa")],line=-1,tick=F,hadj=0,cex.axis=1)
 
-axis(side=3,at=seq.thisrun[which(prop.df$region=="Africa")]+incr.thisrun,labels=as.character(unique(prop.df$region))[which(as.character(unique(prop.df$region))=="Africa")],line=-0.7,tick=F,hadj=0,cex.axis=0.65,las=2)
+# axis(side=3,at=seq.thisrun[which(prop.df$region=="Africa")]+incr.thisrun,labels=as.character(unique(prop.df$region))[which(as.character(unique(prop.df$region))=="Africa")],line=-0.7,tick=F,hadj=0,cex.axis=0.65,las=2)
 
-arrows(seq.thisrun[which(!duplicated(prop.df$region))],-1,seq.thisrun[which(!duplicated(prop.df$region))],2,code=3,length=0)
+# arrows(seq.thisrun[which(!duplicated(prop.df$region))],-1,seq.thisrun[which(!duplicated(prop.df$region))],2,code=3,length=0)
 
 mtext(loc.thisrun,side=4,line=6.5)
 dev.off()
