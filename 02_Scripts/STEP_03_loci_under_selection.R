@@ -183,8 +183,8 @@ library(qvalue)
 # browseVignettes("pcadapt")
 
 path_to_file <- "../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_files"
-path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
-path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt"
+path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt"
 
 dir(path_to_file)
 
@@ -523,13 +523,13 @@ points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
 
 # get locus indices for outliers:
 pca_loc<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_filt2_loci.txt",header=T)
-pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = T)
-pca_loc<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1/Cenchrus_filt1_loci.txt", header = T)
+pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/Cenchrus_filt1_loci.txt", header = T)
+pca_loc<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/Cenchrus_filt1_loci.txt", header = T)
 pca_loc$pca_outl<-ifelse(pca_loc$lind %in% outliers,1,0)
 table(pca_loc$pca_outl)
 
 
-maindir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+maindir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt"
 orig_loci<-read.table(paste(maindir, "Cenchrus_filt1_loci.txt", sep="/"), header=T)
 head(orig_loci)
 head(pca_loc)
@@ -814,7 +814,14 @@ lfr<-lfr_new
 
 head(bslinf)
 head(pca_loc)
-head(lfr)
+head(lfr) 
+
+
+dim(bslinf)
+dim(pca_loc)
+dim(lfr)
+
+
 
 outl_all<-merge(bslinf,pca_loc,by=c("lind","locus"),all.x=T,all.y=F)
 outl_all<-merge(outl_all,lfr,by=c("locus"),all.x=T,all.y=F)
@@ -822,7 +829,7 @@ outl_all<-outl_all[order(outl_all$lind),]
 outl_all<-tidy.df(outl_all)
 head(outl_all)
 
-outl_all$lfmm_outl<-ifelse(rowSums(outl_all[,c("lfmm_PC1","lfmm_PC2","lfmm_PC3")])>0,1,0)
+outl_all$lfmm_outl<-ifelse(rowSums(outl_all[,c("lfmm_PC1","lfmm_PC2")])>0,1,0)
 outl_all[outl_all$lfmm_PC1==1,]
 check.rows(outl_all)
 
