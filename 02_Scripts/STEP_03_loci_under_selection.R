@@ -132,7 +132,7 @@ dir(out.dir)
 
 sdat$site_code <- sub("buf","X",sdat$site)
 site_data<-sdat
-plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,5) # Error. 
+plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,2) # Error, 2 indicate the parameters in the variables. 
 
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
@@ -804,6 +804,28 @@ cbind(lfr_old,lfr_new)[which(lfr_new$lfmm_PC2==1),]
 head(lfres)
 
 lfr<-lfr_new
+
+
+
+# Extra outlier loci plot from plot_freq_location()
+lfmm_loc.toanalyse<-as.character(lfres$locus_p[which(lfres$lo_outl==1)]) 
+length(lfmm_loc.toanalyse)
+head(lfmm_loc.toanalyse)
+# Put files here:	
+out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
+out.dir
+
+head(lfmm_loc.toanalyse)
+ghead(gt_data)
+head(sdat,3)
+dir(out.dir)
+
+
+sdat$site_code <- sub("buf","X",sdat$site)
+site_data<-sdat
+plot_freq_location(lfmm_loc.toanalyse,gt_data,sdat,out.dir,2) # Error. 
+
+
 
 } # close lfmm
 
