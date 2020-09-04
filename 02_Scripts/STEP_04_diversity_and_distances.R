@@ -8,23 +8,29 @@
 
 # Load workspace:
 load("../04_workspaces/STEP04_divdist_wksp")
+
+# Neutral Dataset: 20159 (20161)
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NeturalWksp.RData")
+
+# Non Netural Dataset: 3892 (3894)
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NonNeturalWksp.RData")
+
 # load functions:
 invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
-
 
 
 # Load libraries:
 install.packages(c("diveRsity","geosphere","hierfstat","adegenet"),repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com",dependencies=TRUE))
 
+library(diveRsity);library(geosphere);library(hierfstat);library(adegenet)
 
 # Update R
-install.packages("installr", dependencies = TRUE)
-library(installr)
-updateR()
-library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
+# install.packages("installr", dependencies = TRUE)
+# library(installr)
+# updateR()
+# library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
 
 
-library(geosphere); library(hierfstat); library(adegenet)
 
 #########################################
 ##     GENIND object & site data:      ##
