@@ -129,7 +129,7 @@ print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% ldfilt)]
 filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
-ghead(filtered_data)
+ghead(filtered_data); dim(filtered_data)
 
 # --- *** HWE filters *** --- #
 
@@ -151,6 +151,17 @@ head(hwe_res)
 hwe_flag<-T
 hwe_cutoff<-0.1 # we need to decide on the cutoff
 hwefilt<-as.character(hwe_res$locus[hwe_res$p<hwe_cutoff])
+
+# with a p cutoff of 0.1, there are 27655 (p) and 20644 (p.adj) loci identified as out of HWE. This is pretty much all of our loci, after applying the other filters. It leaves us with only 2000 or so loci for analysis. I would assume that the HWE results were influenced by the structure in the data and are thus not reliable. 
+
+# we have two options: (1) skip this analysis as it's possibly inappropriate for our data. We're mainly doing this to look for genotyping issues, rather than biological issues. And, with so many other quality filters applied to the data, it's possibly not necessary; possibly a hang-over from my microsat days where genotyping errors and quality were harder to detect. (2) re-do the HWE analysis on a subset of the data, which form a single genetic cluster, e.g. the 19 individuals in buf01 and buf02. 
+
+# I just checked 4 x recent papers that used DartSeq SNPs and none of them tested for HWE. This could be the end of my HWE testing days. 
+
+head(hwefilt)
+length(hwefilt)
+dim(filtered_data)
+
 print(paste("no loci before ld filt = ",dim(filtered_data)[2],sep=""))
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% hwefilt)]
 filtered_data<-tidy.df(filtered_data)
