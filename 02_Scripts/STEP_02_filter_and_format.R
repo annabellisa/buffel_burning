@@ -185,7 +185,7 @@ sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyi
 sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
 
 
-sel_dir<-"../../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION"
+sel_dir<-"00_Data"
 dir(sel_dir)
 
 
@@ -196,7 +196,7 @@ ghead(filtered_data); dim(filtered_data)
 
 # Outlier loci:
 res<-read.table(paste(sel_dir,"outliers_all.txt",sep="/"),header=T)
-head(res)
+head(res,3)
 
 # Filter outlier loci from BayeScan, PCAdapt and LFMM (not bayenv):
 outl_loci<-as.character(res$locus[c(which(res$bs_outl==1),which(res$pca_outl==1),which(res$lfmm_outl==1))])
