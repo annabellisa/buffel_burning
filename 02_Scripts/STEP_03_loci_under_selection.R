@@ -128,12 +128,12 @@ head(loc.toanalyse)
 ghead(gt_data)
 head(sdat,3)
 dir(out.dir)
-
+length(loc.toanalyse)
 
 sdat$site_code <- sub("buf","X",sdat$site)
 site_data<-sdat
-plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,2) # Error, 2 indicate the parameters in the variables. 
-
+plot_freq_long(loc.toanalyse,gt_data,sdat,out.dir,35) # Error, 2 indicate the parameters in the variables. 
+out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Plots"
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
 # first load the output file *.sel produced by BayeScan
@@ -815,6 +815,10 @@ head(lfmm_loc.toanalyse)
 out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
 out.dir
 
+
+
+
+
 head(lfmm_loc.toanalyse)
 ghead(gt_data)
 head(sdat,3)
@@ -823,7 +827,9 @@ dir(out.dir)
 
 sdat$site_code <- sub("buf","X",sdat$site)
 site_data<-sdat
-plot_freq_location(lfmm_loc.toanalyse,gt_data,sdat,out.dir,2) # Error. 
+plot_freq_location(lfmm_loc.toanalyse,gt_data,sdat,out.dir,35) # Error. 
+
+plot_freq_long(lfmm_loc.toanalyse,gt_data,sdat,out.dir,35) # Error, 2 indicate the parameters in the variables. 
 
 
 

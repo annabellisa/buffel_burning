@@ -181,8 +181,8 @@ ghead(filtered_data); dim(filtered_data)
 
 
 # Directory with results:
-sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
-sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS"
+sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
+sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 
 
 sel_dir<-"00_Data"
@@ -240,11 +240,11 @@ param.noindiv<-nrow(data)
 param.dup<-T
 param.mono<-T
 param.callrate<-T
-param.repavg<-F
-param.MAF<-F
-param.LD<-F
+param.repavg<-T
+param.MAF<-T
+param.LD<-T
 param.HWE<-F
-param.neu<-F
+param.neu<-T
 
 
 
