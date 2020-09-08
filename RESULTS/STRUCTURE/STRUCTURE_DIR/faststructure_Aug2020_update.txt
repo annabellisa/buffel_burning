@@ -14,7 +14,7 @@ base_dir='TEACHING/STUDENTS/Binyin_Winter/Analysis/Binyin_Winter/RESULTS/STRUCTU
 ls $base_dir
 
 # name for this analysis
-analysis_name=Cenchrus_filt1
+analysis_name=Cenchrus_filt2
 
 # dir for this analysis
 analysis_dir="${base_dir}/$analysis_name"
@@ -24,10 +24,10 @@ ls $analysis_dir
 echo $analysis_dir
 
 # map file
-map_file="${analysis_dir}/Cenchrus_filt1.map"
+map_file="${analysis_dir}/Cenchrus_filt2.map"
 
 # ped file
-ped_file="${analysis_dir}/Cenchrus_filt1.ped"
+ped_file="${analysis_dir}/Cenchrus_filt2.ped"
 
 echo $map_file
 head $map_file
@@ -54,11 +54,12 @@ ls $analysis_dir
 # site names can be alpha or numeric
 
 # set location of program:
-soft_dir="/Users/annabelsmith/Documents/01_Current/PROJECTS/01_PLANTPOPNET/DATA_and_ANALYSIS/SNP_analysis/GENOTYPE_processing/SOFTWARE/fastStructure"
-ls $soft_dir
+soft_dir='Software⁩'
+echo $soft_dir
+ls $"soft_dir"
 
 # be in soft_dir for running the program, otherwise add soft_dir to the run command below:
-cd $soft_dir 
+cd $soft_dir
 ls
 
 # set project folders, subfolders and file names:
@@ -69,13 +70,13 @@ ls
 
 # But the program did not recognise the output file, so I'm just putting the files in the soft_dir... sigh
 
-proj_dir="Cenchrus_filt1"
+proj_dir="Cenchrus_filt2"
 ls $proj_dir
 echo $proj_dir
 
-infile="$proj_dir/Cenchrus_filt1"
-out_dir="$proj_dir/Cenchrus_filt1_results"
-out_prefix="$out_dir/Cenchrus_filt1"
+infile="$proj_dir/Cenchrus_filt2"
+out_dir="$proj_dir/Cenchrus_filt2_results"
+out_prefix="$out_dir/Cenchrus_filt2"
 
 echo $infile
 echo $out_dir
@@ -92,7 +93,7 @@ echo $out_prefix
 # 1-10 start ~ 1446, end 1457
 
 # Set max K and run analysis:
-for i in {1..10} 
+for i in {1..11} 
 do
 
 K_thisrun=$i

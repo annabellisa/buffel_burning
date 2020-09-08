@@ -179,20 +179,17 @@ ghead(filtered_data); dim(filtered_data)
 # for all neutrality tests, remove: duplicated and monomorphic loci, but leave EVERYTHING ELSE (including low call rate - I changed my mind on this. 
 # If I'm not wrong, PCAdapt uses bed, bim, fam files (i.e. PLINK files) and LFMM a special format below. The next step is to format the files for these programs. 
 
-
-# Directory with results:
+# BD: Directory with results:
 sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 
-
+# AS: Directory with results:
 sel_dir<-"00_Data"
 dir(sel_dir)
-
 
 # filtered_data<-read.table(paste(sel_dir,"Partially_filtered_data",sep="/"),header=T)
 
 ghead(filtered_data); dim(filtered_data)
-
 
 # Outlier loci:
 res<-read.table(paste(sel_dir,"outliers_all.txt",sep="/"),header=T)
@@ -266,41 +263,41 @@ format_genepop(data,headline)
 ###-->> Set data:
 data_to_plink<-filtered_data
 
-# ~ 3 MINS on bigmac; 40711 loci Cenchrus
+# Cenchrus on big mac: ~ 3 MINS 40711 loci; 1 min 20159 loci 
 formatted_ped<-format_plink_ped(snp_data=data_to_plink,locus_data=linf,remove_og=NULL,remove_cultivar=NULL)
 ghead(formatted_ped); dim(formatted_ped)
 
 check_plink_ped(orig_data=data_to_plink,plink_data=formatted_ped)
 
-# write.table(formatted_ped,"Cenchrus_filt1.ped",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_ped,"Cenchrus_filt2.ped",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ****** .map file ****** ~~~~ ##
 formatted_map<-format_plink_map(ped_file=formatted_ped,locus_data=linf)
 head(formatted_map)
 
-# write.table(formatted_map,"Cenchrus_filt1.map",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_map,"Cenchrus_filt2.map",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ***** locus info file ***** ~~~~ ##
 plink_locus_info<-data.frame(lind=1:length(colnames(data_to_plink)[3:ncol(data_to_plink)]),locus=colnames(data_to_plink)[3:ncol(data_to_plink)])
 head(plink_locus_info)
 
-# write.table(plink_locus_info,"Cenchrus_filt1_loci.txt",sep="\t",row.names=F,quote=F)
+# write.table(plink_locus_info,"Cenchrus_filt2_loci.txt",sep="\t",row.names=F,quote=F)
 
 # Save parameters to file:
 # List parameters:
 data<-filtered_data
-headline<-"Cenchrus_filt1"
+headline<-"Cenchrus_filt2"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
 param.noindiv<-nrow(data)
 param.mono<-T
-param.repavg<-F
+param.repavg<-T
 param.callrate<-T
-param.MAF<-F
-param.LD<-F
+param.MAF<-T
+param.LD<-T
 param.HWE<-F
-param.neu<-F
+param.neu<-T
 param.dup<-T
 
 # The original plink parameter file was write_parameters() in the format_plink.R library but the genepop one is working better
