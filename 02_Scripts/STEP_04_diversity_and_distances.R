@@ -222,7 +222,15 @@ ar_default_rd$Ar[,1]
 save.image("../03_Workspaces/divdist_wksp.RData")
 save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
 
-setwd("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files")
+
+
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
+
+
+setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/NF_Format")
+setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/N_NF_Format")
+
+
 setwd("RESULTS/NF_Format")
 
 ar_dat<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
