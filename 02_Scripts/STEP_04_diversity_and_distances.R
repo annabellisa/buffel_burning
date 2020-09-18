@@ -8,8 +8,8 @@
 
 # Load workspace:
 load("../04_workspaces/STEP04_divdist_wksp")
-load("03_workspaces/NeturalWksp.RData")
-dir()
+load("03_workspaces/divdist_wksp.RData")
+dir("03_workspaces")
 
 
 # Neutral Dataset: 20159 (20161)
@@ -19,7 +19,8 @@ load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Wi
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NonNeturalWksp.RData")
 
 # load functions:
-invisible(lapply(paste("01_analysis_libraries/",dir("01_analysis_libraries"),sep=""),function(x) source(x)))
+dir()
+invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 
 # Load libraries:
@@ -208,42 +209,21 @@ save.image("pop_level_gen_div.RData")
 head(sdat,3); dim(sdat)
 genind_filt1
 
-# Delete following:
-# range(sdat$n_gt)
-# sdat[,c("site_code","n_gt")]
-# Re-do allelic richness on 53 sites, all with 7-9 individuals:
-# See Sept 2018 old code file for old calcs
-# Approx. 6 min for 454 x 17162
-
-
+library("hierfstat")
 
 print(Sys.time())
-ar_default_rd<- allelic.richness(genind_filt1, diploid = TRUE) # 2mins
+ar_default_rd<- allelic.richness(genind_filt1, diploid = TRUE) # 2 mins
 print(Sys.time())
+
+str(ar_default_rd)
+head(ar_default_rd$Ar,2)
+ar_default_rd$Ar[,1]
+
 save.image("../03_Workspaces/divdist_wksp.RData")
 save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
 
-# BD Script: Two methods, maybe can be used, but not sure. Regarding data from netural in AS Scripts as AR. Non-netural scripts are broken. 
-# Takes very long time, no need to load data:
-library(diveRsity)
 setwd("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files")
-print(Sys.time())
-divBasic(infile = "Genpop_Diversity_Original.gen", outfile ='out', gp = 3, bootstraps = NULL,HWEexact = FALSE, mcRep = 2000) # 10 mins
-print(Sys.time())
-
-
-# allel.rich method
-
-library(geosphere); library(hierfstat); library(adegenet)
-
-install.packages("PopGenReport")
-library(PopGenReport)
-print(Sys.time())
-allelic_richness<-allel.rich(genind_filt1,min.alleles = NULL) # 10 mins
-print(Sys.time())
-
-write.table(allelic_richness,"allelic.richness.txt",sep="\t",row.names=F,quote=F)
-
+setwd("RESULTS/NF_Format")
 
 ar_dat<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
 head(ar_dat)
@@ -260,6 +240,14 @@ ar_default_rd$min.all
 ar_res_rd<-data.frame(
 site=levels(genind_filt1@pop),
 ar_default_rd=apply(ar_default_rd$Ar,2,mean,na.rm=T))
+head(ar_res_rd); dim(ar_res_rd)
+
+# combine allelic richness into table with other genetic diversity data:
+head(gd_filt1); dim(gd_filt1)
+head(ar_res_rd); dim(ar_res_rd)
+# fix up the names
+
+merge()
 
 
 # > head(ar_res_rd);dim(ar_res_rd)
