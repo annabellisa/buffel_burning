@@ -46,6 +46,8 @@ dir(gp_dir)
 # ~~
 genind_filt1<-read.genepop(file=paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"), ncode=2L,quiet=FALSE)
 genind_filt1
+
+
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
 
@@ -56,6 +58,9 @@ save.image("../04_workspaces/STEP04_divdist_wksp")
 # See parameter files in gp_dir for filters
 genind_filt1 # no OG or cultivars
 head(sdat,3); dim(sdat)
+
+
+
 
 #########################################
 ##     Genetic & enviro distances:     ##
@@ -74,9 +79,9 @@ dir(gp_dir)
 # Get FST:
 # <10min
 print(Sys.time())
-fst<-diffCalc(paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"),fst=T,pairwise=T)
+fst<-diffCalc(paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"),fst=T,pairwise=T) # 4.5 mins
 print(Sys.time())
-save.image("../04_workspaces/STEP04_divdist_wksp")
+save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
 
 head(fst$pairwise$Fst)
 head(fst$pairwise$gst)
@@ -111,7 +116,8 @@ range (fst_df$fst[nonog_lines],na.rm=T)
 
 ### -- *** ADD GEOGRAPHIC DISTANCE:
 
-dat_dir<-"../01_data"
+dat_dir<-"../00_Data"
+dat_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 dir(dat_dir)
 
 # load fst data:
@@ -211,22 +217,21 @@ genind_filt1
 print(Sys.time())
 ar_default_rd<- allelic.richness(genind_filt1, diploid = TRUE) # 2mins
 print(Sys.time())
-save.image("../04_workspaces/STEP04_divdist_wksp")
-
+save.image("../03_Workspaces/divdist_wksp.RData")
+save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
 
 # BD Script: Two methods, maybe can be used, but not sure. Regarding data from netural in AS Scripts as AR. Non-netural scripts are broken. 
 # Takes very long time, no need to load data:
 library(diveRsity)
-setwd("D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files")
+setwd("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files")
 print(Sys.time())
-divBasic(infile = "Genpop_Diversity_Original.gen", outfile ='out', gp = 3, bootstraps = NULL,HWEexact = FALSE, mcRep = 2000)
+divBasic(infile = "Genpop_Diversity_Original.gen", outfile ='out', gp = 3, bootstraps = NULL,HWEexact = FALSE, mcRep = 2000) # 10 mins
 print(Sys.time())
 
 
 # allel.rich method
 
 library(geosphere); library(hierfstat); library(adegenet)
-load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/Unfished.RData")
 
 install.packages("PopGenReport")
 library(PopGenReport)
@@ -237,7 +242,7 @@ print(Sys.time())
 write.table(allelic_richness,"allelic.richness.txt",sep="\t",row.names=F,quote=F)
 
 
-ar_dat<-read.table("D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
+ar_dat<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
 head(ar_dat)
 
 
