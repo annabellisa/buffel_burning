@@ -42,8 +42,14 @@ library(diveRsity);library(geosphere);library(hierfstat);library(adegenet)
 {
 
 gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
-gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/"
-gp_dir<-"D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files"
+
+#NF
+gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/NF_Format"
+
+#N-NF
+gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/N_NF_Format"
+
+
 dir(gp_dir)
 
 # Make genind objects:
@@ -202,8 +208,6 @@ gd_filt1$site[grep("_",substr(gd_filt1$site,nchar(gd_filt1$site),nchar(gd_filt1$
 
 # write.table(gd_filt1,"gd_filt1.txt",sep="\t",row.names=F,quote=F)
 
-save.image("pop_level_gen_div.RData")
-
 ## -- ** ALLELIC RICHNESS:
 
 head(sdat,3); dim(sdat)
@@ -220,7 +224,12 @@ head(ar_default_rd$Ar,2)
 ar_default_rd$Ar[,1]
 
 save.image("../03_Workspaces/divdist_wksp.RData")
-save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
+
+# NF
+save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_NF.RData")
+
+# N-NF
+save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_N_NF.RData")
 
 
 
@@ -230,11 +239,10 @@ load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Wi
 setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/NF_Format")
 setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/N_NF_Format")
 
+# setwd("RESULTS/NF_Format")
 
-setwd("RESULTS/NF_Format")
-
-ar_dat<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
-head(ar_dat)
+# ar_dat<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
+# head(ar_dat)
 
 
 # Summarise
@@ -254,23 +262,18 @@ head(ar_res_rd); dim(ar_res_rd)
 head(gd_filt1); dim(gd_filt1)
 head(ar_res_rd); dim(ar_res_rd)
 # fix up the names
+gd_filt1$site_code<-paste(gd_filt1$site, gd_filt1$max_n, sep = "")
+library(tidyverse)
+gd_filt1 %>% full_join(ar_res_rd, by = c("site_code" = "site"))
+# Jump to Binding
 
-merge()
 
-
-# > head(ar_res_rd);dim(ar_res_rd)
-# site ar_default_rd
-# 1 X01b_04      1.039622
-# 2 X01u_05      1.191332
-# 3 X02b_05      1.040427
-# 4 X02u_05      1.045406
-# 5 X03b_05      1.264530
-# 6 X03u_05      1.041854
-# [1] 19  2
 
 
 
 # Non-neutral
+# ar_default_adapt<-ar_default_rd
+
 head(ar_default_adapt$Ar,2)
 ar_default_adapt$min.all
 
@@ -287,16 +290,16 @@ plot(test_df$ar_default_rd, test_df$ar_adapt)
 save.image("../04_workspaces/STEP04_divdist_wksp")
 
 
-# Done BD:
+# Binding
 # dplyr from tidyverse to bind columns 
-install.packages("tidyverse")
+
 library(tidyverse)
 sdatcoord<- sdat %>%
   select(burn_unburnt,lat,long)
 colnames(sdatcoord)[1]<-"treatment"
 ar<-data.frame(ar= ar_res_rd$ar_default_rd)
 joint_data_frame<-bind_cols(gd_filt1,sdatcoord, ar)
-write.table(joint_data_frame,"joint_dataframe.txt",sep="\t",row.names=F,quote=F)
+write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,quote=F)
 
 
 
