@@ -51,10 +51,113 @@ ls $analysis_dir
 # outfile.K.varQ = probabilities for each individual in each cluster
 # remove --full and var files won't print
 
+# 9th Sept 2020: now fastStructure is not working on either laptop or big mac
+
+# https://github.com/rajanil/fastStructure/issues/48 first problem is that it must be run in python2
+
+cd ~
+cd "OneDrive - The University of Queensland"
+ls
+
+# for now cd to soft dir as I absolutely cannot get this b thing to work:
+
+cd Software/fastStructure
+ls
+
+# following fastStructure installation instructions: 
+
+# the first step is to 'identify the path to the library files libgsl.so and libgslcblas.so, and header file gsl/gsl_sf_psi.h that are part of your GSL installation'
+
+# however, these do not exist anywhere. Not in the /usr/local/lib and /usr/local/include folders as suggested on the instructions, nor in the /usr/local/Cellar/gsl/2.6/lib, etc. folders where brew installs gsl
+
+# to open the bashrc file
+# a good explanation of the bash_profile on mac: https://scriptingosx.com/2017/04/about-bash_profile-and-bashrc-on-macos/
+~/.bash_profile; open ~/.bash_profile
+
+# so what happens if we add the lines anyway?
+
+# do we add these lines:
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+export CFLAGS="-I/usr/local/include"
+export LDFLAGS="-L/usr/local/lib"
+
+source ~/.bash_profile
+
+ls /usr/local/lib/python2.7/site-packages
+
+# tried this, from here: https://stackoverflow.com/questions/47884422/python-2-7-not-working-anymore-cannot-import-name-md5
+curl https://raw.githubusercontent.com/Homebrew/homebrew-core/94d572a132a63651739fef1931f540404b7eaa31/Formula/python%402.rb > python@2.rb; brew install python@2.rb
+
+# which resulted in this:
+
+# Pip and setuptools have been installed. To update them
+#  pip install --upgrade pip setuptools
+# You can install Python packages with
+#  pip install <package>
+# They will install into the site-package directory
+#  /usr/local/lib/python2.7/site-packages
+# See: https://docs.brew.sh/Homebrew-and-Python
+
+pip install cython # worked! cython is in 2.7/site-packages
+pip install scipy # installs numpy and scipy
+
+cd ~/proj/fastStructure/vars
+python setup.py build_ext --inplace
+
+# still, cannot find the libgsl.so files. 
+
+# according to this post, fastStructure relies on an older version of gsl, in particular 1.6: https://stackoverflow.com/questions/22222666/error-while-loading-shared-libraries-libgsl-so-0-cannot-open-shared-object-fil
+
+# I have currently 2.6:
+gsl-config --version
+2.6
+
+# downloaded from here: ftp://ftp.gnu.org/gnu/gsl/
+# up to here, haven't done anything with the download
+
+
+
+# or do we need to add the directly in the gsl 
+library? Not 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/Cellar/gsl/2.6/lib
+export CFLAGS="-I//usr/local/Cellar/gsl/2.6/include"
+export LDFLAGS="-L//usr/local/Cellar/gsl/2.6/lib"
+
+
+
+
+
+pip3 install cython
+pip3 install scipy # numpy already installed
+# however, they might be installed in the wrong place: /usr/local/lib/python3.8/site-packages (1.19.1)
+# i.e. for python3
+# true they are in the site-packages for python3 but no python2
+
+# but this doesn't work
+pip2 install cython
+# and these 
+
+# according to the website, fastStructure only runs in python2, so obviously I need the packages in the correct library:
+ls /usr/local/lib/python2.7/site-packages 
+
+
+# not working
+python2 structure.py
+
+
+
+
+
+
+# set location of program:
+soft_dir='Software⁩/fastStructure'
+echo $soft_dir
+ls $"soft_dir"
 # site names can be alpha or numeric
 
 # set location of program:
-soft_dir='Software⁩'
+soft_dir='Software⁩/fastStructure'
 echo $soft_dir
 ls $"soft_dir"
 

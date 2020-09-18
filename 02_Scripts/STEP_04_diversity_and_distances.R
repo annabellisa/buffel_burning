@@ -8,6 +8,9 @@
 
 # Load workspace:
 load("../04_workspaces/STEP04_divdist_wksp")
+load("03_workspaces/NeturalWksp.RData")
+dir()
+
 
 # Neutral Dataset: 20159 (20161)
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NeturalWksp.RData")
@@ -16,7 +19,7 @@ load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Wi
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NonNeturalWksp.RData")
 
 # load functions:
-invisible(lapply(paste("../02_analysis_libraries/",dir("../02_analysis_libraries"),sep=""),function(x) source(x)))
+invisible(lapply(paste("01_analysis_libraries/",dir("01_analysis_libraries"),sep=""),function(x) source(x)))
 
 
 # Load libraries:
