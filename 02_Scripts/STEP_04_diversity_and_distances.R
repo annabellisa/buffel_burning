@@ -51,6 +51,8 @@ gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin
 
 
 dir(gp_dir)
+setwd(gp_dir)
+getwd()
 
 # Make genind objects:
 # ~~
@@ -274,16 +276,17 @@ gd_filt1 %>% full_join(ar_res_rd, by = c("site_code" = "site"))
 # Non-neutral
 # ar_default_adapt<-ar_default_rd
 
+
 head(ar_default_adapt$Ar,2)
 ar_default_adapt$min.all
 
 ar_res_adapt<-data.frame(
-site=levels(genind_filt3@pop),
+site=levels(genind_filt1@pop),
 ar_default_adapt=apply(ar_default_adapt$Ar,2,mean,na.rm=T))
 
-test_df<-cbind(ar_res_rd,ar_adapt=ar_res_adapt[,2])
+test_df<-cbind(ar_res_adapt,ar_adapt=ar_res_adapt[,2])
 head(test_df)
-plot(test_df$ar_default_rd, test_df$ar_adapt)
+plot(test_df$ar_default_adapt, test_df$ar_adapt)
 
 # write.table(ar_res_adapt,"ar_res_adapt.txt",sep="\t",row.names=F,quote=F)
 
@@ -304,61 +307,38 @@ write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,qu
 
 
 
+# Models
+mod1<-lm(ar~treatment , data = joint_data_frame)
+summary(mod1)
+anova(mod1)
 
-# Call:
-# lm(formula = ar ~ treatment + long, data = joint_data_frame)
-
-# Coefficients:
-# (Intercept)   treatmentu         long  
-# 3.88893     -0.07325     -0.02055
+mod2<-lm(He~treatment + long, data =joint_data_frame)
+summary(mod2)
 
 
-aov(ar~treatment + long, data = joint_data_frame)
+
+mod3<-lm(ar~treatment + long, data = joint_data_frame[-which(joint_data_frame$site%in%c("X11b1_0", "X11b2_0", "X11b3_0")),])
+summary(mod3)
+anova(mod3)
+
+
+plot(as.factor(joint_data_frame$treatment), joint_data_frame$ar)
+
+
+
+# joint_data_frame$treatment[which(joint_data_frame$site%in%c("X11b1_0", "X11b2_0", "X11b3_0"))]
+
 
 new.dataframe<-data.frame(treatment = c("b", "u"), 
                           long = mean(sdat$long))
 
 p1<-predict(mod1, new.dataframe, se.fit = TRUE)
 
-
 p1
 
 new.dataframe$se<- p1$se.fit
-new.dataframe$fit<- p1$fit
-
-
-
-
-
-# Models
-mod1<-lm(ar~treatment , data = ar_dat)
-summary(mod1)
-head(ar_dat)
-
-
-
-mod2<-lm(He~treatment + long, data = ar_dat)
-summary(mod2)
-
-
-
-mod3<-lm(ar~treatment + long, data = ar_dat[-which(ar_dat$site%in%c("X11b1_0", "X11b2_0", "X11b3_0")),])
-summary(mod3)
-
-plot(as.factor(ar_dat$treatment), ar_dat$ar)
-
-
-
-ar_dat$trt[which(ar_dat$site%in%c("X11b1_0", "X11b2_0", "X11b3_0"))]
-plot(as.factor(ar_dat$trt), ar_dat$ar)
-
-
-mod4<-lm(ar~trt, data = ar_dat)
-summary(mod4)
-
-anova(mod4)
-
-
+new.dataframe$fit<-p1$fit
+print(new.dataframe)
 
 
 
@@ -368,10 +348,10 @@ anova(mod4)
 p1$uci<-p1$fit+(1.96*p1$se.fit)
 p1$lci<-p1$fit-(1.96*p1$se.fit)
 
-install.packages("Rmisc", dependencies = TRUE)
-library(Rmisc)
-p1$uci<-CI(p1$fit,ci=0.95)
-p1$lci<-CI(p1$fit,ci=0.95)
+# install.packages("Rmisc", dependencies = TRUE)
+# library(Rmisc)
+# p1$uci<-CI(p1$fit,ci=0.95)
+# p1$lci<-CI(p1$fit,ci=0.95)
 
 
 new.dataframe$uci<-p1$uci
@@ -396,11 +376,7 @@ ggplot(data = new.dataframe, mapping = aes(x = treatment,
 # library("plotrix")  
 # std.error()
 
-
-
-
-dir("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
-save.image("Working.RData")
+save.image("Results.RData")
 
 
 
