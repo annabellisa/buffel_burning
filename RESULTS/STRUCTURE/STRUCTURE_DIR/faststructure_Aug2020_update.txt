@@ -113,8 +113,76 @@ python setup.py build_ext --inplace
 gsl-config --version
 2.6
 
-# downloaded from here: ftp://ftp.gnu.org/gnu/gsl/
-# up to here, haven't done anything with the download
+# downloaded 1.6 from here: ftp://ftp.gnu.org/gnu/gsl/
+
+ls
+cd ..
+ls
+cd gsl-1.6
+ls
+
+# following installation instructions from here: https://coral.ise.lehigh.edu/jild13/2016/07/11/hello/
+
+# and here: https://dyerlab.ces.vcu.edu/2015/07/29/compiling-the-gsl-library-for-osx/
+
+./configure # seemed to work
+make # ran for a long time but had errors
+
+# In file included from fp.c:34:
+# ./fp-darwin.c:20:10: fatal error: 
+#       'architecture/ppc/fp_regs.h' file not
+#       found
+
+# this post (https://lists.gnu.org/archive/html/bug-gsl/2016-01/msg00008.html) suggests to uninstall the current version, so I did:
+
+brew uninstall --ignore-dependencies gsl
+
+# which worked:
+# gsl-config --version
+# zsh: command not found: gsl-config
+
+# then deleted the previous folder and unzipped 1.6 again. Re-ran ./configure which seemed to work
+./configure 
+
+# make again, which led to the same fatal error:
+make
+
+# fatal error: 
+#       'architecture/ppc/fp_regs.h' file not
+#       found
+
+# not run
+sudo make install
+
+# try this: https://gist.github.com/josiahaltschuler/a063e03b4197013def53f9a0abc6dfed
+# what's the equivalent of wget on mac?
+
+ls
+curl ftp://ftp.gnu.org/gnu/gsl/gsl-1.6.tar.gz --output gsl-1.6.tar.gz
+
+tar -xf gsl-1.6.tar.gz
+cd gsl-1.6
+
+mkdir /usr/local/bin/gsl
+./configure --prefix=/usr/local/bin/gsl
+make
+
+# same fatal error
+
+# this page suggests that gsl is gcc on mac
+
+# and we have .so files in gcc, but they are not the same files
+ls /usr/local/lib/gcc/9
+
+# These are the .so files
+libcc1.0.so
+libcc1.so
+
+### UP TO HERE
+# maybe also check the install file in the gsl folder
+
+
+
 
 
 

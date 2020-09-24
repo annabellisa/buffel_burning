@@ -219,6 +219,11 @@ ghead(filtered_data); dim(filtered_data)
 
 # close filter loci ----
 
+####   	 	 FORMAT DARTSEQ:    	 ####
+
+write.table(filtered_data, "dartseq_format_NF.txt", quote=F, row.names=F, sep="/t")
+
+
 ####   	 	 FORMAT GENEPOP:    	 ####
 
 # Single row data:
@@ -229,7 +234,7 @@ ghead(filtered_data); dim(filtered_data)
 data<-filtered_data
 
 # List parameters:
-headline<-"Genpop_Diversity_Original"
+headline<-"Neutral_DartSeq_Format"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
