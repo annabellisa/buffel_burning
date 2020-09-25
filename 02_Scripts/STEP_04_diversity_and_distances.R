@@ -300,9 +300,17 @@ library(tidyverse)
 sdatcoord<- sdat %>%
   select(burn_unburnt,lat,long)
 colnames(sdatcoord)[1]<-"treatment"
+
+# Neutral 
 ar<-data.frame(ar= ar_res_rd$ar_default_rd)
 joint_data_frame<-bind_cols(gd_filt1,sdatcoord, ar)
-write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,quote=F)
+# write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,quote=F)
+
+
+# NonNetural
+ar<-data.frame(ar = ar_res_adapt$ar_default_adapt)
+joint_data_frame<-bind_cols(gd_filt1,sdatcoord,ar)
+# write.table(joint_data_frame,"joint_nonnetural_dataset.txt",sep="\t",row.names=F,quote=F)
 
 
 joint_data_frame$trt<-as.character(joint_data_frame$treatment)
@@ -326,7 +334,7 @@ plot(ar~trt, data = joint_data_frame)
 
 mod2<-lm(He~treatment + long, data =joint_data_frame)
 summary(mod2)
-
+anova(mod2)
 
 
 mod3<-lm(ar~treatment + long, data = joint_data_frame[-which(joint_data_frame$site%in%c("X11b1_0", "X11b2_0", "X11b3_0")),])
@@ -389,9 +397,6 @@ ggplot(data = new.dataframe, mapping = aes(x = trt,
 # install.packages("plotrix") # Install plotrix R package
 # library("plotrix")  
 # std.error()
-
-save.image("Results.RData")
-
 
 
 

@@ -221,7 +221,7 @@ ghead(filtered_data); dim(filtered_data)
 
 ####   	 	 FORMAT DARTSEQ:    	 ####
 
-write.table(filtered_data, "dartseq_format_NF.txt", quote=F, row.names=F, sep="/t")
+write.table(filtered_data, "dartseq_format_N_NF.txt", quote=F, row.names=F, sep="/t")
 
 
 ####   	 	 FORMAT GENEPOP:    	 ####
@@ -234,7 +234,7 @@ write.table(filtered_data, "dartseq_format_NF.txt", quote=F, row.names=F, sep="/
 data<-filtered_data
 
 # List parameters:
-headline<-"Neutral_DartSeq_Format"
+headline<-"NonNeutral_DartSeq_Format"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -246,7 +246,7 @@ param.repavg<-T
 param.MAF<-T
 param.LD<-T
 param.HWE<-F
-param.neu<-T
+param.neu<-F
 
 
 

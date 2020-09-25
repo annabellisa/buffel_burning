@@ -5,8 +5,16 @@
 # Use dartseq format files, stored in the Genepop folder:
 dir(gp_dir)
 
-ds_filt2<-read.table(paste(gp_dir,"dartseq_filt2.txt",sep="/"),header=T)
-ghead(ds_filt2); dim(ds_filt2)
+# NF
+ds_filt2<-read.table(paste(gp_dir,"dartseq_format_NF.txt",sep="/"),header=T)
+
+# NNF
+ds_filt2<-read.table(paste(gp_dir,"dartseq_format_N_NF.txt",sep="/"),header=T)
+
+
+
+# ghead(ds_filt2) # Error
+dim(ds_filt2)
 
 # Codes for onerow formatted data:
 # 0 = Reference allele homozygote
@@ -33,7 +41,7 @@ head(ih_out)
 
 # write.table(ih_out,"ih.txt",quote=F,row.names=F,sep="\t")
 
-} # close genetic diversity
+# close genetic diversity
 
 
 
