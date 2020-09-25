@@ -383,7 +383,7 @@ library("tidyverse")
 ggplot(data = new.dataframe, mapping = aes(x = trt,
                                            y = fit)) +
   ylab("estimated allelic richness")+
-  geom_jitter()+
+  geom_point()+
   geom_errorbar(aes(ymin = lci, ymax = uci, position = "dodge"), width = 0.2)
   
   
