@@ -221,7 +221,7 @@ ghead(filtered_data); dim(filtered_data)
 
 ####   	 	 FORMAT DARTSEQ:    	 ####
 
-write.table(filtered_data, "dartseq_format_N_NF.txt", quote=F, row.names=F, sep="/t")
+write.csv(filtered_data, "dartseq_format_N_NF.txt", quote=F, row.names=F)
 
 
 ####   	 	 FORMAT GENEPOP:    	 ####
