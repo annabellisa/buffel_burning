@@ -12,3 +12,7 @@ Linkage disequilibrium filter = 75%
 No HWE filter
 Non-neutral markers removed = TRUE
 Duplicate sequences removed = TRUE
+
+Model complexity that maximizes marginal likelihood = 3
+Model components used to explain structure in data = 4
+
