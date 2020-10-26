@@ -1,12 +1,30 @@
 
 ## -- ** INDIVIDUAL HETEROZYGOSITY:
 
+# load libraries
+library(lme4)
+library(tidyverse)
+
+
+
 # Calculate individual heterozygosity
 # Use dartseq format files, stored in the Genepop folder:
+gp_dir<-"C:\\Users\\s4467005\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\RESULTS\\NF_Format"
+gp_dir<-"C:\\Users\\s4467005\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\RESULTS\\N_NF_Format"
+
+
 dir(gp_dir)
 
-ds_filt2<-read.table(paste(gp_dir,"dartseq_filt2.txt",sep="/"),header=T)
-ghead(ds_filt2); dim(ds_filt2)
+# NF
+ds_filt2<-read.csv(paste(gp_dir,"dartseq_format_NF.txt",sep="/"),header=T)
+
+# NNF
+ds_filt2<-read.csv(paste(gp_dir,"dartseq_format_N_NF.txt",sep="/"),header=T)
+
+
+
+ghead(ds_filt2) # check the file format, csv works 
+dim(ds_filt2)
 
 # Codes for onerow formatted data:
 # 0 = Reference allele homozygote
@@ -27,13 +45,35 @@ if(length(which(is.na(t.cons$ind.cons)))>0) t.cons<-t.cons[-which(is.na(t.cons$i
 
 if(length(which(t.cons$ind.cons==2))==0) ih_out[i,3]<-"no_heterozygotes" else ih_out[i,3]<-t.cons$count[t.cons$ind.cons==2]/sum(t.cons$count)
 
-} # close for i
-save.image("../04_workspaces/STEP04_divdist_wksp")
+
+} # close for i, mins
+
+
+ggplot(data = ih_out, aes(x = site, y = ind_het)) +
+  geom_boxplot() +
+theme_classic()
+
+
+
+
+
+save.image("C:\\Users\\s4467005\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\03_Workspaces\\STEP04_divdist_wksp.RData")
 head(ih_out)
 
 # write.table(ih_out,"ih.txt",quote=F,row.names=F,sep="\t")
 
-} # close genetic diversity
+# close genetic diversity
+
+
+# Models
+
+load("C:\\Users\\s4467005\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\03_Workspaces\\STEP04_divdist_wksp.RData")
+
+# ih_out dataset integration (same way as AR) full join (trt,longitude)
+
+mod1<-lmer(ih_het~treatment + (1|site) , data = ih_out)
+
+# CV coef of variance on site level (group_by site)
 
 
 

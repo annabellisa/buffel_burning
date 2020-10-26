@@ -235,7 +235,7 @@ save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Bin
 
 
 
-load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_NF.RData")
 
 
 setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/NF_Format")
@@ -300,26 +300,47 @@ library(tidyverse)
 sdatcoord<- sdat %>%
   select(burn_unburnt,lat,long)
 colnames(sdatcoord)[1]<-"treatment"
+
+# Neutral 
 ar<-data.frame(ar= ar_res_rd$ar_default_rd)
 joint_data_frame<-bind_cols(gd_filt1,sdatcoord, ar)
-write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,quote=F)
+# write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,quote=F)
 
 
+# NonNetural
+ar<-data.frame(ar = ar_res_adapt$ar_default_adapt)
+joint_data_frame<-bind_cols(gd_filt1,sdatcoord,ar)
+# write.table(joint_data_frame,"joint_nonnetural_dataset.txt",sep="\t",row.names=F,quote=F)
 
+
+joint_data_frame$trt<-as.character(joint_data_frame$treatment)
+
+joint_data_frame$trt[grep("X11",joint_data_frame$site)]<-"b2"
+joint_data_frame$trt<-as.factor(joint_data_frame$trt)
+joint_data_frame$trt<-relevel(joint_data_frame$trt,"u")
+levels(joint_data_frame$trt)
 
 # Models
 mod1<-lm(ar~treatment , data = joint_data_frame)
 summary(mod1)
 anova(mod1)
 
+
+mod1.1<-lm(ar~trt, data = joint_data_frame)
+summary(mod1.1)
+anova(mod1.1)
+
+plot(ar~trt, data = joint_data_frame)
+
 mod2<-lm(He~treatment + long, data =joint_data_frame)
 summary(mod2)
-
+anova(mod2)
 
 
 mod3<-lm(ar~treatment + long, data = joint_data_frame[-which(joint_data_frame$site%in%c("X11b1_0", "X11b2_0", "X11b3_0")),])
 summary(mod3)
 anova(mod3)
+
 
 
 plot(as.factor(joint_data_frame$treatment), joint_data_frame$ar)
@@ -329,10 +350,11 @@ plot(as.factor(joint_data_frame$treatment), joint_data_frame$ar)
 # joint_data_frame$treatment[which(joint_data_frame$site%in%c("X11b1_0", "X11b2_0", "X11b3_0"))]
 
 
-new.dataframe<-data.frame(treatment = c("b", "u"), 
-                          long = mean(sdat$long))
+new.dataframe<-data.frame(trt = factor(c("u", "b", "b2"),levels = c("u", "b", "b2")))
 
-p1<-predict(mod1, new.dataframe, se.fit = TRUE)
+
+
+p1<-predict(mod1.1, new.dataframe, se.fit = TRUE)
 
 p1
 
@@ -358,10 +380,10 @@ new.dataframe$uci<-p1$uci
 new.dataframe$lci<-p1$lci
 
 library("tidyverse")
-ggplot(data = new.dataframe, mapping = aes(x = treatment,
+ggplot(data = new.dataframe, mapping = aes(x = trt,
                                            y = fit)) +
   ylab("estimated allelic richness")+
-  geom_jitter()+
+  geom_point()+
   geom_errorbar(aes(ymin = lci, ymax = uci, position = "dodge"), width = 0.2)
   
   
@@ -375,9 +397,6 @@ ggplot(data = new.dataframe, mapping = aes(x = treatment,
 # install.packages("plotrix") # Install plotrix R package
 # library("plotrix")  
 # std.error()
-
-save.image("Results.RData")
-
 
 
 
