@@ -18,14 +18,14 @@ library("plotrix")
 # SET WORKING DIRECTORIES, FILES AND TIDY DATA:
 
 # The project dir is the location of the structure input files:
-proj_dir<-"RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt1"
+proj_dir<-"RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt2"
 dir(proj_dir)
 
 # The results dir contains the structure results, usually within proj_dir:
-res_dir<-paste(proj_dir,"Cenchrus_filt1_results",sep="/")
+res_dir<-paste(proj_dir,"Cenchrus_filt2_results",sep="/")
 dir(res_dir)
 
-file_name<-"Cenchrus_filt1"
+file_name<-"Cenchrus_filt2"
 
 # this is usually .fam but can also be .str:
 str_file<-paste(proj_dir,dir(proj_dir)[grep(".fam",dir(proj_dir))],sep="/")
@@ -50,7 +50,7 @@ head(sdat,2); dim(sdat)
 # Set K and run this whole section
 
 # SET K:
-K<-3
+K<-4
 
 # Get assignment probabilities:
 # use out_dir or res_dir, depending on where results are:
@@ -68,12 +68,12 @@ colnames(site_assig)<-c("site","indiv",paste("assig",1:K,sep=""))
 
 sdat2<-sdat
 
-# should be zero:
-length(unique(site_assig$site)[which(unique(site_assig$site) %in% as.character(unique(sdat2$site))!=T)])
-
-# replace the "X" in the site name with "buf"
+# replace the "X" in the site name with "buf" (going to remove this later, but it's needed for merge)
 site_assig$site<-paste("buf",substr(site_assig$site,2,nchar(site_assig$site)),sep="")
 head(sdat2,2); head(site_assig, 2)
+
+# should be zero:
+length(unique(site_assig$site)[which(unique(site_assig$site) %in% as.character(unique(sdat2$site))!=T)])
 
 # all assignment probs should appear in site data (these should all be TRUE)
 table(site_assig$site %in% sdat2$site)
@@ -84,9 +84,40 @@ table(sdat2$site %in% site_assig$site)
 head(site_assig, 2); dim(site_assig)
 
 all_dat<-merge(site_assig,sdat2,by="site",all.x=T,all.y=F)
-all_dat<-all_dat[order(all_dat$block,all_dat$site,all_dat$indiv),]
+
+# order by longitude, with most westerly sites first (on left of plot); these are the smaller numbers in longitude, so order ascending. 
+
+# However, when sorting by longitude, the burn or unburnt site is not consistently to the W, so it make the plots difficult to interpret. Since the block numbers are already sorted W to E, the way around this would be to sort by site, then re-arrange so that block buf11 is first
+all_dat<-all_dat[order(all_dat$site,all_dat$indiv),]
+all_dat<-tidy.df(all_dat)
+
+all_dat<-all_dat[c(which(as.character(all_dat$block) %in% "buf11"), which(!as.character(all_dat$block) %in% "buf11")),]
+
 all_dat<-tidy.df(all_dat)
 head(all_dat,3); dim(all_dat)
+
+# optionally change site names, removing 'buf':
+all_dat$site<-substr(all_dat$site,4,nchar(all_dat$site))
+
+# for plotting both on the same panel
+# save K3 and re-run for K4
+all_dat_K3<-all_dat
+all_dat_K4<-all_dat
+
+# Summarise groupings for downstream analysis:
+
+# run all_dat for K3 first:
+sum_dat<-all_dat
+sum_dat$K3<-apply(all_dat[,grep("assig", colnames(all_dat))],1,function(x) which(x==max(x)))
+
+# then re-run all_dat for K4:
+sum_dat$K4<-apply(all_dat[,grep("assig", colnames(all_dat))],1,function(x) which(x==max(x)))
+
+# remove K3 assig cols to avoid confusion:
+sum_dat[,grep("assig", colnames(sum_dat))]<-NULL
+head(sum_dat,3); dim(sum_dat)
+
+# write.table(sum_dat, file="K_genetic_clusters.txt", sep="\t", quote=F, row.names=F)
 
 #########################################
 ####  	       BAR PLOTS:    		 ####
@@ -102,41 +133,31 @@ head(all_dat,3); dim(all_dat)
 
 switch.col<-brewer.pal(K,"Accent")
 
-# Test colours:
-quartz(title="Fig",width=4,height=4,dpi=80,pointsize=10)
-barplot(matrix(data=6,nrow=6,ncol=1),col=brewer.pal(K,"Accent"),yaxt="n")
-text(1,seq(1,35,length.out=6),c("non-native","cultivar","outgroup","nth central eur","atlantic","greece"))
-text(0.5,seq(1,35,length.out=6),switch.col)
-
-### MAIN PLOT:
+### MAIN PLOT (K=3):
 quartz(title="Fig",width=16,height=4,dpi=80,pointsize=10)
-par(mfrow=c(1,1),oma=c(3,0,2,0))
-str_plot_V10(K,all_dat,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="indiv")
+par(mfrow=c(1,1),oma=c(1,0,1,0))
+str_plot_V10(K = 3,all_dat_K3,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="site")
+mtext("West - East", side=1, line=2.8, cex=1.8)
+par(xpd=NA)
+arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
+par(xpd=F)
 
+### K=3 and K=4 PLOT, for SI:
+quartz(title="Fig",width=16,height=8,dpi=80,pointsize=10)
+par(mfrow=c(2,1),oma=c(2,0,1.5,0))
+str_plot_V10(K = 3,all_dat_K3,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="site")
+mtext("(a) K = 3", side=3, line=0.5, cex=1.8, at = 0, adj=0)
+mtext("West - East", side=1, line=2.8, cex=1.8)
+par(xpd=NA)
+arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
+par(xpd=F)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+str_plot_V10(K = 4,all_dat_K4,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="site")
+mtext("(b) K = 4", side=3, line=0.5, cex=1.8, at = 0, adj=0)
+mtext("West - East", side=1, line=2.8, cex=1.8)
+par(xpd=NA)
+arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
+par(xpd=F)
 
 
 

@@ -40,7 +40,10 @@ head(cluster.data,3)
 dim(dat.thisrun)
 
 # Add labels for sites
-axis(1,1:ncol(dat.thisrun)-0.5,labels=cluster.data$site,tick=F,line=2.5,las=las.opt)
+axis(1,which(!duplicated(sdat.thisrun$site))+1,labels=unique(cluster.data$site),tick=F,line=2.5,las=1,cex.axis=1.5)
+
+# Add longer tick marks between sites:
+axis(side=1, at=which(!duplicated(sdat.thisrun$block))-1, labels=F, tick = T, line=0, tck=-0.1, lwd=0, lwd.ticks = 1)
 
 } # close structure plot function V10
 
