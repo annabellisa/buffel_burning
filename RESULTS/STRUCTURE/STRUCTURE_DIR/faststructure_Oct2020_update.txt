@@ -1,9 +1,14 @@
 ##### fastStructure
 
-# First make bed file:
+# Annabel Smith
+# 26 Oct 2020
+
+# make bed file:
+
+# plink should run from any location
 plink --version
 
-# cd into one drive cos I haven't figure out how to handle the spaces when assigning names to dirs:
+# cd into one drive (haven't figured out how to handle the spaces in one drive when assigning names to dirs):
 cd ~
 cd "OneDrive - The University of Queensland"
 ls
@@ -44,11 +49,16 @@ ls $analysis_dir
 
 # see below for anaconda install instructions
 
+# activate python2 VE
+conda activate dictator
+
+# cd to the software folder (bin) and paste the input files (bed, bim, fam) to the same directory:
+cd /Users/annabelsmith/anaconda3/envs/dictator/bin
+
 # working
 python2 structure.py
 
-# put files (bed, bim, fam) in software dir
-
+# assign name:
 infile="Cenchrus_filt2"
 out_dir="Cenchrus_filt2_results"
 out_prefix="Cenchrus_filt2"
@@ -59,7 +69,7 @@ echo $out_dir
 # make out dir if it doesn't exist
 # mkdir "$out_dir"
 
-# 1-10 start ~ 1446, end 1457
+# 1-10 start (only takes a few mins on Cenchrus_filt2)
 
 # Set max K and run analysis:
 for i in {1..11} 
@@ -71,13 +81,15 @@ python2 structure.py -K $i --input=$infile --output=$out_prefix --format=bed --s
 
 done
 
-# didn't put them in the outdir, but doesn't matter. 
+# (it didn't put them in the outdir, but I'm not worried about this for now)
+
 # remove allele frequency files:
 rm *meanP
 
 python2 chooseK.py --input=$out_prefix
 
 
+# ----------------------------------
 # anaconda install of faststructure
 
 # installed command line: https://www.anaconda.com/products/individual#macos
@@ -112,296 +124,8 @@ conda install -c bioconda faststructure
 cd /Users/annabelsmith/anaconda3/envs/dictator/bin
 
 
-
-
-
-
-
-
 ## -------------------------------------
-# notes on install problems, 26 Oct 2020, after crash of working faststructure workflow. Posted to the discussion board:
+# notes on install problems, 26 Oct 2020, moved to Offline_Results folder
 
-https://groups.google.com/g/structure-software/c/pTnJpC9Gh5I
 
-# conda wasn't working on basic install because we had to set up the VE for python2 - see above
 
-conda install faststructure
-# didn't work
-
-conda install -c bioconda faststructure
-
-conda install -c bioconda/label/cf201901 faststructure
-
-# This is an installation helper script:
-https://github.com/StuntsPT/Structure_threader/blob/master/helper_scripts/install_faststructure.sh
-# could be useful in case everything else fails, however, I expect the problem with gsl would still exist
-
-##### fastStructure
-
-# P = allele frequency
-# Q = assignment probability
-
-# outfile.K.meanP = mean allele frequencies for all loci
-# outfile.K.meanQ = mean assignment probability for all individuals
-# outfile.K.varP = twice as many columns as K, not sure what these values are
-# outfile.K.varQ = probabilities for each individual in each cluster
-# remove --full and var files won't print
-
-# 9th Sept 2020: now fastStructure is not working on either laptop or big mac
-
-# https://github.com/rajanil/fastStructure/issues/48 first problem is that it must be run in python2
-
-cd ~
-cd "OneDrive - The University of Queensland"
-ls
-
-# for now cd to soft dir as I absolutely cannot get this b thing to work:
-
-cd Software/fastStructure
-ls
-
-# following fastStructure installation instructions: 
-
-# the first step is to 'identify the path to the library files libgsl.so and libgslcblas.so, and header file gsl/gsl_sf_psi.h that are part of your GSL installation'
-
-# however, these do not exist anywhere. Not in the /usr/local/lib and /usr/local/include folders as suggested on the instructions, nor in the /usr/local/Cellar/gsl/2.6/lib, etc. folders where brew installs gsl
-
-# to open the bashrc file
-# a good explanation of the bash_profile on mac: https://scriptingosx.com/2017/04/about-bash_profile-and-bashrc-on-macos/
-~/.bash_profile; open ~/.bash_profile
-
-# so what happens if we add the lines anyway?
-
-# do we add these lines:
-
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-export CFLAGS="-I/usr/local/include"
-export LDFLAGS="-L/usr/local/lib"
-
-source ~/.bash_profile
-
-ls /usr/local/lib/python2.7/site-packages
-
-# tried this, from here: https://stackoverflow.com/questions/47884422/python-2-7-not-working-anymore-cannot-import-name-md5
-curl https://raw.githubusercontent.com/Homebrew/homebrew-core/94d572a132a63651739fef1931f540404b7eaa31/Formula/python%402.rb > python@2.rb; brew install python@2.rb
-
-# which resulted in this:
-
-# Pip and setuptools have been installed. To update them
-#  pip install --upgrade pip setuptools
-# You can install Python packages with
-#  pip install <package>
-# They will install into the site-package directory
-#  /usr/local/lib/python2.7/site-packages
-# See: https://docs.brew.sh/Homebrew-and-Python
-
-pip install cython # worked! cython is in 2.7/site-packages
-pip install scipy # installs numpy and scipy
-
-cd ~/proj/fastStructure/vars
-python setup.py build_ext --inplace
-
-# still, cannot find the libgsl.so files. 
-
-# according to this post, fastStructure relies on an older version of gsl, in particular 1.6: https://stackoverflow.com/questions/22222666/error-while-loading-shared-libraries-libgsl-so-0-cannot-open-shared-object-fil
-
-# I have currently 2.6:
-gsl-config --version
-2.6
-
-# downloaded 1.6 from here: ftp://ftp.gnu.org/gnu/gsl/
-
-ls
-cd ..
-ls
-cd gsl-1.6
-ls
-
-# following installation instructions from here: 
-# https://coral.ise.lehigh.edu/jild13/2016/07/11/hello/
-
-# and here: https://dyerlab.ces.vcu.edu/2015/07/29/compiling-the-gsl-library-for-osx/
-
-./configure # seemed to work
-make # ran for a long time but had errors
-
-# In file included from fp.c:34:
-# ./fp-darwin.c:20:10: fatal error: 
-#       'architecture/ppc/fp_regs.h' file not
-#       found
-
-# this post (https://lists.gnu.org/archive/html/bug-gsl/2016-01/msg00008.html) suggests to uninstall the current version, so I did:
-
-brew uninstall --ignore-dependencies gsl
-
-# which worked:
-# gsl-config --version
-# zsh: command not found: gsl-config
-
-# then deleted the previous folder and unzipped 1.6 again. Re-ran ./configure which seemed to work
-./configure 
-
-# make again, which led to the same fatal error:
-make
-
-# fatal error: 
-#       'architecture/ppc/fp_regs.h' file not
-#       found
-
-# not run
-sudo make install
-
-# try this: https://gist.github.com/josiahaltschuler/a063e03b4197013def53f9a0abc6dfed
-# what's the equivalent of wget on mac?
-
-ls
-curl ftp://ftp.gnu.org/gnu/gsl/gsl-1.6.tar.gz --output gsl-1.6.tar.gz
-
-tar -xf gsl-1.6.tar.gz
-cd gsl-1.6
-
-mkdir /usr/local/bin/gsl
-./configure --prefix=/usr/local/bin/gsl
-make
-
-# same fatal error
-
-# this page suggests that gsl is gcc on mac
-
-# and we have .so files in gcc, but they are not the same files
-ls /usr/local/lib/gcc/9
-
-# These are the .so files
-libcc1.0.so
-libcc1.so
-
-# maybe also check the install file in the gsl folder
-
-ls
-cd ..
-ls
-
-cd ~
-cd "OneDrive - The University of Queensland"
-ls
-cd Software
-ls
-
-# don't run this tar -c --gunzip gsl-1.6.tar.gz
-tar -xf gsl-1.6.tar.gz
-
-cd gsl-1.6
-ls
-
-# advice from install file
-./configure --disable-shared 
-
-# same error
-make 
-
-# same error
-make all
-
-# this ran without errors:
-make distclean
-
-# I didn't run make check cos I was too afraid of seeing new errors
-
-# This gave: Nothing to be done for `install'.
-make install
-
-# .so files are not here:
-ls /usr/local/lib
-
-# or here:
-ls /usr/local/include
-
-# same error
-# this post: https://lists.gnu.org/archive/html/help-gsl/2014-03/msg00010.html
-# has a similar issue, but the link to the solution does not work
-
-# Tried downloading the fp_regs.h file from here and it opened XCode and did some stuff: 
-# https://opensource.apple.com/source/xnu/xnu-517.11.1/EXTERNAL_HEADERS/architecture/ppc/fp_regs.h.auto.html
-# The file it downloaded was called cpas__clib.c
-
-# So went back to the page and clicked "plain text", which then downloaded the fp_regs.h file to downloads...
-
-# but where should I put the .h file?
-
-# This is the location of the fp_darwin.c file: /Users/annabelsmith/OneDrive - The University of Queensland/Software/gsl-1.6/ieee-utils
-
-# this post (https://www.mail-archive.com/bug-gsl@gnu.org/msg00136.html) suggests that architecture is in /usr/include, but that doesn't exist on my machine, nor is architecture in /usr/local/include
-
-make check > log 2>&1 # advice from install file
-
-make CFLAGS="-Wno-long-long"
-
-# or do we need to add the directly in the gsl 
-library? Not 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/Cellar/gsl/2.6/lib
-export CFLAGS="-I//usr/local/Cellar/gsl/2.6/include"
-export LDFLAGS="-L//usr/local/Cellar/gsl/2.6/lib"
-
-pip3 install cython
-pip3 install scipy # numpy already installed
-# however, they might be installed in the wrong place: /usr/local/lib/python3.8/site-packages (1.19.1)
-# i.e. for python3
-# true they are in the site-packages for python3 but no python2
-
-# but this doesn't work
-pip2 install cython
-# and these 
-
-# according to the website, fastStructure only runs in python2, so obviously I need the packages in the correct library:
-ls /usr/local/lib/python2.7/site-packages 
-
-# not working
-python2 structure.py
-
-
-# The following is me trying to get it working on the BigMac at Gatton:
-
-# problem # 1 keep getting the error message "uqasmi57 is not in the sudoers file.  This incident will be reported." when trying to update or install software
-
-# I've done the changing ownership, but also need to do the make sure the user (uqasmi57) has write permission... didn't get that far
-
-# this is what brew is telling me to do:
-
-You should change the ownership and permissions of /usr/local/Cellar back to your
-user account:
-
-# this works
-sudo chown -R $uqasmi57 /usr/local/Cellar
-
-You should change the ownership of these directories to your user.
-
-# these work but I had to do them individually:
-
-sudo chown -R $uqasmi57 /usr/local/Cellar /usr/local/Frameworks /usr/local/Homebrew /usr/local/bin /usr/local/etc /usr/local/etc/bash_completion.d /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig /usr/local/opt /usr/local/sbin /usr/local/share /usr/local/share/aclocal /usr/local/share/doc /usr/local/share/info /usr/local/share/man /usr/local/share/man/man1 /usr/local/share/man/man3 /usr/local/share/man/man5 /usr/local/share/man/man7 /usr/local/share/zsh /usr/local/share/zsh/site-functions /usr/local/var/homebrew/linked /usr/local/var/homebrew/locks
-
-And make sure that your user has write permission.
-  chmod u+w /usr/local/Cellar /usr/local/Frameworks /usr/local/Homebrew /usr/local/bin /usr/local/etc /usr/local/etc/bash_completion.d /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig /usr/local/opt /usr/local/sbin /usr/local/share /usr/local/share/aclocal /usr/local/share/doc /usr/local/share/info /usr/local/share/man /usr/local/share/man/man1 /usr/local/share/man/man3 /usr/local/share/man/man5 /usr/local/share/man/man7 /usr/local/share/zsh /usr/local/share/zsh/site-functions /usr/local/var/homebrew/linked /usr/local/var/homebrew/locks
-
-# unfort. ended up doing this in uqasmi57_local
-
-brew install python3
-pip3 install numpy
-pip3 install cython
-pip3 install scipy
-
-# these are the paths to the libraries and header files that faststructure needs. I can only guess that the .so files are on mac the .dylib files (some info on that here: https://stackoverflow.com/questions/2339679/what-are-the-differences-between-so-and-dylib-on-osx)
-
-/usr/local/Cellar/gsl/2.6/lib/libgslcblas.dylib
-/usr/local/Cellar/gsl/2.6/lib/libgsl.dylib
-/usr/local/Cellar/gsl/2.6/include/gsl/gsl_sf_psi.h
-
-# here is some info on the bash_profile file on mac: https://stackoverflow.com/questions/19662713/where-do-i-find-the-bashrc-file-on-mac
-
-# IN FASTSTRUCTURE INSTRUCTIONS:
-# https://rajanil.github.io/fastStructure/
-
-open ~/.bash_profile
-# THIS shows the hidden files in the root dir, including bash_profile:
-ls -a ~/
-
-# test site codes in str file:
