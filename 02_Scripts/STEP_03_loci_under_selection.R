@@ -3,12 +3,9 @@
 # ------------- STEP 03  ------------- #
 # ------------------------------------ #
 
-### Post-process results from analyses to detect loci under selection
-### Author: Annabel Smith, Binyin Di
+### Post-process BayeScan (run in command line) and run PCAdapt and LFMM to detect loci under selection
 
-# Load workspace (not updated for Cenchrus):
-# load("03_Workspaces/STEP03_sel_wksp")
-# load("03_Workspaces/STEP03_sel_wksp_BD.RData")
+### Author: Annabel Smith, Binyin Di
 
 # AS Load and tidy workspace and remove everything except necessary objects:
 load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
@@ -19,7 +16,7 @@ load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Wi
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
-#  ANALYSE BAYESCAN:    	# ----
+#  POST-PROCESS BAYESCAN results:    	# ----
 
 # *** ANALYSE OUTLIER LOCI:
 
@@ -27,42 +24,37 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 gt_data<-snp_onerow
 
 # Directory with bayescan results:
-bs_dir<-"../Offline_Analysis/BayeScan/Cenchrus_filt1/Cenchrus_BS_po400_RESULTS"
 bs_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
+bs_dir<-"../Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
 dir(bs_dir)
 
 bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_fst.txt",sep="/")
 
 # FST Outlier loci:
-bsres<-plot_bayescan(bs_fst,FDR=0.05)
+# dev.new()
+bsres<-plot_bayescan(res=bs_fst,FDR=0.05)
 bs_outl<-bsres$outliers
 bs_n_outl<-bsres$nb_outliers
 
 # MARKER file to separate non-neutral loci:
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
-bslinf<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bs_loci_filt3.txt",header=T)
-bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/bs_loci_filt1.txt", header = TRUE) # bs_loci_filt1.txt, no need to change since 40711 loci.
-head(bslinf)
 
+bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/bs_loci_filt1.txt", header = TRUE)
+bslinf<-read.table("../Offline_Results/BayeScan/BayeScan_ANALYSIS/Cenchrus_filt2/bs_loci_filt2.txt", header = TRUE) 
+
+head(bslinf); dim(bslinf)
 bsoutl<-data.frame(lind=bs_outl,outl=1)
-head(bsoutl)
+head(bsoutl); dim(bsoutl)
 
 # Outlier loci:
 bslinf<-merge(bslinf,bsoutl,by="lind", all.x = T, all.y = F)
 bslinf$outl[which(is.na(bslinf$outl))]<-0
 head(bslinf)
 table(bslinf$outl)
-# > table(bslinf$outl)
-# 0     1 
-# 40706     5 
 check.rows(bslinf)
-colnames(bslinf)[which(colnames(bslinf)=="outl")]<-"bs_outl"
 
-# > count(bslinf$bs_outl) #plyr
-# x  freq
-# 1 0 40706
-# 2 1     5
+colnames(bslinf)[which(colnames(bslinf)=="outl")]<-"bs_outl"
 
 # write.table(bslinf,file="bayescan_outliers.txt",quote=F,row.names=F,sep="\t")
 
@@ -110,14 +102,13 @@ loc.toanalyse<-as.character(bslinf$locus[which(bslinf$bs_outl==1)])
 length(loc.toanalyse)
 head(loc.toanalyse)
 
-# Put files here:	
-out.dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bayescan_filt3_50_random_heatmaps"
+# Location for heatmap files:	
+out.dir<-"../Offline_Results/RESULTS/BayeScan/new_heatmaps"
 out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Cenchrus_filt2_BS_po400"
-
 out.dir
+
 ## Make sure they're all in site data
 
-# sdat$site_code <- sub("buf","X",sdat$site)
 # unique(gt_data$site) %in% sdat$site_code # add a new column
 
 # PLOT GENOTYPE FREQUENCIES BY LOCATION:
@@ -132,8 +123,10 @@ length(loc.toanalyse)
 
 sdat$site_code <- sub("buf","X",sdat$site)
 site_data<-sdat
-plot_freq_long(loc.toanalyse,gt_data,sdat,out.dir,35) # Error, 2 indicate the parameters in the variables. 
-out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Plots"
+
+# this plots by longitude (see plot_freq_long folder for results)
+plot_freq_long(loc.toanalyse,gt_data,sdat,out.dir,5) 
+
 # From the manual:
 # plotting posterior distribution is very easy in R with the output of BayeScan:
 # first load the output file *.sel produced by BayeScan
@@ -154,37 +147,22 @@ library(boa)
 # Density Interval (HPDI) for your parameter of interest (example for the 95% interval):
 boa.hpd(seldat[[parameter]],0.05)
 
-# Lower Bound Upper Bound 
-# -995514.0   -994271.8 
-
-# fit2 results
-# Lower Bound Upper Bound 
-# -741983.2   -741369.6 
-
 # close BayeScan ----
 
-
-#########################################
-####	    	PCADAPT:	    	 ####
-#########################################
-{
-
-  
-# Tutorial: https://bcm-uga.github.io/pcadapt/articles/pcadapt.html  
-  
-
-install.packages("pcadapt")  
-install.packages("https://cran.r-project.org/src/contrib/Archive/qvalue/qvalue_1.26.0.tar.gz", repos = NULL, type = "source")  
-
-library(pcadapt)
-library(qvalue)
+#  PCADAPT:    	# ----
 
 # tutorial:
 # browseVignettes("pcadapt")
 
-path_to_file <- "../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_files"
-path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt"
-path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt"
+# Tutorial: https://bcm-uga.github.io/pcadapt/articles/pcadapt.html  
+
+library(pcadapt)
+library(qvalue)
+library(grDevices)
+
+path_to_file <- "RESULTS/PCAdapt/PCAdapt_files"
+path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files"
+path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files"
 
 dir(path_to_file)
 
@@ -196,11 +174,6 @@ K <- 22 # Capitalised K
 x <- pcadapt(input = filename, K = 22) 
 
 # CHOOSE K FROM SCREE PLOT: reproduce built in plot: plot(x, option = "screeplot")
-
-# plot(x, option = "screeplot")
-
-# install.packages("grDevices")
-# library(grDevices)
 
 quartz("",4,4,dpi=160,pointsize=12) # Error
 par(mar=c(4,4,0.5,0.5))
@@ -232,85 +205,17 @@ title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
 par(xpd=NA)
 legend(-5, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
 
-# 10-25 pcs needed to explain variation
-
-# Score plot - Example
-# poplist.int<-c(rep(1,50), rep(2,50), rep(3,50))
-# print(poplist.int)
-
-# poplist.names<-c(rep("POP1", 50), rep("POP2",50), rep("POP3",50))
-# print(poplist.names)
-
-# plot(x, option = "scores", pop = poplist.int)
-# plot(x, option = "scores", pop = poplist.names)
-
-
-
-
 ### --- *** SET K *** --- ###
-
-library(pcadapt)
 
 K<-3 # return # 182
 x <- pcadapt(input = filename, K = K) 
 summary(x)
-
-
-# > summary(x)
-# Length Class  Mode   
-# scores             930 -none- numeric
-# singular.values     10 -none- numeric
-# loadings        407110 -none- numeric
-# zscores         407110 -none- numeric
-# af               40711 -none- numeric
-# maf              40711 -none- numeric
-# chi2.stat        40711 -none- numeric
-# stat             40711 -none- numeric
-# gif                  1 -none- numeric
-# pvalues          40711 -none- numeric
-# pass             34752 -none- numeric
-
-
 
 # Check for LD 
 dev.new("",10,4,dpi=80,pointsize=14) # Error
 par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in 1:ncol(x$loadings))
   plot(x$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
-
-# Reproduce PC plot:
-
-head(x$scores)
-
-dev.new("",10,4) # Error
-par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
-pc1<-x$scores[,1]
-pc2<-x$scores[,2]
-pc3<-x$scores[,3]
-
-colour_codes<-poplist.names
-# colour_codes<-unique(poplist.names) # no need
-colour_codes[grep("b",unique(poplist.names))]<-"red"
-colour_codes[grep("u",unique(poplist.names))]<-"blue"
-
-
-# PC should be a square shape when exporting the plots
-
-plot(pc1,pc2,col=colour_codes,xlab="pc1",ylab="pc2",pch=20, cex=3)
-text(pc1,pc2, labels = poplist.names)
-
-plot(pc1,pc3,col=colour_codes,xlab="pc1",ylab="pc3",pch=20, cex=3)
-text(pc1,pc3, labels = poplist.names)
-
-
-plot(pc2,pc3,col=colour_codes,xlab="pc2",ylab="pc3",pch=20, cex=3)
-text(pc2,pc3, labels = poplist.names)
-
-# title(xlab=paste("PC",i,sep=""),cex.lab=1)
-# title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
-
-par(xpd=NA)
-legend(-5,-1,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
 
 # lattice methods 
 
@@ -329,7 +234,6 @@ plot1<-xyplot(pc2~pc1, scales=list(cex=1, col="red"),
               main="pc1 v pc2",
               panel.text(pc1, pc2, labels = poplist.names))
 
-  
 plot2<-xyplot(pc2~pc3, scales=list(cex=1, col="red"),
               col=colour_codes,
               xlab="pc3", ylab="pc2",
@@ -368,20 +272,16 @@ ggpairs(pc_df,  aes(colour = colour_codes), columns = 1:3) +
   scale_color_manual(values=c("red"="red","blue"="blue")) +
   theme(text = element_text(size = 25)) 
 
-
 # Tidyverse, ggplot
 install.packages("directlabels", repos = "http://r-forge.r-project.org", dependencies = TRUE)
 install.packages("grid")
 install.packages("quadprog")
 library(directlabels)
 
-
-
 library(tidyverse)
 library(ggrepel)
 install.packages("egg")
 library(egg)
-
 
 # colour-trtments
 # label-site_name
@@ -409,7 +309,6 @@ plot1_1<- plot1 +
   gghighlight() +
   facet_wrap(~site_name)
 
-
 # label method 2
 plot1 + 
 geom_label_repel(aes(label = site_name),
@@ -422,7 +321,6 @@ geom_label_repel(aes(label = site_name),
 plot1 +
   theme_bw()+
   geom_text(aes(label=ifelse(pc2<-0.1,as.character(poplist.names),'')),hjust=0,vjust=0)
-
 
 plot2<-ggplot(plotdata,mapping = aes(x = pc1, y = pc3, colour = colour_codes),
               xlab="pc1", ylab="pc3",
@@ -450,7 +348,6 @@ ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names, shape = poplist.n
 # library(Rmisc)
 # multiplot(plot1_1, plot2_1, plot3_1, cols=3)
 
-
 # For future, 3D images: 
 install.packages("https://cran.r-project.org/src/contrib/Archive/plot3Drgl/plot3Drgl_1.0.tar.gz", repos = NULL, type = "source", dependencies = TRUE) 
 install.packages("plot3Drgl", dependencies = TRUE)
@@ -460,19 +357,17 @@ library(plot3Drgl)
 
 # plotrgl()
 
-
 # Get outliers based on q values:
 
 ## be careful with NA, qvalue: no NA, p or pval has NA, and is.na_remove is pval without NAs
 loci <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
 
 pval <-x$pvalues
-
 length(pval)
+
 # write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
 is.na_remove<-x$pvalues[!is.na(x$pvalues)]
 qval <- qvalue(is.na_remove)$qvalues
-
 length(qval)
 
 # write.table(qval,file="qval.txt",quote=F,row.names=F,sep="\t")
@@ -484,7 +379,6 @@ any(is.na(pval))
 
 # Locate NA in data set via which()
 which(is.na(pval))
-
 
 # if game
 for (i in 1:length(pval)) {
@@ -499,8 +393,6 @@ for (i in 1:length(pval)) {
 ifelse(is.na(pval), "Damn, it's an NA", "WOW, that's awesome")
 
 # ---------------------------
-
-
 
 alpha <- 0.05
 outliers <- which(qval < alpha)
@@ -528,7 +420,6 @@ pca_loc<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/G
 pca_loc$pca_outl<-ifelse(pca_loc$lind %in% outliers,1,0)
 table(pca_loc$pca_outl)
 
-
 maindir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt"
 orig_loci<-read.table(paste(maindir, "Cenchrus_filt1_loci.txt", sep="/"), header=T)
 head(orig_loci)
@@ -536,35 +427,14 @@ head(pca_loc)
 
 table(orig_loci$locus == pca_loc$locus)
 
-dir()
+# close PCAdapt ----
 
+#  LFMM:    	# ----
 
-# [1st run]
-
-# > table(pca_loc$pca_outl)
-
-# 0     1 
-# 32653  8058 
-
-
-# [2nd run]
-# > table(pca_loc$pca_outl)
-
-# 0     1 
-# 33671  7040 
-
-
-
-} # close pcadapt
-
-#########################################
-####	    	 LFMM:	    	 	 ####
-#########################################
-{
 library(lfmm) # https://bcm-uga.github.io/lfmm/articles/lfmm
 library(qvalue)
 
-lfmm_dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/LFMM/lfmm_filt2"
+lfmm_dir<-"RESULTS/LFMM/LFMM_files"
 lfmm_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
 lfmm_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
 dir(lfmm_dir)
@@ -582,17 +452,13 @@ head(lfsite)
 
 # Add site info
 sdat$site_code <- sub("buf","X",sdat$site)
-# head(sdat$site_code) 
+head(sdat) 
 
-# just need site_code, and long/lat?
+# just need site_code, burnt_unburnt, and long:
 lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site"),which(colnames(sdat)=="burn_unburnt"),which(colnames(sdat)=="long"):which(colnames(sdat)=="site_code"))] 
-
-# lfsd<-lfsd[order(lfsd$site_code),]
 lfsd<-lfsd[order(lfsd$site),]
-
 lfsd<-tidy.df(lfsd)
 head(lfsd)
-
 
 # Make sure they're in the same order, these should all be T:
 lfsd$site_code==unique(lfsite$site)
@@ -601,14 +467,9 @@ lfsd$site_code==unique(lfsite$site)
 rownames(lfsd)<-lfsd[,"site_code"] 
 
 # Make PCs:
-# lfsd <- lfsd[,c(-1,-2,-5)] # delete columns https://howtoprogram.xyz/2018/01/10/r-remove-delete-column-data-frame/
-# lfsd$burn_unburnt[1,]<-lfsd$burn_unburnt[b,]
-# lfsd$burn_unburnt[0,]<-lfsd$burn_unburnt[u,]
-
 
 # burn_unburn to binary code: burnt is 1, otherwise, 0/
 lfsd$burn_unburnt<-ifelse(lfsd$burn_unburnt =="b",1,0)
-
 lf_pc<-princomp(lfsd[,c(2,3)],cor=T) 
 summary(lf_pc)
 # biplot(lf_pc,xlab="PC1",ylab="PC2",cex=0.7)
@@ -621,16 +482,14 @@ lfpcs<-tidy.df(lfpcs)
 head(lfpcs)
 
 lfsd2<-lfsite
-
 lfsd3<-merge(lfsd2, lfsd, by.y = "site_code", by.x = "site", all.x = TRUE, all.y = FALSE)
 
-
+#check:
 lfsite$ind == lfsd3$ind
 
-
+# Reduce columns to burnt_unburnt and long - these are the environmental variables we're using in the model:
 lfs<-lfsd3[,c(4,5)]
 head(lfs)
-# lfs<-merge(lfs,lfpcs,by="site",all.x=T,all.y=F)
 head(lfs); dim(lfs)
 
 # The environmental matrix (X):
@@ -657,7 +516,7 @@ grid()
 lines(1:40,summary(pc)$importance[2,][1:40])
 points(1:40,summary(pc)$importance[2,][1:40],pch=20)
 
-# The screes from the two methods are remarkably similar and K is similarly hard to choose, being somewhere between 10 and 25
+# The screes from the PCAdapt and LFMM are similar; K between 3 and 5
 
 # Ridge estimates and GWAS tests
 head(lfs) # The environmental matrix (X):
@@ -677,7 +536,6 @@ length(pvalues)
 # Direct effect sizes estimated from latent factor models:
 efs.lfmm1<-effect_size(Y = lfdat, X = as.matrix(lfs[,1]), lfmm = mod.lfmm) # a few minutes
 efs.lfmm2<-effect_size(Y = lfdat, X = as.matrix(lfs[,2]), lfmm = mod.lfmm)
-
 
 head(efs.lfmm1)
 head(efs.lfmm2)
@@ -699,12 +557,12 @@ head(lfres)
 alpha <- 0.05
 lf_outl<-apply(as.matrix(lfres[,2:ncol(lfres)]),2,function(x) which(x<alpha))
 
-
-table(lfres$bu_q<0.1)
-
 lfres$bu_outl<-ifelse(rownames(lfres) %in% lf_outl$bu_q,1,0)
 lfres$lo_outl<-ifelse(rownames(lfres) %in% lf_outl$lo_q,1,0)
 head(lfres)
+
+# no loci were outliers along the burn gradient with a q threshold of 0.05
+# 35 loci were outliers along the longitudinal gradient with a q threshold of 0.05
 
 table(lfres$bu_outl)
 table(lfres$lo_outl)
@@ -714,50 +572,31 @@ lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="bu_outl"):ncol(lfres)])
 lfres$never_outl<-rowSums(lfres[,8,drop = FALSE]) 
 head(lfres)
 
-
-
+# BD:
 ggplot(mapping = aes(x= 1:nrow(lfres), y = -log(lfres$pvalues_p,10))) +
   labs(y ="-log10(p value)",
        x ="locus") +
   geom_path() +
   theme_bw()
 
-
-
-dev.new("",8,4,dpi=100)
-
-
-plot(1:nrow(lfres),-log(lfres$burn_unburnt_p,10),type="n")
-points(1:nrow(lfres),-log(lfres$burn_unburnt_p,10),pch=20,col=as.factor(lfres$bu_q<0.05))
-
-plot(1:nrow(lfres),-log(lfres$long_p,10),type="n")
-points(1:nrow(lfres),-log(lfres$long_p,10),pch=20,col=as.factor(lfres$lo_q<0.05))
-
-
-
-
+# AS manhattan (30 Oct 2020):
+quartz("",8,4,dpi=100)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
-# plot(1:nrow(lfres),-log(lfres$Comp.1_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim=c(0,max(-log(lfres[,2:4],10))))
+plot(1:nrow(lfres),-log(lfres$long_p,10),type="n")
 plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim= c(0,max(-log(lfres[,2:4],10))))
 
-     
-points(rownames(lfres)[lfres$never_outl==0],-log(lfres$bu_outl[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
-points(rownames(lfres)[lfres$never_outl==0],-log(lfres$lo_outl[lfres$never_outl==0],10),pch=20,cex=1,col=rgb(0,0,0,0.08))
-
+points(1:nrow(lfres),-log(lfres$long_p,10),pch=20,col=as.factor(lfres$lo_q<0.05))
 
 points(rownames(lfres)[lfres$bu_q<alpha],-log(lfres$burn_unburnt_p[lfres$bu_q<alpha],10),pch=20,col="green")
 points(rownames(lfres)[lfres$lo_q<alpha],-log(lfres$long_p[lfres$lo_q<alpha],10),pch=20,col="blue")
-
-
-legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=10,col=c("green","blue"))
+legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=20,col=c("green","blue"))
 
 # Plot effect sizes:
 lfres$efs1<-efs.lfmm1
 lfres$efs2<-efs.lfmm2
-
 head(lfres)
 
-dev.new("",8,4,dpi=100)
+quartz("",8,4,dpi=100)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 plot(1:nrow(lfres),lfres$efs1,type="n",ylab="Effect size",las=1,xlab="Locus",ylim=c(min(c(lfres$efs1,lfres$efs2,lfres$efs3))+-0.5,max(c(lfres$efs1,lfres$efs2,lfres$efs3))+0.5))
 
@@ -771,85 +610,38 @@ abline(0,0,col="purple")
 
 # xofs<-rep(c(700,-700),length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1))]
 # yofs<-rep(c(0.04,-0.04),length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1))]
-# > max(abs(lfres$efs1))
-# [1] 0.3573889
-# > max(abs(lfres$efs2))
-# [1] 0.1197811
 
 text(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)+xofs,lfres$efs1[which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)]+yofs,labels=lfres$locus_p[which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)])
-# text(which(abs(lfres$efs2)>0.5 & lfres$lo_outl==1)+xofs,lfres$efs2[which(abs(lfres$efs2)>0.5 & lfres$lo_outl==1)]+yofs,labels=lfres$locus_p[which(abs(lfres$efs2)>0.5 & lfres$lo_outl==1)])
 
 ## QQ plot:
 qqplot(rexp(length(pvalues), rate = log(10)),   -log10(pvalues), xlab = "Expected quantile",  pch = 19, cex = .4)
 abline(0,1)
 
-# Make results summary
-# Old version was "lfr", saved in wksp but not defined in script
-# lfres however, has been updated:
-
-lfr_old<-lfres
-
-lfr_new<-lfres[,c("locus_p","bu_outl","lo_outl")]
-colnames(lfr_new)<-c("locus","lfmm_PC1","lfmm_PC2")
-head(lfr_new)
-
-# the loci detected with the new enviro data are DIFFERENT!
-head(lfr_old); dim(lfr_old)
-head(lfr_new); dim(lfr_new)
-check.rows(cbind(lfr_old,lfr_new))
-cbind(lfr_old,lfr_new)[which(lfr_new$lfmm_PC1==1),]
-cbind(lfr_old,lfr_new)[which(lfr_new$lfmm_PC2==1),]
-
-
-head(lfres)
-
-lfr<-lfr_new
-
-
-
 # Extra outlier loci plot from plot_freq_location()
 lfmm_loc.toanalyse<-as.character(lfres$locus_p[which(lfres$lo_outl==1)]) 
 length(lfmm_loc.toanalyse)
 head(lfmm_loc.toanalyse)
-# Put files here:	
+
+# Location for files:	
 out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
 out.dir
-
-
-
-
 
 head(lfmm_loc.toanalyse)
 ghead(gt_data)
 head(sdat,3)
 dir(out.dir)
 
+# close LFMM ----
 
-sdat$site_code <- sub("buf","X",sdat$site)
-site_data<-sdat
-plot_freq_location(lfmm_loc.toanalyse,gt_data,sdat,out.dir,35) # Error. 
-
-plot_freq_long(lfmm_loc.toanalyse,gt_data,sdat,out.dir,35) # Error, 2 indicate the parameters in the variables. 
-
-
-
-} # close lfmm
-
-#########################################
-####    	 COMBINE RESULTS:	  	 ####
-#########################################
-{
+#  COMBINE RESULTS:    	# ----
 
 head(bslinf)
 head(pca_loc)
-head(lfr) 
-
+head(lfr)
 
 dim(bslinf)
 dim(pca_loc)
 dim(lfr)
-
-
 
 outl_all<-merge(bslinf,pca_loc,by=c("lind","locus"),all.x=T,all.y=F)
 outl_all<-merge(outl_all,lfr,by=c("locus"),all.x=T,all.y=F)
@@ -866,8 +658,7 @@ table(rowSums(outl_all[,c("bs_outl","pca_outl","lfmm_outl")]))
 
 # write.table(outl_all,"outliers_all.txt",sep="\t",row.names=F,quote=F)
 
-
-} # close combine
+# close combine ----
 
 
 
