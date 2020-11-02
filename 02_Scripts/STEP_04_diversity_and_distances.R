@@ -167,6 +167,12 @@ dir(dat_dir)
 fst_all<-read.table(paste(dat_dir,"fst_and_distances_all_sites.txt",sep="/"),header=T)
 head(fst_all,2)
 
+# sites with the very large FSTs correspond to the structure clusters... they're probably different lines
+fst_all[,1:3]
+
+# hclust (in base R)
+# Consensus UPGMA dendrogram (see Acquadro et al. 2017)
+
 # mantel test:
 mant1<-mantel(formula = fst~geog_dist, data = fst_all)
 mant1
