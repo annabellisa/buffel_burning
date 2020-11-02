@@ -1,6 +1,6 @@
 # Things to check with Binyin
 # 30th Oct 2020
-# testing folder move
+
 # Hi Binyin, a couple of things to follow up on. 
 
 # PCAdapt questions:
