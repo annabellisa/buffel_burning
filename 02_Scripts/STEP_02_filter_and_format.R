@@ -179,7 +179,7 @@ write.csv(filtered_data, "dartseq_format_N_NF.txt", quote=F, row.names=F)
 data<-filtered_data
 
 # parameter flags for param file:
-headline<-"NonNeutral_DartSeq_Format"
+headline<-"Genepop_NonNeutral"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -197,9 +197,8 @@ ghead(data); dim(data)
 
 # format_genepop makes three files: the genepop file, the parameter file and the locus file:
 
-# Takes < 1.5 hr for full DPlan18
 # < 1 min for 2500 loci
-# 5 min for 53 x 18321
+# ~ 3 min for 93 x 20,000 loci
 format_genepop(data,headline)
 
 # close format genepop ----

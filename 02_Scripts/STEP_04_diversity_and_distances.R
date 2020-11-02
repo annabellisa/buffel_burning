@@ -6,94 +6,78 @@
 ### Diversity & distances
 ### Author: Annabel Smith & Binyin Di
 
-# Load workspace:
-load("../04_workspaces/STEP04_divdist_wksp")
-load("03_workspaces/divdist_wksp.RData")
-dir("03_workspaces")
+# AS Load workspace:
+load("03_workspaces/divdist_ALL.RData")
 
-
-# Neutral Dataset: 20159 (20161)
+# BD Neutral Dataset: 20159 (20161)
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NeturalWksp.RData")
 
 # Non Netural Dataset: 3892 (3894)
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NonNeturalWksp.RData")
 
 # load functions:
-dir()
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
-
 # Load libraries:
-install.packages(c("diveRsity","geosphere","hierfstat","adegenet"),repos=c("http://rstudio.org/_packages", "http://cran.rstudio.com",dependencies=TRUE))
+library(diveRsity);library(geosphere);library(hierfstat);library(adegenet); library(ecodist); library(AICcmodavg)
 
-library(diveRsity);library(geosphere);library(hierfstat);library(adegenet)
+#  GENIND object & site data:    	# ----
 
-# Update R
-# install.packages("installr", dependencies = TRUE)
-# library(installr)
-# updateR()
-# library(diveRsity) # require package "mnormt", not available in R 3.6, download under R 4.0. 
+# Load Genepop files
+gp_dir<-"00_Data/Genepop_Files"
+dir(gp_dir)
 
-
-
-#########################################
-##     GENIND object & site data:      ##
-#########################################
-{
-
-gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
-
-#NF
+# NF
 gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/NF_Format"
 
-#N-NF
+# N-NF
 gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/N_NF_Format"
-
-
 dir(gp_dir)
-setwd(gp_dir)
-getwd()
 
 # Make genind objects:
-# ~~
-genind_filt1<-read.genepop(file=paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"), ncode=2L,quiet=FALSE)
-genind_filt1
 
+# ~~ Neutral (~ 5 min for 20159 loci)
+genind_neutral<-read.genepop(file=paste(gp_dir,"Genepop_Neutral_filt2.gen",sep="/"), ncode=2L,quiet=FALSE)
+genind_neutral
 
-save.image("../04_workspaces/STEP04_divdist_wksp")
+# ~~ Non-Neutral (~ 10 seconds for 3892 loci)
+genind_nonneutral<-read.genepop(file=paste(gp_dir,"Genepop_NonNeutral.gen",sep="/"), ncode=2L,quiet=FALSE)
+genind_nonneutral
 
+# Load site data:
+sdat<-read.table(paste("00_data/Cenchrus_site_data.txt",sep=""),header=T)
+sdat<-sdat[sdat$sequenced==1,]
+sdat<-tidy.df(sdat)
+head(sdat); dim(sdat)
 
+# save.image("03_Workspaces/divdist_ALL.RData")
 
-} # close genind
+# close genind object ----
 
 # RESULT:
 # See parameter files in gp_dir for filters
-genind_filt1 # no OG or cultivars
+genind_neutral # all filters + neutral markers only (20159 loci)
+genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
 head(sdat,3); dim(sdat)
 
-
-
-
-#########################################
-##     Genetic & enviro distances:     ##
-#########################################
-{
-
+#  Genetic & enviro distances:    	# ----
+  
 ### -- *** CALCULATE FST:
 
-gp_dir<-"../ANALYSIS_RESULTS/Genepop_DATA_FILES"
+# Load Genepop files
+gp_dir<-"00_Data/Genepop_Files"
+dir(gp_dir)
 gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/"
 gp_dir<-"D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files"
 dir(gp_dir)
 
-# USE ALL POPULATIONS, including outgroups and cultivars (Genpop_Diversity_Original.gen); can subset this later, but we need all the FSTs:
-
 # Get FST:
-# <10min
+# ~ 2 min for Cenchrus 20159 loci
 print(Sys.time())
-fst<-diffCalc(paste(gp_dir,"Genpop_Diversity_Original.gen",sep="/"),fst=T,pairwise=T) # 4.5 mins
+fst<-diffCalc(paste(gp_dir,"Genepop_Neutral_filt2.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
-save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
+# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
 
 head(fst$pairwise$Fst)
 head(fst$pairwise$gst)
@@ -101,6 +85,7 @@ head(fst$pairwise$Gst)
 head(fst$pairwise$GGst)
 head(fst$pairwise$D[,1:5])
 
+# Convert square matrix to column matrix:
 fstn<-rownames(fst$pairwise$Fst)
 fstn<-substr(fstn,1,(nchar(fstn)-2))
 
@@ -115,117 +100,148 @@ fstn[ind_endund]<-substr(with_endund,1,nchar(with_endund)-1)
 fst_df<-data.frame(pop1=combn(fstn,2)[1,],pop2=combn(fstn,2)[2,],fst=fst$pairwise$Fst[lower.tri(fst$pairwise$Fst)],gst=fst$pairwise$gst[lower.tri(fst$pairwise$gst)],Gst=fst$pairwise$Gst[lower.tri(fst$pairwise$Gst)],GGst=fst$pairwise$GGst[lower.tri(fst$pairwise$GGst)],D=fst$pairwise$D[lower.tri(fst$pairwise$D)])
 head(fst_df)
 
-og_lines<-c(grep("OG",fst_df$pop1),grep("OG",fst_df$pop2))
-nonog_lines<-which(rownames(fst_df) %in% og_lines==F)
+mean(fst_df$fst)
+range(fst_df$fst,na.rm=T)
 
-mean(fst_df$fst[og_lines])
-mean(fst_df$fst[nonog_lines])
-
-range(fst_df$fst[og_lines],na.rm=T)
-range (fst_df$fst[nonog_lines],na.rm=T)
-
-# write.table(fst_df,"fst.txt",row.names=F,quote=F,sep="\t")
+# write.table(fst_df,"fst_all_sites.txt",row.names=F,quote=F,sep="\t")
 
 ### -- *** ADD GEOGRAPHIC DISTANCE:
 
-dat_dir<-"../00_Data"
+dat_dir<-"RESULTS/Diversity_and_Distance/FST"
 dat_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 dir(dat_dir)
 
 # load fst data:
-pwpop<-read.table(paste(dat_dir,"pw_pop_stats.txt",sep="/"),header=T)
+pwpop<-read.table(paste(dat_dir,"fst_all_sites.txt",sep="/"),header=T)
 head(pwpop)
 
-# Update site names:
-pwpop$pop1<-as.character(pwpop$pop1)
-pwpop$pop2<-as.character(pwpop$pop2)
-pwpop$pop1[which(pwpop$pop1=="VIR")]<-"VA"
-pwpop$pop2[which(pwpop$pop2=="VIR")]<-"VA"
-pwpop$pop1<-as.factor(pwpop$pop1)
-pwpop$pop2<-as.factor(pwpop$pop2)
-
 # site data:
+
+# add site code to match fst data:
+sdat$pop<-sdat$site
+sdat$pop<-paste("X",substr(x=sdat$pop,start = 4,stop = nchar(as.character(sdat$pop))), sep="")
 head(sdat,3)
 
 # Check all sites in data have site data:
-unique(c(levels(pwpop$pop1),levels(pwpop$pop2))) %in% sdat$site_code
+unique(c(levels(pwpop$pop1),levels(pwpop$pop2))) %in% sdat$pop
 
-sll<-sdat[,c("site_code","latitude","longitude")]
+sll<-sdat[,c("pop","lat","long")]
 head(sll)
-m1<-merge(pwpop,sll,by.x="pop1",by.y="site_code",all.x=T,all.y=F)
-colnames(m1)[colnames(m1) %in% c("latitude","longitude")]<-c("lat1","lon1")
-m1<-merge(m1,sll,by.x="pop2",by.y="site_code",all.x=T,all.y=F)
-colnames(m1)[colnames(m1) %in% c("latitude","longitude")]<-c("lat2","lon2")
+m1<-merge(pwpop,sll,by.x="pop1",by.y="pop",all.x=T,all.y=F)
+colnames(m1)[colnames(m1) %in% c("lat","long")]<-c("lat1","lon1")
+m1<-merge(m1,sll,by.x="pop2",by.y="pop",all.x=T,all.y=F)
+colnames(m1)[colnames(m1) %in% c("lat","long")]<-c("lat2","lon2")
 m1<-m1[order(m1$pop1,m1$pop2),]
 m1<-tidy.df(m1)
 m1<-m1[,c(2,1,3:length(m1))]
 m1$geog_dist<-distGeo(m1[,c("lon1","lat1")],m1[,c("lon2","lat2")])
+# lat dist is redundant here. For Cenchrus, long dist would make more sense, but that will be captured in pure geographic distance:
 m1$lat_dist<-abs(m1$lat1)-abs(m1$lat2)
-head(m1)
+head(m1,2)
 head(sdat,4)
 
-# Add native distance:
-ndis<-sdat[,c("site_code","native")]
+# Add same site distance:
+ndis<-sdat[,c("pop","block")]
+ndis$block<-paste("X",substr(x=sdat$block,start = 4,stop = nchar(as.character(sdat$block))), sep="")
 head(ndis)
-m2<-merge(m1,ndis,by.x="pop1",by.y="site_code",all.x=T,all.y=F)
-colnames(m2)[colnames(m2) %in% c("native")]<-c("nat1")
-m2<-merge(m2,ndis,by.x="pop2",by.y="site_code",all.x=T,all.y=F)
-colnames(m2)[colnames(m2) %in% c("native")]<-c("nat2")
+m2<-merge(m1,ndis,by.x="pop1",by.y="pop",all.x=T,all.y=F)
+colnames(m2)[colnames(m2) %in% c("block")]<-c("block1")
+m2<-merge(m2,ndis,by.x="pop2",by.y="pop",all.x=T,all.y=F)
+colnames(m2)[colnames(m2) %in% c("block")]<-c("block2")
 m2<-m2[order(m2$pop1,m2$pop2),]
 m2<-tidy.df(m2)
 m2<-m2[,c(2,1,3:length(m2))]
-head(m2)
+head(m2,3)
 
-m2$nat_dist<-m2$nat1==m2$nat2
-m2$nat_dist<-ifelse(m2$nat_dist==T,0,1)
+m2$same_block<-m2$block1==m2$block2
+m2$same_block<-ifelse(m2$same_block==T,1,0)
 check.rows(m2)
 
 # write.table(m2,"m2.txt",row.names=F,quote=F,sep="\t")
+# save.image("03_Workspaces/divdist_ALL.RData")
 
-} # close distances
+# Analyse FST:
 
-#########################################
-##  	  Genetic diversity:  	       ##
-#########################################
-{
+dir(dat_dir)
+# load fst data:
+fst_all<-read.table(paste(dat_dir,"fst_and_distances_all_sites.txt",sep="/"),header=T)
+head(fst_all,2)
+
+# mantel test:
+mant1<-mantel(formula = fst~geog_dist, data = fst_all)
+mant1
+mant2<-mantel(formula = fst~geog_dist+same_block, data = fst_all)
+mant2
+
+# plot FST:
+quartz("",6,4,dpi=100)
+par(mar=c(4,4,2,1), mgp=c(2.5,1,0))
+plot(fst_all$geog_dist, fst_all$fst, pch=20, xlab="Geographic distance (m)", ylab="FST", las=1)
+# pval2 = one-tailed p-value (null hypothesis: r >= 0).
+mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1[1],2),"; p = ",round(mant1[3],2), sep=""), adj=0)
+
+# close distances ----
+
+#  Calculate genetic diversity:    	# ----
 
 ## -- ** POPULATION LEVEL GENETIC DIVERSITY:
 
-# GenFilter1
+genind_neutral # all filters + neutral markers only (20159 loci)
+genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
+head(sdat,3); dim(sdat)
 
-# Calculate genetic diversity per population in hierfstat (conservative dataset):
-gendiv_filt1 <- basic.stats(genind_filt1, diploid = TRUE, digits = 2)
-str(gendiv_filt1) # a few mins
-head(gendiv_filt1$Ho)
-tail(gendiv_filt1$Ho)
-# save.image("../04_workspaces/STEP04_divdist_wksp")
+# Calculate genetic diversity per population in hierfstat:
 
-gd_filt1<-data.frame(site=names(apply(gendiv_filt1$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_filt1$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_filt1$Ho,2,mean,na.rm=T),He=apply(gendiv_filt1$Hs,2,mean,na.rm=T),Fis=apply(gendiv_filt1$Fis,2,mean,na.rm=T))
-gd_filt1<-tidy.df(gd_filt1)
-head(gd_filt1); dim(gd_filt1)
+# neutral:
+gendiv_neutral <- basic.stats(genind_neutral, diploid = TRUE, digits = 2)
+str(gendiv_neutral) # 1 min
+head(gendiv_neutral$Ho)
+tail(gendiv_neutral$Ho)
+# save.image("03_workspaces/divdist_ALL.RData")
 
-gd_filt1$site<-substr(gd_filt1$site,1,nchar(as.character(gd_filt1$site))-1)
+gd_neutral<-data.frame(site=names(apply(gendiv_neutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_neutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_neutral$Ho,2,mean,na.rm=T),He=apply(gendiv_neutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_neutral$Fis,2,mean,na.rm=T))
+gd_neutral<-tidy.df(gd_neutral)
 
-gd_filt1$site[grep("_",substr(gd_filt1$site,nchar(gd_filt1$site),nchar(gd_filt1$site)))]<-substr(gd_filt1$site[grep("_",substr(gd_filt1$site,nchar(gd_filt1$site),nchar(gd_filt1$site)))],1,nchar(gd_filt1$site[grep("_",substr(gd_filt1$site,nchar(gd_filt1$site),nchar(gd_filt1$site)))])-1)
+gd_neutral$site<-substr(gd_neutral$site,1,nchar(as.character(gd_neutral$site))-3)
+head(gd_neutral); dim(gd_neutral)
 
-# write.table(gd_filt1,"gd_filt1.txt",sep="\t",row.names=F,quote=F)
+# non-neutral
+gendiv_nonneutral <- basic.stats(genind_nonneutral, diploid = TRUE, digits = 2)
+
+str(gendiv_nonneutral) # a few seconds
+head(gendiv_nonneutral$Ho)
+tail(gendiv_nonneutral$Ho)
+
+gd_nonneutral<-data.frame(site=names(apply(gendiv_nonneutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_nonneutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_nonneutral$Ho,2,mean,na.rm=T),He=apply(gendiv_nonneutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_nonneutral$Fis,2,mean,na.rm=T))
+gd_nonneutral<-tidy.df(gd_nonneutral)
+head(gd_nonneutral); dim(gd_nonneutral)
+
+gd_nonneutral$site<-substr(gd_nonneutral$site,1,nchar(as.character(gd_nonneutral$site))-3)
+head(gd_nonneutral)
+
+# save.image("03_workspaces/divdist_ALL.RData")
 
 ## -- ** ALLELIC RICHNESS:
 
 head(sdat,3); dim(sdat)
-genind_filt1
-
-library("hierfstat")
+genind_neutral
+genind_nonneutral
 
 print(Sys.time())
-ar_default_rd<- allelic.richness(genind_filt1, diploid = TRUE) # 2 mins
+ar_neutral<- allelic.richness(genind_neutral, diploid = TRUE) # 1 min
 print(Sys.time())
 
-str(ar_default_rd)
-head(ar_default_rd$Ar,2)
-ar_default_rd$Ar[,1]
+print(Sys.time())
+ar_nonneutral<- allelic.richness(genind_nonneutral, diploid = TRUE) # a few seconds
+print(Sys.time())
 
-save.image("../03_Workspaces/divdist_wksp.RData")
+str(ar_neutral)
+head(ar_neutral$Ar,2)
+
+str(ar_nonneutral)
+head(ar_nonneutral$Ar,2)
+
+# save.image("03_workspaces/divdist_ALL.RData")
 
 # NF
 save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_NF.RData")
@@ -233,65 +249,62 @@ save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Bin
 # N-NF
 save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_N_NF.RData")
 
-
-
-load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_NF.RData")
-
-
-setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/NF_Format")
-setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/N_NF_Format")
-
-# setwd("RESULTS/NF_Format")
-
-# ar_dat<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/joint_dataframe.txt", header = TRUE)
-# head(ar_dat)
-
-
 # Summarise
 
 # Netural Theory of Molecular Evolution
 
 # Neutral:
-head(ar_default_rd$Ar,2)
-ar_default_rd$min.all
+head(ar_neutral$Ar,2)
+ar_neutral$min.all
+ar_neutral_res<-data.frame(site=levels(genind_neutral@pop),ar_neutral=apply(ar_neutral$Ar,2,mean,na.rm=T))
+head(ar_neutral_res); dim(ar_neutral_res)
 
-ar_res_rd<-data.frame(
-site=levels(genind_filt1@pop),
-ar_default_rd=apply(ar_default_rd$Ar,2,mean,na.rm=T))
-head(ar_res_rd); dim(ar_res_rd)
+# Non-Neutral:
+head(ar_nonneutral$Ar,2)
+ar_nonneutral$min.all
+ar_nonneutral_res<-data.frame(site=levels(genind_nonneutral@pop),ar_nonneutral=apply(ar_nonneutral$Ar,2,mean,na.rm=T))
+head(ar_nonneutral_res); dim(ar_nonneutral_res)
 
 # combine allelic richness into table with other genetic diversity data:
-head(gd_filt1); dim(gd_filt1)
-head(ar_res_rd); dim(ar_res_rd)
-# fix up the names
-gd_filt1$site_code<-paste(gd_filt1$site, gd_filt1$max_n, sep = "")
-library(tidyverse)
-gd_filt1 %>% full_join(ar_res_rd, by = c("site_code" = "site"))
-# Jump to Binding
 
+# fix up the names on AR data frames:
+ar_neutral_res$site<-substr(ar_neutral_res$site,1,nchar(as.character(ar_neutral_res$site))-3)
+head(ar_neutral_res)
+ar_nonneutral_res$site<-substr(ar_nonneutral_res$site,1,nchar(as.character(ar_nonneutral_res$site))-3)
+head(ar_nonneutral_res)
 
+# check:
+gd_neutral$site %in% ar_neutral_res$site
+ar_neutral_res$site %in% gd_neutral$site
 
+gd_nonneutral$site %in% ar_nonneutral_res$site
+ar_nonneutral_res$site %in% gd_nonneutral$site
 
+# merge
+head(gd_neutral,3); dim(gd_neutral)
+head(ar_neutral_res,3); dim(ar_neutral_res)
+gd_neutral<-merge(gd_neutral, ar_neutral_res, by="site", all.x=T, all.y=F)
 
-# Non-neutral
-# ar_default_adapt<-ar_default_rd
+head(gd_nonneutral,3); dim(gd_nonneutral)
+head(ar_nonneutral_res,3); dim(ar_nonneutral_res)
+gd_nonneutral<-merge(gd_nonneutral, ar_nonneutral_res, by="site", all.x=T, all.y=F)
 
+# combine neutral and non-neutral:
 
-head(ar_default_adapt$Ar,2)
-ar_default_adapt$min.all
+colnames(gd_neutral)[colnames(gd_neutral) %in% c("Ho","He","Fis")]<-paste(colnames(gd_neutral)[colnames(gd_neutral) %in% c("Ho","He","Fis")],"_neutral",sep="")
+colnames(gd_nonneutral)[colnames(gd_nonneutral) %in% c("Ho","He","Fis")]<-paste(colnames(gd_nonneutral)[colnames(gd_nonneutral) %in% c("Ho","He","Fis")],"_nonneutral",sep="")
 
-ar_res_adapt<-data.frame(
-site=levels(genind_filt1@pop),
-ar_default_adapt=apply(ar_default_adapt$Ar,2,mean,na.rm=T))
+head(gd_neutral,3); dim(gd_neutral)
+head(gd_nonneutral,3); dim(gd_nonneutral)
 
-test_df<-cbind(ar_res_adapt,ar_adapt=ar_res_adapt[,2])
-head(test_df)
-plot(test_df$ar_default_adapt, test_df$ar_adapt)
+gd_all<-gd_neutral
+gd_all$max_n<-NULL
+gd_all<-merge(gd_all,gd_nonneutral, by="site", all.x=T, all.y=F)
+gd_all<-gd_all[,c(c(which(colnames(gd_all) %in% c("site","max_n"))),c(which(!colnames(gd_all) %in% c("site","max_n"))))]
+head(gd_all,3); dim(gd_all)
 
-# write.table(ar_res_adapt,"ar_res_adapt.txt",sep="\t",row.names=F,quote=F)
-
-save.image("../04_workspaces/STEP04_divdist_wksp")
-
+# write.table(gd_all, "gd_all.txt", row.names=F, quote=F, sep="\t")
+# save.image("03_workspaces/divdist_ALL.RData")
 
 # Binding
 # dplyr from tidyverse to bind columns 
@@ -306,12 +319,60 @@ ar<-data.frame(ar= ar_res_rd$ar_default_rd)
 joint_data_frame<-bind_cols(gd_filt1,sdatcoord, ar)
 # write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,quote=F)
 
-
 # NonNetural
 ar<-data.frame(ar = ar_res_adapt$ar_default_adapt)
 joint_data_frame<-bind_cols(gd_filt1,sdatcoord,ar)
 # write.table(joint_data_frame,"joint_nonnetural_dataset.txt",sep="\t",row.names=F,quote=F)
 
+# close calc genetic diversity ----
+
+#  ANALYSE Genetic diversity:    	# ----
+
+gd_all<-read.table("RESULTS/Diversity_and_Distance/Genetic_Diversity/Genetic_Diversity_ALL.txt", header=T)
+head(gd_all,3)
+
+# simplify site data
+sdt<-sdat[,c("block","site","pop","burn_unburnt","no_samples","lat","long")]
+sdt$site<-paste("X",substr(sdt$site, 4, nchar(as.character(sdt$site))),sep="")
+
+# merge with genetic diversity data:
+sdt$site %in% gd_all$site
+gd_all$site %in% sdt$site
+gd_all<-merge(gd_all, sdt, by="site", all.x=T, all.y=F)
+
+# add second treatment variable:
+gd_all$treatment<-gd_all$burn_unburnt
+gd_all$burn_unburnt<-NULL
+gd_all$trt<-as.character(gd_all$treatment)
+gd_all$trt[grep("b",gd_all$trt)]<-"b1"
+gd_all$trt[grep("X11",gd_all$site)]<-"b2"
+gd_all$trt<-factor(gd_all$trt, levels=c("u","b1","b2"))
+head(gd_all,3); dim(gd_all)
+
+# neutral models:
+mod1.a<-lm(ar_neutral~1, data=gd_all)
+mod2.a<-lm(ar_neutral~trt, data=gd_all)
+mod3.a<-lm(ar_neutral~trt+long, data=gd_all)
+mod4.a<-lm(ar_neutral~trt*long, data=gd_all)
+AICc(mod1.a); AICc(mod2.a); AICc(mod3.a); AICc(mod4.a)
+summary(mod2.a); anova(mod2.a)
+
+# non-neutral models:
+mod1.b<-lm(ar_nonneutral~1, data=gd_all)
+mod2.b<-lm(ar_nonneutral~trt, data=gd_all)
+mod3.b<-lm(ar_nonneutral~trt+long, data=gd_all)
+mod4.b<-lm(ar_nonneutral~trt*long, data=gd_all)
+AICc(mod1.b); AICc(mod2.b); AICc(mod3.b); AICc(mod4.b)
+summary(mod2.b); anova(mod2.b)
+
+
+# add genetic clusters from STRUCTURE analysis (this is only useful for the individual level analysis:
+gclust<-read.table("00_Data/K_genetic_clusters.txt", header=T)
+gclust$site %in% sdt$site
+head(gclust,3); dim(gclust)
+
+
+# BD:
 
 joint_data_frame$trt<-as.character(joint_data_frame$treatment)
 
@@ -324,7 +385,6 @@ levels(joint_data_frame$trt)
 mod1<-lm(ar~treatment , data = joint_data_frame)
 summary(mod1)
 anova(mod1)
-
 
 mod1.1<-lm(ar~trt, data = joint_data_frame)
 summary(mod1.1)
@@ -385,162 +445,8 @@ ggplot(data = new.dataframe, mapping = aes(x = trt,
   ylab("estimated allelic richness")+
   geom_point()+
   geom_errorbar(aes(ymin = lci, ymax = uci, position = "dodge"), width = 0.2)
-  
-  
-  
-  #stat_summary(geom = "bar", fun.y = fit, position = "dodge") +
-  #stat_summary(geom = "errorbar", fun.data = se, position = "dodge")
 
-
-
-# calculating std errors
-# install.packages("plotrix") # Install plotrix R package
-# library("plotrix")  
-# std.error()
-
-
-
-## -- ** Admixture Diversity Score:
-
-### ---- level of admixture per population
-
-# Working from equations in Harismendy et al. 2019, Journal of the American Medical Informatics Association, 26(5), 457–46
-
-# Structure summary objects loaded from: Supplement_03_plot_structure.R
-
-# 491 individuals including cultivars and outgroups
-head(all_dat); dim(all_dat)
-head(site_assig); dim(all_dat)
-
-# Associated site data (61 pops including cultivars and outgroups):
-head(sdat,2); dim(sdat)
-head(sdat2); dim(sdat)
-
-# The same data but with outgroups and cultivars removed (53 pops, 454 individuals):
-head(sdpie,2); dim(sdpie)
-head(cluster.data); dim(cluster.data)
-
-# Aggregated data to give the assignment proportion for each population (53 pops):
-head(r1); dim(r1)
-head(agg_dat); dim(agg_dat)
-
-# Use individual level data for the analysis (6 clusters with assignment probabilities for 454 individuals):
-ind6<-cluster.data[,grep("assig",colnames(cluster.data))]
-head(ind6); dim(ind6)
-
-# The Diversity Score from Harismendy et al. We don't need eqn 1 (the cumulative admixture fraction), because ours already sum to 1. 
-
-# The diversity score is the same as the shannon diversity index but with a scaling factor to account for the number of clusters (Hmax). That is, it makes the diversity score relative to complete evenness. 
-
-DS<-function(x,K) {
-	Hmax<-K*((1/K)*log(1/K))
-	(-sum(x*log(x)))/-Hmax
-	}
-
-# SET K:
-K<-6
-
-# Calculate admixture diversity for all individuals:
-ds_div<-apply(ind6, 1, DS, K=6)
-range(ds_div)
-
-ind6_dv<-data.frame(indiv=cluster.data$indiv, admix_div=ds_div)
-ind_site<-cluster.data[,c("site_code","indiv","native","region","country","latitude","longitude")]
-ind6_dv<-merge(ind6_dv, ind_site, by="indiv", all.x=T, all.y=F)
-head(ind6_dv); dim(ind6_dv)
-
-# Summarise site-level admixture diversity:
-addiv_site<-aggregate(admix_div~site_code,FUN=mean,data=ind6_dv)
-ex_dat<-ind6_dv[,c("site_code","native","region","country","latitude","longitude")]
-ex_dat<-ex_dat[-which(duplicated(ex_dat$site_code)),]
-ex_dat<-tidy.df(ex_dat)
-head(ex_dat); dim(ex_dat)
-addiv_site<-merge(addiv_site, ex_dat, by="site_code", all.x=T, all.y=F)
-head(addiv_site); dim(addiv_site)
-
-# Allelic richness:
-ar_dat<-read.table(paste("../01_data/gen_div.txt",sep=""),header=T)
-
-# Check all are true:
-addiv_site$site_code %in% ar_dat$site
-
-# Add admixture diversity
-ar_dat<-merge(ar_dat, addiv_site, by.x="site", by.y="site_code", all.x=T, all.y=F)
-head(ar_dat); dim(ar_dat)
-
-# write.table(ar_dat, file="ardat.txt", quote=F, row.names=F, sep="\t")
-
-# Is there a difference in admixture between the native and non-native ranges?
-library(lmerTest)
-library(lme4)
-library(AICcmodavg)
-
-head(ind6_dv); dim(ind6_dv)
-
-dv_ind<-lmer(admix_div~native+(1|site_code), data=ind6_dv)
-summary(dv_ind)
-admix_df<-predictSE(dv_ind, newdata=data.frame(native=c("native","non_native")), se.fit=T)
-admix_pred<-data.frame(native=c("native","non_native"),fit=admix_df$fit, se=admix_df$se.fit)
-admix_pred$lci<-admix_pred$fit-(1.96*admix_pred$se)
-admix_pred$uci<-admix_pred$fit+(1.96*admix_pred$se)
-
-### PLOT for SI:
-{
-
-quartz("",4,4)
-par(mfrow=c(2,2),mar=c(4,4,1,1), mgp=c(2.5,0.8,0))
-
-plot(1:2,admix_pred$fit, xlim=c(0.5,2.5), ylim=c(min(admix_pred$lci),max(admix_pred$uci)), pch=20, xaxt="n", xlab="", ylab="admixture diversity", las=1,cex.axis=0.85,cex.lab=0.85)
-arrows(1:2, admix_pred$lci, 1:2, admix_pred$uci, length=0.02, code=3, angle=90)
-axis(side=1, at=c(1,2), labels=c("native","non-native"), cex.axis=0.85)
-mtext(bquote("range "~italic("p = ")~.(round(summary(dv_ind)$coefficients[2,5],3))), side=3, line=0,cex=0.7, adj=0)
-mtext("(a)",side=3, line=0, adj=0, at=-0.6, cex=0.8)
-
-blankplot()
-
-plot(ar_dat$ar[ar_dat$native=="native"], ar_dat$admix_div[ar_dat$native=="native"], pch=20, col="black", cex.axis=0.8, las=1,ylab="admixture diversity",xlab="", cex.lab=0.85)
-points(ar_dat$ar[ar_dat$native=="non_native"], ar_dat$admix_div[ar_dat$native=="non_native"], pch=20, col="red", cex.axis=0.8, las=1,cex.lab=0.8)
-title(xlab="allelic richness (neutral)", cex.lab=0.85, mgp=c(2,1,0))
-mtext("(b)",side=3, line=0, adj=0, at=1.119, cex=0.8)
-
-# Is there are r.ship between ar and admixture diversity?
-ar_admix<-lm(admix_div~ar*native,data=ar_dat)
-mtext(bquote("range x ar"~italic("p = ")~.(round(summary(ar_admix)$coefficients[4,4],3))), side=3, line=0,cex=0.7, adj=0)
-
-plot(ar_dat$ar_adapt[ar_dat$native=="native"], ar_dat$admix_div[ar_dat$native=="native"], pch=20, col="black", cex.axis=0.8, las=1,ylab="admixture diversity",xlab="", cex.lab=0.8)
-points(ar_dat$ar_adapt[ar_dat$native=="non_native"], ar_dat$admix_div[ar_dat$native=="non_native"], pch=20, col="red", cex.axis=0.8, las=1,cex.lab=0.8)
-title(xlab="allelic richness (adaptive)", cex.lab=0.85, mgp=c(2,1,0))
-mtext("(c)",side=3, line=0, adj=0, at=1.121, cex=0.8)
-
-# Is there are r.ship between ar_adapt and admixture diversity?
-adapt_admix<-lm(admix_div~ar_adapt*native,data=ar_dat)
-mtext(bquote("range x ar"~italic("p = ")~.(round(summary(adapt_admix)$coefficients[4,4],3))), side=3, line=0,cex=0.7, adj=0)
-
-} # close plot
-
-} # close genetic diversity
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# close analyse genetic diversity ----
 
 
 
