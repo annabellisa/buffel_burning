@@ -186,6 +186,33 @@ plot(fst_all$geog_dist, fst_all$fst, pch=20, xlab="Geographic distance (m)", yla
 # pval2 = one-tailed p-value (null hypothesis: r >= 0).
 mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1[1],2),"; p = ",round(mant1[3],2), sep=""), adj=0)
 
+# individual genetic distance:
+
+library(ape); library(pegas)
+genind_neutral
+
+# Euclidean distance from adegenet
+# See Shirk et al. 2017 - Euc dist performs as well as other distance measures:
+neu_euc<-dist(genind_neutral, method="euclidean")
+head(neu_euc)
+neu_euc[lower.tri(neu_euc)]
+
+# Genetic distance from ape:
+genloci_neutral<-genind2loci(genind_neutral)
+gln<-as.data.frame(genloci_neutral)
+ghead(gln)
+neu_gene<-dist.gene(gln[2:length(gln)], pairwise.deletion = T, method="pairwise")
+neu_gene
+
+# compare two methods:
+# they're completely different!!
+# and they're completely different in different ways, depending on whether pairwise deletion is used in the pairwise method or not
+quartz("",6,6,dpi=100)
+par(mar=c(4,4,2,1), mgp=c(2.5,1,0))
+plot(neu_euc, neu_gene)
+
+# save.image("03_Workspaces/divdist_ALL.RData")
+
 # close distances ----
 
 #  Calculate genetic diversity:    	# ----
