@@ -15,11 +15,14 @@ load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Wi
 # Non Netural Dataset: 3892 (3894)
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NonNeturalWksp.RData")
 
+install.packages("AICcmodavg",dependencies = T)
+
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 # Load libraries:
-library(diveRsity);library(geosphere);library(hierfstat);library(adegenet); library(ecodist); library(AICcmodavg)
+library(diveRsity);library(hierfstat);library(adegenet); library(ecodist); library(AICcmodavg)
+# library(geosphere)
 
 #  GENIND object & site data:    	# ----
 
@@ -170,9 +173,6 @@ head(fst_all,2)
 # sites with the very large FSTs correspond to the structure clusters... they're probably different lines
 fst_all[,1:3]
 
-# hclust (in base R)
-# Consensus UPGMA dendrogram (see Acquadro et al. 2017)
-
 # mantel test:
 mant1<-mantel(formula = fst~geog_dist, data = fst_all)
 mant1
@@ -186,32 +186,96 @@ plot(fst_all$geog_dist, fst_all$fst, pch=20, xlab="Geographic distance (m)", yla
 # pval2 = one-tailed p-value (null hypothesis: r >= 0).
 mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1[1],2),"; p = ",round(mant1[3],2), sep=""), adj=0)
 
-# individual genetic distance:
+### -- *** INDIVIDUAL GENETIC DISTANCE:
 
-library(ape); library(pegas)
+# hclust (in base R)
+# Consensus UPGMA dendrogram (see Acquadro et al. 2017)
+# https://popgen.nescent.org/2015-05-18-Dist-SNP.html
+# https://adegenet.r-forge.r-project.org/files/Glasgow2015/practical-introphylo.1.0.pdf
+# https://dyerlab.github.io/applied_population_genetics/genetic-distances.html
+
+library(ape); library(pegas); library(vegan)
 genind_neutral
 
-# Euclidean distance from adegenet
+# Euclidean distance (from adegenet, works on genind object)
 # See Shirk et al. 2017 - Euc dist performs as well as other distance measures:
 neu_euc<-dist(genind_neutral, method="euclidean")
-head(neu_euc)
-neu_euc[lower.tri(neu_euc)]
+neu_euc_names<-combn(attr(neu_euc, "Labels"),2)
+neuc_df<-data.frame(ind1=neu_euc_names[1,], ind2=neu_euc_names[2,], dist_euc=neu_euc[lower.tri(neu_euc)])
+head(neuc_df)
 
-# Genetic distance from ape:
+# check (it's wrong):
+as.matrix(neu_euc)[1:5,1:5]
+
+
+
+# Bray-Curtis (from vegan, works on data.frame):
+
+ddir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/00_Data/Filtered_DartSeq_format"
+dir(ddir)
+
+ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
+ghead(ddat)
+neu_bray<-vegdist(x = ddat[,3:length(ddat)], method="bray",na.rm=T)
+neu_bray
+
+
+
+# Genetic distance (from ape, I don't trust this one - it's not related to the other distance measures):
 genloci_neutral<-genind2loci(genind_neutral)
 gln<-as.data.frame(genloci_neutral)
 ghead(gln)
 neu_gene<-dist.gene(gln[2:length(gln)], pairwise.deletion = T, method="pairwise")
 neu_gene
 
-# compare two methods:
-# they're completely different!!
-# and they're completely different in different ways, depending on whether pairwise deletion is used in the pairwise method or not
+# SNPRelate (uses plink format - can use STRUCTURE files - Cenchrus_filt2)
+
+# http://corearray.sourceforge.net/tutorials/SNPRelate/
+
+library("SNPRelate")
+str.dir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt2"
+dir(str.dir)
+
+bed.fn <- paste(str.dir,"Cenchrus_filt2.bed",sep="/")
+fam.fn <- paste(str.dir,"Cenchrus_filt2.fam",sep="/")
+bim.fn <- paste(str.dir,"Cenchrus_filt2.bim",sep="/")
+
+snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "Cenchrus_filt2.gds")
+snpgdsSummary(paste(ddir,"Cenchrus_filt2.gds",sep="/"))
+
+# Make gds format:
+genofile <- snpgdsOpen(paste(ddir,"Cenchrus_filt2.gds",sep="/"))
+summary(genofile)
+
+# Estimating IBD Using PLINK method of moments (MoM)
+ibd <- snpgdsIBDMoM(genofile, maf=0.05, missing.rate=0.05, num.thread=2)
+ibd.coeff <- snpgdsIBDSelection(ibd)
+head(ibd.coeff)
+
+# Estimating IBD Using Maximum Likelihood Estimation (MLE)
+set.seed(100)
+snp.id <- sample(ibd$snp.id, 50)  # random 1500 SNPs
+ibd_mle <- snpgdsIBDMLE(genofile, maf=0.05, missing.rate=0.05, num.thread=2)
+ibd_mle.coeff <- snpgdsIBDSelection(ibd_mle)
+head(ibd_mle.coeff); dim(ibd_mle.coeff)
+
+# plot(ibd.coeff$kinship,ibd_mle.coeff$kinship)
+# cbind(ibd.coeff$kinship,ibd_mle.coeff$kinship)
+
+# compare methods:
+
 quartz("",6,6,dpi=100)
-par(mar=c(4,4,2,1), mgp=c(2.5,1,0))
-plot(neu_euc, neu_gene)
+par(mfrow=c(2,2),mar=c(4,4,2,1), mgp=c(2.5,1,0))
+plot(neu_euc, neu_bray, pch=20)
+plot(neu_euc, ibd_mle.coeff$kinship, pch=20)
+plot(neu_bray, ibd_mle.coeff$kinship, pch=20)
+
+
+
+
 
 # save.image("03_Workspaces/divdist_ALL.RData")
+
 
 # close distances ----
 

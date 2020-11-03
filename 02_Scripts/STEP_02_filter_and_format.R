@@ -167,7 +167,8 @@ ghead(filtered_data); dim(filtered_data)
 ####   	 	 FORMAT DARTSEQ:    	 ####
 
 # For analyses that require DartSeq format (e.g. our genetic diversity analysis), the data can be written directly, without any further processing:
-write.csv(filtered_data, "dartseq_format_N_NF.txt", quote=F, row.names=F)
+write.csv(filtered_data, "dartseq_filt2.txt", quote=F, row.names=F)
+write.table(filtered_data, "dartseq_filt2.txt", quote=F, row.names=F, sep="\t")
 
 ####   	 	 FORMAT GENEPOP:    	 ####
 
