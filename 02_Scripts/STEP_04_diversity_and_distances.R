@@ -15,8 +15,6 @@ load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Wi
 # Non Netural Dataset: 3892 (3894)
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NonNeturalWksp.RData")
 
-install.packages("AICcmodavg",dependencies = T)
-
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
@@ -194,7 +192,6 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
 # https://adegenet.r-forge.r-project.org/files/Glasgow2015/practical-introphylo.1.0.pdf
 # https://dyerlab.github.io/applied_population_genetics/genetic-distances.html
 
-library(ape); library(pegas); library(vegan)
 genind_neutral
 
 # Euclidean distance (from adegenet, works on genind object)
