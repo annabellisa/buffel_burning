@@ -186,61 +186,58 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
 
 ### -- *** INDIVIDUAL GENETIC DISTANCE:
 
-# hclust (in base R)
-# Consensus UPGMA dendrogram (see Acquadro et al. 2017)
-# https://popgen.nescent.org/2015-05-18-Dist-SNP.html
-# https://adegenet.r-forge.r-project.org/files/Glasgow2015/practical-introphylo.1.0.pdf
-# https://dyerlab.github.io/applied_population_genetics/genetic-distances.html
 
 genind_neutral
 
 # Euclidean distance (from adegenet, works on genind object)
 # See Shirk et al. 2017 - Euc dist performs as well as other distance measures:
-neu_euc<-dist(genind_neutral, method="euclidean")
-neu_euc_names<-combn(attr(neu_euc, "Labels"),2)
+neu_euc_dist<-dist(genind_neutral, method="euclidean")
+# get names BEFORE as.matrix:
+neu_euc_names<-combn(attr(neu_euc_dist, "Labels"),2)
+neu_euc<-as.matrix(neu_euc_dist)
 neuc_df<-data.frame(ind1=neu_euc_names[1,], ind2=neu_euc_names[2,], dist_euc=neu_euc[lower.tri(neu_euc)])
+
+# check:
 head(neuc_df)
-
-# check (it's wrong):
-as.matrix(neu_euc)[1:5,1:5]
-
-
+neu_euc[1:5,1:5]
+neu_euc[90:93,1:5]
+neuc_df[90:93,]
 
 # Bray-Curtis (from vegan, works on data.frame):
 
 ddir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/00_Data/Filtered_DartSeq_format"
-dir(ddir)
-
 ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
 ghead(ddat)
 neu_bray<-vegdist(x = ddat[,3:length(ddat)], method="bray",na.rm=T)
-neu_bray
-
-
+neuc_df$dist_bray<-neu_bray
+head(neuc_df); dim(neuc_df)
+# these are very highy correlated:
+# plot(neuc_df$dist_euc, neuc_df$dist_bray)
+# cor.test(neuc_df$dist_euc, neuc_df$dist_bray)
 
 # Genetic distance (from ape, I don't trust this one - it's not related to the other distance measures):
-genloci_neutral<-genind2loci(genind_neutral)
-gln<-as.data.frame(genloci_neutral)
-ghead(gln)
-neu_gene<-dist.gene(gln[2:length(gln)], pairwise.deletion = T, method="pairwise")
-neu_gene
+# genloci_neutral<-genind2loci(genind_neutral)
+# gln<-as.data.frame(genloci_neutral)
+# ghead(gln)
+# neu_gene<-dist.gene(gln[2:length(gln)], pairwise.deletion = T, method="pairwise")
 
 # SNPRelate (uses plink format - can use STRUCTURE files - Cenchrus_filt2)
-
 # http://corearray.sourceforge.net/tutorials/SNPRelate/
 
 library("SNPRelate")
 str.dir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt2"
 dir(str.dir)
 
+# Read structure files:
 bed.fn <- paste(str.dir,"Cenchrus_filt2.bed",sep="/")
 fam.fn <- paste(str.dir,"Cenchrus_filt2.fam",sep="/")
 bim.fn <- paste(str.dir,"Cenchrus_filt2.bim",sep="/")
 
+# Make gds format
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "Cenchrus_filt2.gds")
 snpgdsSummary(paste(ddir,"Cenchrus_filt2.gds",sep="/"))
 
-# Make gds format:
+# Import gds format :
 genofile <- snpgdsOpen(paste(ddir,"Cenchrus_filt2.gds",sep="/"))
 summary(genofile)
 
@@ -257,21 +254,114 @@ ibd_mle.coeff <- snpgdsIBDSelection(ibd_mle)
 head(ibd_mle.coeff); dim(ibd_mle.coeff)
 
 # plot(ibd.coeff$kinship,ibd_mle.coeff$kinship)
-# cbind(ibd.coeff$kinship,ibd_mle.coeff$kinship)
+
+# save.image("03_Workspaces/divdist_ALL.RData")
+
+# combine:
+neuc_df$kinship_mle<-ibd_mle.coeff$kinship
+neuc_df$kinship_mom<-ibd.coeff$kinship
+head(neuc_df)
+
+table(neuc_df$kinship_mle>0.48)
+table(neuc_df$kinship_mom>0.45)
 
 # compare methods:
 
 quartz("",6,6,dpi=100)
 par(mfrow=c(2,2),mar=c(4,4,2,1), mgp=c(2.5,1,0))
-plot(neu_euc, neu_bray, pch=20)
-plot(neu_euc, ibd_mle.coeff$kinship, pch=20)
-plot(neu_bray, ibd_mle.coeff$kinship, pch=20)
-
-
-
-
+plot(neuc_df$dist_euc, neuc_df$dist_bray, pch=20, xlab="Euclidean", ylab="Bray-Curtis")
+plot(neuc_df$kinship_mom, neuc_df$kinship_mle,  pch=20, xlab="Kinship MoM", ylab="Kinship MLE")
+plot(neuc_df$dist_euc, neuc_df$kinship_mle, pch=20, xlab="Euclidean", ylab="Kinship MLE")
+plot(neuc_df$dist_bray, neuc_df$kinship_mle, pch=20, xlab="Bray-Curtis", ylab="Kinship MLE")
 
 # save.image("03_Workspaces/divdist_ALL.RData")
+
+# Are all samples WITHIN sites clones?
+
+# Add site1 and site2
+neuc_df$site1<-substr(neuc_df$ind1,1,unlist(gregexpr("_",neuc_df$ind1))-1)
+neuc_df$site2<-substr(neuc_df$ind2,1,unlist(gregexpr("_",neuc_df$ind2))-1)
+check.rows(neuc_df[,c(1,2,length(neuc_df)-1,length(neuc_df))])
+
+# Add block1 and block2
+neuc_df$block1<-substr(neuc_df$site1,1,3)
+neuc_df$block2<-substr(neuc_df$site2,1,3)
+check.rows(neuc_df[,c(1,2,length(neuc_df)-1,length(neuc_df))])
+
+# Add same flags:
+neuc_df$same_site<-ifelse(neuc_df$site1==neuc_df$site2,1,0)
+neuc_df$same_block<-ifelse(neuc_df$block1==neuc_df$block2,1,0)
+check.rows(neuc_df,3)
+
+head(neuc_df,3)
+
+# Definitely, if you're in the same site or block, you have a much higher chance of being a clone:
+# plot(as.factor(neuc_df$same_site), neuc_df$kinship_mle)
+# plot(as.factor(neuc_df$same_block), neuc_df$kinship_mle)
+m1<-lm(kinship_mle~as.factor(same_site), data=neuc_df)
+m2<-lm(kinship_mle~as.factor(same_block), data=neuc_df)
+mnull<-lm(kinship_mle~1, data=neuc_df)
+summary(m1)
+summary(m2)
+AIC(m1); AIC(m2); AIC(mnull)
+
+head(neuc_df,3)
+
+# what proportion of samples collected in the same site are clones?
+table(neuc_df$kinship_mle>0.45)
+table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.40)
+table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.40)
+
+# create tree
+
+# hclust (in base R)
+# Consensus UPGMA dendrogram (see Acquadro et al. 2017)
+# https://popgen.nescent.org/2015-05-18-Dist-SNP.html
+# https://adegenet.r-forge.r-project.org/files/Glasgow2015/practical-introphylo.1.0.pdf
+# https://dyerlab.github.io/applied_population_genetics/genetic-distances.html
+
+# re-do distance matrix on raw data:
+clust_dat<-ddat
+rownames(clust_dat)<-clust_dat$ind
+clust_dat<-clust_dat[,3:length(clust_dat)]
+ghead(clust_dat)
+
+hc_dist<-dist(x = clust_dat, method="euclidean")
+euc_clust<-hclust(hc_dist)
+str(euc_clust)
+head(neuc_df,3); dim(neuc_df)
+
+quartz("",10,4,dpi=120)
+par(mar=c(3,4,1,1))
+plot(euc_clust, cex=0.5, xlab="", main="")
+
+# this gives the order in terms of height, but not position along xaxis:
+euc_order<-data.frame(sample=euc_clust$labels, orig_pos=1:length(euc_clust$order), order=euc_clust$order)
+
+# this is the merge step data
+ec_merge<-data.frame(euc_clust$merge)
+ec_merge$height<-euc_clust$height
+head(ec_merge,8); dim(ec_merge)
+tail(ec_merge,10)
+
+head(euc_order)
+
+euc_order[euc_order$orig_pos==57,]
+euc_order[euc_order$orig_pos==73,]
+
+euc_order[euc_order$orig_pos==68,]$sample
+euc_order[euc_order$orig_pos==70,]$sample
+
+euc_order[euc_order$orig_pos==72,]$sample
+euc_order[euc_order$orig_pos==73,]$sample
+
+
+euc_order[euc_order$order==1,]
+euc_order[euc_order$order==2,]
+euc_order[euc_order$order==3,]
+euc_order[euc_order$order==4,]
+
+
 
 
 # close distances ----
