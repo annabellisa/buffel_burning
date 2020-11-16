@@ -186,7 +186,6 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
 
 ### -- *** INDIVIDUAL GENETIC DISTANCE:
 
-
 genind_neutral
 
 # Euclidean distance (from adegenet, works on genind object)
@@ -332,10 +331,12 @@ str(euc_clust)
 head(neuc_df,3); dim(neuc_df)
 
 quartz("",10,4,dpi=140)
-par(mar=c(3,4,1,1))
-plot(euc_clust, cex=0.5, xlab="", main="")
+par(mar=c(0,4,1,0), mgp=c(2.8,1,0))
+plot(euc_clust, cex=0.5, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)")
 
-hc_names<-hclust_name_order(euc_clust)
+hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hclust_name_order(euc_clust)))
+
+# write.table(hc1_names, "hclust1_order.txt", sep="\t", quote=F, row.names=F)
 
 # close distances ----
 

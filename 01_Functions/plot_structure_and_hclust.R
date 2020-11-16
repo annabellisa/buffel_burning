@@ -1,7 +1,7 @@
 
 # Author: Annabel Smith
 
-# STRUCTURE PLOT: V10 was updated from the PLANTPOPNET V8 
+# STRUCTURE PLOT V10 (was updated from PLANTPOPNET V8)
 
 str_plot_V10<-function(K,cluster.data,site.data,las.opt,yaxs.loc,col.pal,site.lab,...){
 
@@ -77,15 +77,15 @@ hclust_name_order<-function(hclust_output){
   # The process proceeds iteratively, over each step in merge (i.e. n-1, where n is the number of samples, see hclust help file)
   
   ## testing space:
-  ## hclust_ouput<-euc_clust
+  ## hclust_output<-euc_clust
   ## end test space
   
   # create data frame with the name labels and their order (original and permuted):
-  hc_order<-data.frame(sample=hclust_ouput$labels, orig_pos=1:length(hclust_ouput$order), order=hclust_ouput$order)
+  hc_order<-data.frame(sample=hclust_output$labels, orig_pos=1:length(hclust_output$order), order=hclust_output$order)
   
   # create data frame with the merge data:
-  hc_merge<-data.frame(hclust_ouput$merge)
-  hc_merge$height<-hclust_ouput$height
+  hc_merge<-data.frame(hclust_output$merge)
+  hc_merge$height<-hclust_output$height
   
   # create a list to store the results of each step:
   res_store<-list()
