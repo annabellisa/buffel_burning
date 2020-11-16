@@ -298,12 +298,12 @@ head(neuc_df,3)
 # Definitely, if you're in the same site or block, you have a much higher chance of being a clone:
 # plot(as.factor(neuc_df$same_site), neuc_df$kinship_mle)
 # plot(as.factor(neuc_df$same_block), neuc_df$kinship_mle)
-m1<-lm(kinship_mle~as.factor(same_site), data=neuc_df)
-m2<-lm(kinship_mle~as.factor(same_block), data=neuc_df)
+mod1<-lm(kinship_mle~as.factor(same_site), data=neuc_df)
+mod2<-lm(kinship_mle~as.factor(same_block), data=neuc_df)
 mnull<-lm(kinship_mle~1, data=neuc_df)
-summary(m1)
-summary(m2)
-AIC(m1); AIC(m2); AIC(mnull)
+summary(mod1)
+summary(mod2)
+AIC(mod1); AIC(mod2); AIC(mnull)
 
 head(neuc_df,3)
 
@@ -331,38 +331,11 @@ euc_clust<-hclust(hc_dist)
 str(euc_clust)
 head(neuc_df,3); dim(neuc_df)
 
-quartz("",10,4,dpi=120)
+quartz("",10,4,dpi=140)
 par(mar=c(3,4,1,1))
 plot(euc_clust, cex=0.5, xlab="", main="")
 
-# this gives the order in terms of height, but not position along xaxis:
-euc_order<-data.frame(sample=euc_clust$labels, orig_pos=1:length(euc_clust$order), order=euc_clust$order)
-
-# this is the merge step data
-ec_merge<-data.frame(euc_clust$merge)
-ec_merge$height<-euc_clust$height
-head(ec_merge,8); dim(ec_merge)
-tail(ec_merge,10)
-
-head(euc_order)
-
-euc_order[euc_order$orig_pos==57,]
-euc_order[euc_order$orig_pos==73,]
-
-euc_order[euc_order$orig_pos==68,]$sample
-euc_order[euc_order$orig_pos==70,]$sample
-
-euc_order[euc_order$orig_pos==72,]$sample
-euc_order[euc_order$orig_pos==73,]$sample
-
-
-euc_order[euc_order$order==1,]
-euc_order[euc_order$order==2,]
-euc_order[euc_order$order==3,]
-euc_order[euc_order$order==4,]
-
-
-
+hc_names<-hclust_name_order(euc_clust)
 
 # close distances ----
 
