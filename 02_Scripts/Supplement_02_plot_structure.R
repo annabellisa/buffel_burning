@@ -50,7 +50,7 @@ head(sdat,2); dim(sdat)
 # Set K and run this whole section
 
 # SET K:
-K<-4
+K<-3
 
 # Get assignment probabilities:
 # use out_dir or res_dir, depending on where results are:
@@ -58,8 +58,6 @@ assig<-read.table(paste(res_dir,dir(res_dir)[grep(paste("\\.",K,".meanQ",sep="")
 
 # Combine site_data and assigment probs:
 site_assig<-cbind(str_sites,assig)
-# don't need this for Cenchrus: site_assig$V1<-toupper(site_assig$V1)
-
 head(site_assig)
 head(sdat,2)
 
@@ -123,8 +121,6 @@ head(sum_dat,3); dim(sum_dat)
 ####  	       BAR PLOTS:    		 ####
 #########################################
 
-# Single barplot (for main document):
-
 # The sequential palettes names are:
 #  Blues BuGn BuPu GnBu Greens Greys Oranges OrRd PuBu PuBuGn PuRd Purples RdPu Reds YlGn YlGnBu YlOrBr YlOrRd
 
@@ -132,6 +128,8 @@ head(sum_dat,3); dim(sum_dat)
 # BrBG PiYG PRGn PuOr RdBu RdGy RdYlBu RdYlGn Spectral
 
 switch.col<-brewer.pal(K,"Accent")
+
+### Order samples West - East:
 
 ### MAIN PLOT (K=3):
 quartz(title="Fig",width=16,height=4,dpi=80,pointsize=10)
@@ -160,7 +158,63 @@ arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.
 par(xpd=F)
 
 
+### Order samples along dendrogram:
 
+ddir<-"00_Data/Filtered_DartSeq_format"
+ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
+ghead(ddat)
+
+# re-do distance matrix on raw data:
+clust_dat<-ddat
+rownames(clust_dat)<-clust_dat$ind
+clust_dat<-clust_dat[,3:length(clust_dat)]
+ghead(clust_dat)
+
+hc_dist<-dist(x = clust_dat, method="euclidean")
+euc_clust<-hclust(hc_dist)
+str(euc_clust)
+
+# get name label order:
+hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hclust_name_order(euc_clust)))
+head(hc1_names)
+
+# structure params:
+# quartz(title="Fig",width=16,height=8,dpi=80,pointsize=10)
+# par(mfrow=c(2,1),oma=c(2,0,1.5,0))
+
+# plot dendro:
+quartz("",10,8,dpi=100)
+par(mfrow=c(2,1),mar=c(0,4,1,0), mgp=c(2.8,1,0),oma=c(1,0,1,0))
+
+plot(euc_clust, cex=0.5, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)", sub="")
+
+# testing area:
+K = 3
+cluster.data=all_dat_K3
+site.data=sdat2
+las.opt=2
+yaxs.loc=-3
+col.pal="switch.col"
+# end test area
+
+# for these structure plots the ordering is done outside the function, so we can just re-sort and use the same function:
+
+all_dat_hclust_order<-all_dat_K3
+head(all_dat_hclust_order,3); dim(all_dat_hclust_order)
+head(hc1_names,3); dim(hc1_names)
+
+hc1_names$ind %in% all_dat_hclust_order$indiv
+all_dat_hclust_order$indiv %in%  hc1_names$ind
+
+is.unsorted(all_dat_hclust_order$indiv)
+is.unsorted(all_dat_hclust_order$indiv)
+
+str_plot_V10(K = 3,all_dat_K3,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="")
+par(xpd=NA)
+arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
+par(xpd=F)
+
+mtext("West - East", side=1, line=2.8, cex=1.8)
 
 
 
