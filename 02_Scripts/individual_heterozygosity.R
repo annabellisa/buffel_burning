@@ -48,8 +48,9 @@ if(length(which(t.cons$ind.cons==2))==0) ih_out[i,3]<-"no_heterozygotes" else ih
 
 } # close for i, mins
 
-
-ggplot(data = ih_out, aes(x = site, y = ind_het)) +
+class(ih_NF$ind_het)
+ih_NNF$ind_het<-as.numeric(ih_NNF$ind_het, na.rm = TRUE)
+ggplot(data = ih_NNF, aes(x = site, y = ind_het)) +
   geom_boxplot() +
 theme_classic()
 
