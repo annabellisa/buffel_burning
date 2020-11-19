@@ -10,5 +10,5 @@ Maximum missing data = 50%
 Minor allele frequency filter = 5%
 Linkage disequilibrium filter = 75%
 No HWE filter
-Non-neutral markers removed = TRUE
+Non-neutral markers removed = F
 Duplicate sequences removed = TRUE

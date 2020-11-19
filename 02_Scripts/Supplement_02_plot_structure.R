@@ -10,8 +10,8 @@
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 library("RColorBrewer")
-library(rworldmap)
-library("plotrix")
+# library(rworldmap)
+# library("plotrix")
 
 # --- *** DATA SET UP *** --- #
 
@@ -178,43 +178,40 @@ str(euc_clust)
 hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hclust_name_order(euc_clust)))
 head(hc1_names)
 
-# structure params:
-# quartz(title="Fig",width=16,height=8,dpi=80,pointsize=10)
-# par(mfrow=c(2,1),oma=c(2,0,1.5,0))
+# for str_plot_V10 the ordering is done outside the function, so we can re-sort and use the same function:
+
+K3_dend_order<-all_dat_K3
+head(K3_dend_order); dim(K3_dend_order)
+head(hc1_names,3); dim(hc1_names)
+
+# check all names are present in both data sets:
+table(hc1_names$ind %in% K3_dend_order$indiv)
+table(K3_dend_order$indiv %in%  hc1_names$ind)
+
+K3_dend_order<-merge(K3_dend_order, hc1_names, by.x = "indiv", by.y = "ind", all.x = T, all.y = F)
+K3_dend_order<-K3_dend_order[order(K3_dend_order$hclust_order),]
+K3_dend_order<-tidy.df(K3_dend_order)
+head(K3_dend_order,3); dim(K3_dend_order)
 
 # plot dendro:
-quartz("",10,8,dpi=100)
-par(mfrow=c(2,1),mar=c(0,4,1,0), mgp=c(2.8,1,0),oma=c(1,0,1,0))
+quartz("",10,5,dpi=120)
+par(mfrow=c(2,1),mar=c(0,4,1,0), mgp=c(2,0,0),oma=c(1,0,1,0))
 
-plot(euc_clust, cex=0.5, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)", sub="")
+layout(matrix(c(1,1,1,2), 4, 1, byrow = TRUE))
+layout.show(2)
+
+plot(euc_clust, cex=1, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)", sub="")
 
 # testing area:
 K = 3
-cluster.data=all_dat_K3
+cluster.data=K3_dend_order
 site.data=sdat2
 las.opt=2
 yaxs.loc=-3
 col.pal="switch.col"
 # end test area
 
-# for these structure plots the ordering is done outside the function, so we can just re-sort and use the same function:
-
-all_dat_hclust_order<-all_dat_K3
-head(all_dat_hclust_order,3); dim(all_dat_hclust_order)
-head(hc1_names,3); dim(hc1_names)
-
-hc1_names$ind %in% all_dat_hclust_order$indiv
-all_dat_hclust_order$indiv %in%  hc1_names$ind
-
-is.unsorted(all_dat_hclust_order$indiv)
-is.unsorted(all_dat_hclust_order$indiv)
-
-str_plot_V10(K = 3,all_dat_K3,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="")
-par(xpd=NA)
-arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
-par(xpd=F)
-
-mtext("West - East", side=1, line=2.8, cex=1.8)
+str_plot_V11(K = 3,K3_dend_order,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="")
 
 
 
