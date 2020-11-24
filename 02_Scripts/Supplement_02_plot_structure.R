@@ -166,6 +166,9 @@ ghead(ddat)
 
 # re-do distance matrix on raw data:
 clust_dat<-ddat
+
+# update individual names so they don't include the redundant X:
+clust_dat$ind<-substr(clust_dat$ind,2,nchar(clust_dat$ind))
 rownames(clust_dat)<-clust_dat$ind
 clust_dat<-clust_dat[,3:length(clust_dat)]
 ghead(clust_dat)
@@ -179,8 +182,10 @@ hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hc
 head(hc1_names)
 
 # for str_plot_V10 the ordering is done outside the function, so we can re-sort and use the same function:
-
 K3_dend_order<-all_dat_K3
+
+# remove X from indiv name:
+K3_dend_order$indiv<-substr(K3_dend_order$indiv,2,nchar(K3_dend_order$indiv))
 head(K3_dend_order); dim(K3_dend_order)
 head(hc1_names,3); dim(hc1_names)
 
@@ -193,25 +198,18 @@ K3_dend_order<-K3_dend_order[order(K3_dend_order$hclust_order),]
 K3_dend_order<-tidy.df(K3_dend_order)
 head(K3_dend_order,3); dim(K3_dend_order)
 
-# plot dendro:
-quartz("",10,5,dpi=120)
-par(mfrow=c(2,1),mar=c(0,4,1,0), mgp=c(2,0,0),oma=c(1,0,1,0))
+# plot dendro & structure together:
+quartz("",10,4,dpi=120)
+par(mfrow=c(2,1),mar=c(0,4,1,0), mgp=c(2,0,-1),oma=c(1,0,1,0))
 
-layout(matrix(c(1,1,1,2), 4, 1, byrow = TRUE))
+layout(matrix(c(1,1,1,1,2), 5, 1, byrow = TRUE))
 layout.show(2)
 
-plot(euc_clust, cex=1, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)", sub="")
+plot(euc_clust, cex=0.8, xlab="", main="", cex.lab=1, las=1, ylab="Genetic distance (Euclidean)", sub="")
+mtext("A", side=3, line=0.5, adj=0, at=-6.5)
 
-# testing area:
-K = 3
-cluster.data=K3_dend_order
-site.data=sdat2
-las.opt=2
-yaxs.loc=-3
-col.pal="switch.col"
-# end test area
-
-str_plot_V11(K = 3,K3_dend_order,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="")
+str_plot_V11(K = 3,K3_dend_order,sdat2,las.opt=2,yaxs.loc=-2.5,cex.axis=0.7,col.pal="switch.col",site.lab="")
+mtext("B", side=3, line=0.5, adj=0, at=-7.5)
 
 
 
