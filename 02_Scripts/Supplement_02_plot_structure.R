@@ -208,7 +208,10 @@ layout.show(2)
 plot(euc_clust, cex=0.8, xlab="", main="", cex.lab=1, las=1, ylab="Genetic distance (Euclidean)", sub="")
 mtext("A", side=3, line=0.5, adj=0, at=-6.5)
 
-str_plot_V11(K = 3,K3_dend_order,sdat2,las.opt=2,yaxs.loc=-2.5,cex.axis=0.7,col.pal="switch.col",site.lab="")
+# ORDER along dendro should be green, purple, orange:
+switch.col2<-switch.col[c(3,1,2)]
+
+str_plot_V11(K = 3,K3_dend_order,sdat2,las.opt=2,yaxs.loc=-2.5,cex.axis=0.7,col.pal="switch.col2",site.lab="")
 mtext("B", side=3, line=0.5, adj=0, at=-7.5)
 
 
