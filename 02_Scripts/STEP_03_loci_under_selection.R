@@ -11,7 +11,7 @@
 load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # BD load R.Data and Functions
-load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData")
+load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData")
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
@@ -24,11 +24,11 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 gt_data<-snp_onerow
 
 # Directory with bayescan results:
-bs_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
+bs_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
 bs_dir<-"../Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
 dir(bs_dir)
 
-bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_fst.txt",sep="/")
+bs_fst<-paste(bs_dir,"Cenchrus_filt2_loci.txt",sep="/") #fst file
 
 # FST Outlier loci:
 # dev.new()
@@ -161,7 +161,7 @@ library(qvalue)
 library(grDevices)
 
 path_to_file <- "RESULTS/PCAdapt/PCAdapt_files"
-path_to_file<- "C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files"
+
 path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files"
 
 dir(path_to_file)
@@ -203,11 +203,11 @@ title(xlab=paste("PC",i,sep=""),cex.lab=1)
 title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
 }
 par(xpd=NA)
-legend(-5, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+legend(0, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
 
 ### --- *** SET K *** --- ###
 
-K<-3 # return # 182
+K<-3 # return # 194
 x <- pcadapt(input = filename, K = K) 
 summary(x)
 
@@ -216,6 +216,14 @@ dev.new("",10,4,dpi=80,pointsize=14) # Error
 par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in 1:ncol(x$loadings))
   plot(x$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
+
+
+pc1<-x$scores[,1]
+pc2<-x$scores[,2]
+pc3<-x$scores[,3]
+
+
+
 
 # lattice methods 
 
@@ -250,7 +258,8 @@ text(pc1~pc3, labels = unique(poplist.names))
 
 # alternative, multi-panel by ggpairs() 
 
-library("tidyr")
+library(tidyr)
+library(tidyverse)
 pc_long <- x$scores %>%
   data.frame() %>%
   rename(PC1 = 1, PC2 = 2, PC3 = 3) %>%
@@ -265,28 +274,37 @@ pairs(x$scores, upper.panel = NULL)
 
 # GGally::ggpairs()
 pc_df<-data.frame(pc_mat)
-install.packages("GGally")
+# install.packages("GGally")
 library(GGally)
-ggpairs(pc_df,  aes(colour = colour_codes), columns = 1:3) +
+
+
+pc_df<-pc_df %>%
+  pivot_longer(cols = 1:3, 
+               names_to = "colour_codes",
+               values_to = "Scores")
+
+
+ggpairs(pc_df,  aes(colour = colour_codes)) +
   theme_bw() +
   scale_color_manual(values=c("red"="red","blue"="blue")) +
   theme(text = element_text(size = 25)) 
 
 # Tidyverse, ggplot
+install.packages("quadprog")
 install.packages("directlabels", repos = "http://r-forge.r-project.org", dependencies = TRUE)
 install.packages("grid")
-install.packages("quadprog")
-library(directlabels)
+install.packages("egg")
 
+library(directlabels)
 library(tidyverse)
 library(ggrepel)
-install.packages("egg")
 library(egg)
 
 # colour-trtments
 # label-site_name
 
 site_name<-str_extract(poplist.names,"[0-9]+")
+colour_codes<-NA
 colour_codes[grep("b",poplist.names)]<-"red"
 colour_codes[grep("u",poplist.names)]<-"blue"
 plotdata <- data.frame(pc1,pc2,pc3,colour_codes,site_name)
@@ -295,8 +313,11 @@ plot1<-ggplot(plotdata,mapping = aes(x = pc1, y = pc2, colour = colour_codes),
        xlab="pc1", ylab="pc2",
        main="pc1 v pc2") +
   geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("red"="red","blue"="blue")) +
-  theme_bw() +
-  theme(text = element_text(size = 25)) 
+  theme_article() +
+  theme(legend.position="bottom", text = element_text(size = 25)) +
+  labs(x = expression(italic("PC 1")),
+       y = expression(italic("PC 2")))
+
   
 # theme(axis.text = element_text(size = 20))               # Axis text size
 # For more: https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend
@@ -415,12 +436,12 @@ points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
 
 # get locus indices for outliers:
 pca_loc<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_filt2_loci.txt",header=T)
-pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/Cenchrus_filt1_loci.txt", header = T)
-pca_loc<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/Cenchrus_filt1_loci.txt", header = T)
+pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files/Cenchrus_filt1_loci.txt", header = T)
+
 pca_loc$pca_outl<-ifelse(pca_loc$lind %in% outliers,1,0)
 table(pca_loc$pca_outl)
 
-maindir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt"
+maindir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files/"
 orig_loci<-read.table(paste(maindir, "Cenchrus_filt1_loci.txt", sep="/"), header=T)
 head(orig_loci)
 head(pca_loc)
@@ -435,8 +456,8 @@ library(lfmm) # https://bcm-uga.github.io/lfmm/articles/lfmm
 library(qvalue)
 
 lfmm_dir<-"RESULTS/LFMM/LFMM_files"
-lfmm_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
-lfmm_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
+lfmm_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM/lfmm_files"
+
 dir(lfmm_dir)
 
 # Genotype data:

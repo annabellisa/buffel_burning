@@ -8,11 +8,11 @@
 
 #Set Working dir
 setwd("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
-setwd("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
+
 
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
 load("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
-load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
 load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
@@ -93,7 +93,7 @@ ldf<-0.75
 
 ##BD's Script#
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-LD_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+
 dir(LD_dir)
 ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 
@@ -125,7 +125,6 @@ ghead(filtered_data); dim(filtered_data)
 # PCAdapt uses bed, bim, fam files (i.e. PLINK files) and LFMM a special format. See the format scripts below for these programs. 
 
 # BD: Directory with results:
-sel_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 
 # AS: Directory with results:
