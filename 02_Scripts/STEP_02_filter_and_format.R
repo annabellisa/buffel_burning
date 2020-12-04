@@ -34,7 +34,7 @@ filtered_data<-get(data_name)
 
 # --- *** Discard duplicated *** --- #
 
-# 22923 out of 69799 loci (33%) were identified as duplicate sequences by BLAST. This seemed very high, so I did some random manual checks of the blast results and the results are correct: we do have many SNPs occurring on the same sequence. We are removing these to reduce the chance of physical linkage. For a given sequence, we are keeping the SNP with the highest call rate (i.e. those assigned as 'duplicates' on the locus info file have lower call rates, see STEP_01 script for details).  
+# 22921 out of 69799 loci (33%) were identified as duplicate sequences by BLAST. This seemed very high, so I did some random manual checks of the blast results and the results are correct: we do have many SNPs occurring on the same sequence. We are removing these to reduce the chance of physical linkage. For a given sequence, we are keeping the SNP with the highest call rate (i.e. those assigned as 'duplicates' on the locus info file have lower call rates, see STEP_01 script for details).  
 dup_loc<-as.character(linf$locus[linf$duplicate==1])
 filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% dup_loc)]
 filtered_data<-tidy.df(filtered_data)
@@ -45,6 +45,8 @@ ghead(filtered_data); dim(filtered_data)
 # --- *** Filter monomorphic loci *** --- #
 filtered_data<-mono_loci(filtered_data,3)
 ghead(filtered_data); dim(filtered_data)
+
+
 
 # --- *** DartSeq Quality Control (QC) filters *** --- #
 
@@ -100,7 +102,7 @@ ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 # AS LD: 
 LD_dir_AS<-"RESULTS/LD_results"
 dir(LD_dir_AS)
-ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
+ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 head(ld_loc); dim(ld_loc)
 
 ldfilt<-as.character(ld_loc$locus)

@@ -16,6 +16,10 @@ load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/b
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
+load("D:\\Onedrive\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\03_Workspaces\\divdist_ALL.RData")
+
+
+
 #  POST-PROCESS BAYESCAN results:    	# ----
 
 # *** ANALYSE OUTLIER LOCI:
@@ -24,15 +28,18 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 gt_data<-snp_onerow
 
 # Directory with bayescan results:
-bs_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
+bs_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/Offline_Results/Old Files//BayeScan/Cenchrus_filt2_BS_po400_RESULTS" # check fst file?
+bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter Project\\Old Files\\BayeScan\\Cenchrus_BS_po400_RESULTS" 
+
+
 bs_dir<-"../Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
 dir(bs_dir)
 
-bs_fst<-paste(bs_dir,"Cenchrus_filt2_loci.txt",sep="/") #fst file
+bs_fst<-paste(bs_dir,"Cenchrus_filt2_fst.txt",sep="/") #check fst file
 
 # FST Outlier loci:
-# dev.new()
-bsres<-plot_bayescan(res=bs_fst,FDR=0.05)
+# dev.new() 
+bsres<-plot_bayescan(res=bs_fst,FDR=0.05) # error 
 bs_outl<-bsres$outliers
 bs_n_outl<-bsres$nb_outliers
 
@@ -40,7 +47,7 @@ bs_n_outl<-bsres$nb_outliers
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
 
-bslinf<-read.table("C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/BayeScan/bs_loci_filt1.txt", header = TRUE)
+bslinf<-read.table("D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Old Files/BayeScan/bs_loci_filt1.txt", header = TRUE)
 bslinf<-read.table("../Offline_Results/BayeScan/BayeScan_ANALYSIS/Cenchrus_filt2/bs_loci_filt2.txt", header = TRUE) 
 
 head(bslinf); dim(bslinf)
@@ -186,7 +193,7 @@ points(1:K,x$singular.values^2,pch=20)
 # CHOOSE K FROM PCs:
 
 # Get population names from the fam file:
-famf<-read.table(paste(path_to_file,"Cenchrus_filt1.fam",sep="/"),header=F)
+famf<-read.table(paste(path_to_file,"Cenchrus_filt1.fam",sep="/"),header=F) # strange fam file
 head(famf)
 poplist.names <- as.character(famf$V1)
 head(poplist.names)
@@ -195,32 +202,51 @@ head(poplist.names)
 
 quartz("",10,10,dpi=80,pointsize=14) # Error
 par(mfrow=c(5,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
+
 for (i in seq(1,ncol(x$scores),2)){
-pc1<-x$scores[,i]
-pc2<-x$scores[,i+1]
-plot(pc1,pc2,col=rainbow(length(unique(poplist.names))),xlab="",ylab="",pch=20)
-title(xlab=paste("PC",i,sep=""),cex.lab=1)
-title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
+  pc1<-x$scores[,i]
+  pc2<-x$scores[,i+1]
+  plot(pc1,pc2,col=rainbow(length(unique(poplist.names))),xlab="",ylab="",pch=20)
+  title(xlab=paste("PC",i,sep=""),cex.lab=1)
+  title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
 }
 par(xpd=NA)
 legend(0, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
 
 ### --- *** SET K *** --- ###
 
-K<-3 # return # 194
+K<-3 # return 
 x <- pcadapt(input = filename, K = K) 
 summary(x)
+
+
 
 # Check for LD 
 dev.new("",10,4,dpi=80,pointsize=14) # Error
 par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
-for (i in 1:ncol(x$loadings))
+for (i in 1:ncol(x$loadings)){
   plot(x$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
+  }
 
 
 pc1<-x$scores[,1]
 pc2<-x$scores[,2]
 pc3<-x$scores[,3]
+
+
+
+# colour-trtments
+# label-site_name
+
+site_name<-str_extract(poplist.names,"[0-9]+")
+colour_codes<-NA
+colour_codes[grep("b",poplist.names)]<-"red"
+colour_codes[grep("u",poplist.names)]<-"blue"
+treatments<-NA
+treatments[grep("b",poplist.names)]<-"Burnt"
+treatments[grep("u",poplist.names)]<-"Unburnt"
+
+plotdata <- data.frame(pc1,pc2,pc3,colour_codes,site_name,treatments)
 
 
 
@@ -300,24 +326,41 @@ library(tidyverse)
 library(ggrepel)
 library(egg)
 
-# colour-trtments
-# label-site_name
 
-site_name<-str_extract(poplist.names,"[0-9]+")
-colour_codes<-NA
-colour_codes[grep("b",poplist.names)]<-"red"
-colour_codes[grep("u",poplist.names)]<-"blue"
-plotdata <- data.frame(pc1,pc2,pc3,colour_codes,site_name)
 
-plot1<-ggplot(plotdata,mapping = aes(x = pc1, y = pc2, colour = colour_codes),
+plot1<-ggplot(plotdata,mapping = aes(x = pc1, y = pc2, colour = treatments),
        xlab="pc1", ylab="pc2",
        main="pc1 v pc2") +
-  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("red"="red","blue"="blue")) +
+  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("Burnt"="red","Unburnt"="blue")) +
   theme_article() +
   theme(legend.position="bottom", text = element_text(size = 25)) +
   labs(x = expression(italic("PC 1")),
-       y = expression(italic("PC 2")))
+       y = expression(italic("PC 2"))) +
+  theme_article()
 
+
+plot2<-ggplot(plotdata,mapping = aes(x = pc1, y = pc3, colour = treatments),
+              xlab="pc1", ylab="pc3",
+              main="pc1 v pc3") +
+  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("Burnt"="red","Unburnt"="blue")) +
+  theme_article() +
+  theme(legend.position="bottom", text = element_text(size = 25)) +
+  labs(x = expression(italic("PC 1")),
+       y = expression(italic("PC 3"))) +
+  theme_article()
+
+plot3<-ggplot(plotdata,mapping = aes(x = pc2, y = pc3, colour = treatments),
+              xlab="pc2", ylab="pc3",
+              main="pc2 v pc3") +
+  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("Burnt"="red","Unburnt"="blue")) +
+  theme_article() +
+  theme(legend.position="bottom", text = element_text(size = 25)) +
+  labs(x = expression(italic("PC 2")),
+       y = expression(italic("PC 3"))) +
+  theme_article()
+
+
+ggarrange(plot1,plot2,plot3)
   
 # theme(axis.text = element_text(size = 20))               # Axis text size
 # For more: https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend
@@ -340,29 +383,29 @@ geom_label_repel(aes(label = site_name),
 # segment.color = 'grey50'
 # label method 3
 plot1 +
-  theme_bw()+
+  theme_article()+
   geom_text(aes(label=ifelse(pc2<-0.1,as.character(poplist.names),'')),hjust=0,vjust=0)
 
 plot2<-ggplot(plotdata,mapping = aes(x = pc1, y = pc3, colour = colour_codes),
               xlab="pc1", ylab="pc3",
               main="pc1 v pc3") +
   geom_point(size = 2,alpha = 0.25) + scale_color_manual(values=c("red"="red","blue"="blue")) +
-  theme_bw() +
+  theme_article() +
   theme(text = element_text(size = 25)) 
 
 plot3<-ggplot(plotdata,mapping = aes(x = pc2, y = pc3, colour = colour_codes),
               xlab="pc2", ylab="pc3",
               main="pc2 v pc3") +
   geom_point(size = 2,alpha = 0.25) + scale_color_manual(values=c("red"="red","blue"="blue")) +
-  theme_bw() +
+  theme_article() +
   theme(text = element_text(size = 25)) 
 
 # Original plots 
 
-ggplot(mapping = aes(x = pc1, y = pc2, colour = poplist.names, shape = poplist.names),
+ggplot(mapping = aes(x = pc1, y = pc2, colour = site_name, shape = treatments),
               xlab="pc1", ylab="pc2",
               main="pc1 v pc2") +
-  geom_point() +
+  geom_point(size = 10) +
   geom_text(aes(label = poplist.names))
 
 # note: y~x | x,y
@@ -421,7 +464,7 @@ length(outliers)
 # [1st run]4070 [2nd run]7040
 
 # Associate outliers with PCs: library(pcadapt)
-snp_pc <- get.pc(x, outliers)
+snp_pc <- get.pc(x, outliers) # 3 PCs as K=3?
 head(snp_pc)
 
 # write.table(snp_pc,"outliers_PCAdapt_from_snp_pc.txt",sep="\t",row.names=F,quote=F)
@@ -593,12 +636,22 @@ lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="bu_outl"):ncol(lfres)])
 lfres$never_outl<-rowSums(lfres[,8,drop = FALSE]) 
 head(lfres)
 
-# BD:
-ggplot(mapping = aes(x= 1:nrow(lfres), y = -log(lfres$pvalues_p,10))) +
+# BD ggplot:
+lfres_df_lo<-lfres %>% subset(lo_q<alpha)
+lfres_df_lo$rowname<-lfres %>% subset(lo_q<alpha) %>% row.names()
+
+lfres_df_bu<-lfres %>% subset(bu_q<alpha)
+lfres_df_bu$rowname<-lfres %>% subset(bu_q<alpha) %>% row.names()
+
+
+ggplot(data = lfres,mapping = aes(x= 1:nrow(lfres), y = -log(long_p,10))) +
+  geom_point(aes(x= 1:nrow(lfres),-log(long_p,10))) +
+  geom_point(data = lfres_df_lo, aes(x = as.numeric(rowname),-log(long_p,10)), colour = "red") +
+ # geom_point(data = lfres_df_bu, aes(x = as.numeric(rowname),-log(burn_unburnt,10), colour = "green"))+
   labs(y ="-log10(p value)",
        x ="locus") +
-  geom_path() +
-  theme_bw()
+  theme_article()
+
 
 # AS manhattan (30 Oct 2020):
 quartz("",8,4,dpi=100)
@@ -616,6 +669,23 @@ legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=20,col=c(
 lfres$efs1<-efs.lfmm1
 lfres$efs2<-efs.lfmm2
 head(lfres)
+
+
+# BD ggplot
+lfres$rowname<-lfres %>% row.names()
+lfres_df_efs<-lfres %>% subset(never_outl == 0)
+
+ggplot(data = lfres_df_efs,mapping = aes(x= rowname)) +
+  geom_point(aes(x=rowname, y=efs1)) +
+  geom_point(aes(x=rowname, y=efs2)) +   
+  geom_hline(yintercept = 0,colour = "purple") +
+  geom_point(data = lfres_df_lo, aes(x = as.numeric(rowname),efs2), colour = "red") +
+  geom_point(data = lfres_df_bu, aes(x = as.numeric(rowname),efs1), colour = "green")+
+  labs(y ="Effect Size",
+       x ="Locus") +
+  theme_article()
+
+
 
 quartz("",8,4,dpi=100)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
