@@ -61,8 +61,8 @@ genind_neutral # all filters + neutral markers only (20159 loci)
 genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
 head(sdat,3); dim(sdat)
 
-#  Genetic & enviro distances:    	# ----
-  
+#  FST & Mantel tests:    	# ----
+
 ### -- *** CALCULATE FST:
 
 # Load Genepop files
@@ -116,7 +116,7 @@ dir(dat_dir)
 pwpop<-read.table(paste(dat_dir,"fst_all_sites.txt",sep="/"),header=T)
 head(pwpop)
 
-# site data:
+# load site data:
 
 # add site code to match fst data:
 sdat$pop<-sdat$site
@@ -184,7 +184,9 @@ plot(fst_all$geog_dist, fst_all$fst, pch=20, xlab="Geographic distance (m)", yla
 # pval2 = one-tailed p-value (null hypothesis: r >= 0).
 mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1[1],2),"; p = ",round(mant1[3],2), sep=""), adj=0)
 
-### -- *** INDIVIDUAL GENETIC DISTANCE:
+# close FST ----
+
+#  Individaul genetic distance & Relatedness	# ----
 
 genind_neutral
 
@@ -206,19 +208,13 @@ neuc_df[90:93,]
 
 ddir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/00_Data/Filtered_DartSeq_format"
 ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
-ghead(ddat)
+ghead(ddat); dim(ddat)
 neu_bray<-vegdist(x = ddat[,3:length(ddat)], method="bray",na.rm=T)
 neuc_df$dist_bray<-neu_bray
 head(neuc_df); dim(neuc_df)
 # these are very highy correlated:
 # plot(neuc_df$dist_euc, neuc_df$dist_bray)
 # cor.test(neuc_df$dist_euc, neuc_df$dist_bray)
-
-# Genetic distance (from ape, I don't trust this one - it's not related to the other distance measures):
-# genloci_neutral<-genind2loci(genind_neutral)
-# gln<-as.data.frame(genloci_neutral)
-# ghead(gln)
-# neu_gene<-dist.gene(gln[2:length(gln)], pairwise.deletion = T, method="pairwise")
 
 # SNPRelate (uses plink format - can use STRUCTURE files - Cenchrus_filt2)
 # http://corearray.sourceforge.net/tutorials/SNPRelate/
@@ -264,18 +260,48 @@ head(neuc_df)
 table(neuc_df$kinship_mle>0.48)
 table(neuc_df$kinship_mom>0.45)
 
+# Add proportion matching genotypes
+
+head(neuc_df,3); dim(neuc_df)
+ghead(ddat); dim(ddat)
+
+neuc_df$prop_match<-NA
+
+### prop_match is the proportion of NON-NA genotypes that match
+
+## takes approx 50 min
+
+for (i in 1:nrow(neuc_df)){
+  
+  pair.thisrun<-neuc_df[i,c(1,2)]
+  pair1.thisrun<-ddat[which(ddat$ind==pair.thisrun$ind1),3:length(ddat)]
+  pair2.thisrun<-ddat[which(ddat$ind==pair.thisrun$ind2),3:length(ddat)]
+  comp.thisrun<-pair1.thisrun==pair2.thisrun
+  t1<-table(comp.thisrun)
+  neuc_df$prop_match[i]<-t1[2]/sum(t1)
+  
+} # close i
+
+# save.image("03_Workspaces/divdist_ALL.RData")
+
 # compare methods:
 
 quartz("",6,6,dpi=100)
 par(mfrow=c(2,2),mar=c(4,4,2,1), mgp=c(2.5,1,0))
 plot(neuc_df$dist_euc, neuc_df$dist_bray, pch=20, xlab="Euclidean", ylab="Bray-Curtis")
-plot(neuc_df$kinship_mom, neuc_df$kinship_mle,  pch=20, xlab="Kinship MoM", ylab="Kinship MLE")
 plot(neuc_df$dist_euc, neuc_df$kinship_mle, pch=20, xlab="Euclidean", ylab="Kinship MLE")
 plot(neuc_df$dist_bray, neuc_df$kinship_mle, pch=20, xlab="Bray-Curtis", ylab="Kinship MLE")
+plot(neuc_df$kinship_mle, neuc_df$prop_match, pch=20, xlab="Kinship MLE", ylab="Proportion matching")
+
+plot(neuc_df$kinship_mom, neuc_df$kinship_mle,  pch=20, xlab="Kinship MoM", ylab="Kinship MLE")
 
 # save.image("03_Workspaces/divdist_ALL.RData")
 
 # Are all samples WITHIN sites clones?
+# Kinship coefficient == 1/2 * relatedness coefficient, such that:
+# clone = 0.5
+# full sib = 0.25
+# parent offspring = 0.25
 
 # Add site1 and site2
 neuc_df$site1<-substr(neuc_df$ind1,1,unlist(gregexpr("_",neuc_df$ind1))-1)
@@ -292,9 +318,7 @@ neuc_df$same_site<-ifelse(neuc_df$site1==neuc_df$site2,1,0)
 neuc_df$same_block<-ifelse(neuc_df$block1==neuc_df$block2,1,0)
 check.rows(neuc_df,3)
 
-head(neuc_df,3)
-
-# Definitely, if you're in the same site or block, you have a much higher chance of being a clone:
+# If you're in the same site or block, you have a much higher chance of being a clone:
 # plot(as.factor(neuc_df$same_site), neuc_df$kinship_mle)
 # plot(as.factor(neuc_df$same_block), neuc_df$kinship_mle)
 mod1<-lm(kinship_mle~as.factor(same_site), data=neuc_df)
@@ -304,14 +328,71 @@ summary(mod1)
 summary(mod2)
 AIC(mod1); AIC(mod2); AIC(mnull)
 
-head(neuc_df,3)
-
 # what proportion of samples collected in the same site are clones?
 table(neuc_df$kinship_mle>0.45)
-table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.40)
-table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.40)
+table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.45)
+table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.45)
 
-# create tree
+quartz("",6,6,dpi=100)
+par(mfrow=c(2,2),mar=c(4,4,2,1), mgp=c(2.5,1,0))
+hist(neuc_df$kinship_mle, main="all samples", font.main=1, xlab="", ylab="",las=1)
+arrows(0.45,0,0.45,2500,length=0, col="red", lwd=1.5)
+
+text(0.43, 2000,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship_mle>0.45)[2]/sum(table(neuc_df$kinship_mle>0.45)), 2),sep=""),col="red", adj=1)
+
+hist(neuc_df$kinship_mle[neuc_df$same_block==1], main="within block", font.main=1, xlab="", ylab="",las=1, ylim=c(0,200))
+arrows(0.45,0,0.45,200,length=0, col="red", lwd=1.5)
+
+text(0.43, 160,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.45)[2]/sum(table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.45)), 2),sep=""),col="red", adj=1)
+
+hist(neuc_df$kinship_mle[neuc_df$same_site==1], main="within site", font.main=1, xlab="", ylab="",las=1, ylim=c(0,100))
+arrows(0.45,0,0.45,100,length=0, col="red", lwd=1.5)
+
+text(0.43, 80,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.45)[2]/sum(table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.45)), 2),sep=""),col="red", adj=1)
+
+# Fewer than half of the samples within the same site are less than full sibs:
+table(neuc_df$kinship_mle[neuc_df$same_site==1]<0.25)
+table(neuc_df$kinship_mle[neuc_df$same_block==1]<0.25)
+
+head(neuc_df,3)
+
+# close individual distances ----
+
+#  Individaul genetic diversity	# ----
+
+head(neuc_df,3); dim(neuc_df)
+ghead(ddat); dim(ddat)
+
+# Codes for onerow formatted data:
+# 0 = Reference allele homozygote
+# 1 = SNP allele homozygote
+# 2 = heterozygote
+
+# 3 MINS on laptop
+
+ih_out<-data.frame(ddat[,1:2],ind_het=NA)
+head(ih_out,25)
+
+for(i in 1:nrow(ih_out)){
+  ind.cons<-as.character(ddat[i,3:length(ddat)])
+  t.cons<-data.frame(ind.cons=as.numeric(names(table(ind.cons))),count=as.numeric(table(ind.cons)),stringsAsFactors=F)
+  
+  if(length(which(is.na(t.cons$ind.cons)))>0) t.cons<-t.cons[-which(is.na(t.cons$ind.cons)),] else stop("no zero category")
+  
+  if(length(which(t.cons$ind.cons==2))==0) ih_out[i,3]<-"no_heterozygotes" else ih_out[i,3]<-t.cons$count[t.cons$ind.cons==2]/sum(t.cons$count)
+  
+} # close for i
+
+head(ih_out,25)
+ghead(ddat); dim(ddat)
+
+# save.image("03_Workspaces/divdist_ALL.RData")
+
+# close individual diversity ----
+
+#  HIERARCHICAL CLUSTERING:    	# ----
+
+# see also code in Supplement_02_plot_structure.R where this is re-run and plotted over structure results
 
 # hclust (in base R)
 # Consensus UPGMA dendrogram (see Acquadro et al. 2017)
@@ -320,16 +401,23 @@ table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.40)
 # https://dyerlab.github.io/applied_population_genetics/genetic-distances.html
 
 # re-do distance matrix on raw data:
+ddir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/00_Data/Filtered_DartSeq_format"
+ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
+ghead(ddat)
+
+# data
 clust_dat<-ddat
 rownames(clust_dat)<-clust_dat$ind
 clust_dat<-clust_dat[,3:length(clust_dat)]
 ghead(clust_dat)
 
+# distance matrix and hierarchical clustering:
 hc_dist<-dist(x = clust_dat, method="euclidean")
 euc_clust<-hclust(hc_dist)
 str(euc_clust)
 head(neuc_df,3); dim(neuc_df)
 
+# plot:
 quartz("",10,4,dpi=140)
 par(mar=c(0,4,1,0), mgp=c(2.8,1,0))
 plot(euc_clust, cex=0.5, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)")
@@ -338,11 +426,9 @@ hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hc
 
 # write.table(hc1_names, "hclust1_order.txt", sep="\t", quote=F, row.names=F)
 
-# close distances ----
+# close hclust ----
 
-#  Calculate genetic diversity:    	# ----
-
-## -- ** POPULATION LEVEL GENETIC DIVERSITY:
+#  POPULATION LEVEL GENETIC DIVERSITY:    	# ----
 
 genind_neutral # all filters + neutral markers only (20159 loci)
 genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
