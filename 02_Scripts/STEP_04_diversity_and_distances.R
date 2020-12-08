@@ -363,14 +363,14 @@ table(neuc_df$kinship_mle[neuc_df$same_block==0]>0.45)
 
 head(neuc_df,3); dim(neuc_df)
 
+
+
 # is there a difference in the probability of being a clone (> 0.45) between the burnt and unburnt sites?
 
 kinsh<-neuc_df
+
+# set clone cutoff
 kinsh$clone<-ifelse(kinsh$kinship_mle>0.45,1,0)
-
-# the analysis will only be done within blocks, so remove all pw comparisons from different blocks:
-
-kinsh<-kinsh[-which(kinsh$same_block==0),]
 
 sdt$site %in% kinsh$site1
 sdt$site %in% kinsh$site2
@@ -383,14 +383,60 @@ kinsh<-merge(kinsh, bdat, by.x="site1", by.y="site", all.x=T, all.y=F)
 colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s1","b3L_s1")
 kinsh<-merge(kinsh, bdat, by.x="site2", by.y="site", all.x=T, all.y=F)
 colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s2","b3L_s2")
+
+#
 head(kinsh,3); dim(kinsh)
 
-check.rows(kinsh,3)
+# remove pw comparisons from different blocks:
+kinsh2<-kinsh[-which(kinsh$same_block==0),]
+
+# remove pw comparisons from different sites:
+kinsh3<-kinsh2[-which(kinsh2$same_site==0),]
+
+head(kinsh3,3); dim(kinsh3)
+table(kinsh3$site1, kinsh3$clone)
+
+# site 11 has a lower probability of clonality than the other sites. This is interesting because this site did not have higher individual heterozygosity. It did have higher allelic richness, but this was most likely because it included samples from two genetic clusters. However, since we have only a site-level coordinate, not individual plant coordinates, we cannot know if this reflects a different spatial sampling regime at this site (but we should check this with JF)
+# There is no difference in probability of clonality between unburnt and the regular, roadside burnt sites
+m4<-glm(clone~b3L_s1, family="binomial", data=kinsh3)
+m4null<-glm(clone~1, family="binomial", data=kinsh3)
+summary(m4)
+anova(m4)
+AIC(m4); AIC(m4null)
+
+m5<-lm(kinship_mle~b3L_s1, data=kinsh3)
+m5null<-lm(kinship_mle~1, data=kinsh3)
+summary(m5)
+anova(m5)
+AIC(m5); AIC(m5null)
+
+# Removing site 11 to look only at the unburnt and roadside burnt sites, there is no influence of burn category on the probability of being a clone:
+
+# We could explore this more formally with GDM but I don't think it's worth it, given the lack of result shown here. The GDM takes a similar approach and will likely reveal the same thing
+
+kinsh4<-kinsh3
+which(kinsh4$block1=="X11")==which(kinsh4$block2=="X11")
+kinsh4<-kinsh4[-which(kinsh4$block1=="X11"),]
+kinsh4<-tidy.df(kinsh4)
+head(kinsh4,3); dim(kinsh4)
+
+m6<-glm(clone~b3L_s1, family="binomial", data=kinsh4)
+m6null<-glm(clone~1, family="binomial", data=kinsh4)
+summary(m6)
+anova(m6)
+AIC(m6); AIC(m6null)
+
+m7<-lm(kinship_mle~b3L_s1, data=kinsh4)
+m7null<-lm(kinship_mle~1, data=kinsh4)
+summary(m7)
+anova(m7)
+AIC(m7); AIC(m7null)
 
 # save.image("03_Workspaces/divdist_ALL.RData")
 
 
 # close individual distances ----
+
 
 #  Individaul genetic diversity	# ----
 
@@ -445,6 +491,7 @@ summary(m1)
 anova(m1)
 
 # I think m2 is the best model to use for examining burn effects on diversity. It accounts for spatial autocorrelation of samples within the same block and for background genetic variation by fitting the genetic cluster as a random effect. 
+# There is no effect of burn category ("u", "b" and "b2") on individual heterozygosity:
 library(lmerTest)
 m2<-lmer(ind_het~burn2+long+(1|K3)+(1|block), data=ih_dat)
 summary(m2)
