@@ -51,6 +51,20 @@ sdat<-sdat[sdat$sequenced==1,]
 sdat<-tidy.df(sdat)
 head(sdat); dim(sdat)
 
+# Format to match genetic data:
+sdt<-sdat[,c("block","pop","year","burn_unburnt","time_since_burn","no_samples","lat","long")]
+colnames(sdt)<-c("block","site","year","burn","TSF","no_samples","lat","long")
+sdt$burn<-factor(sdt$burn, levels=c("u","b"))
+sdt$burn2<-as.character(sdt$burn)
+sdt$burn2[which(sdt$block=="buf11")]<-"b2"
+sdt$burn2<-factor(sdt$burn2, levels=c("u","b","b2"))
+head(sdt, 3); dim(sdt)
+
+# Load cluster assignment data:
+kdat<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt2.txt", header=T)
+kd<-kdat[,c("indiv", "K3", "K4")]
+head(kd,3); dim(kd)
+
 # save.image("03_Workspaces/divdist_ALL.RData")
 
 # close genind object ----
@@ -354,7 +368,32 @@ text(0.43, 80,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship
 table(neuc_df$kinship_mle[neuc_df$same_site==1]<0.25)
 table(neuc_df$kinship_mle[neuc_df$same_block==1]<0.25)
 
-head(neuc_df,3)
+head(neuc_df,3); dim(neuc_df)
+
+# is there a difference in the probability of being a clone (> 0.45) between the burnt and unburnt sites?
+
+kinsh<-neuc_df
+kinsh$clone<-ifelse(kinsh$kinship_mle>0.45,1,0)
+
+# the analysis will only be done within blocks, so remove all pw comparisons from different blocks:
+
+kinsh<-kinsh[-which(kinsh$same_block==0),]
+
+sdt$site %in% kinsh$site1
+sdt$site %in% kinsh$site2
+
+bdat<-sdt[,c("site","burn","burn2")]
+colnames(bdat)[2:3]<-c("b2L","b3L")
+head(bdat,3); dim(bdat)
+
+kinsh<-merge(kinsh, bdat, by.x="site1", by.y="site", all.x=T, all.y=F)
+colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s1","b3L_s1")
+kinsh<-merge(kinsh, bdat, by.x="site2", by.y="site", all.x=T, all.y=F)
+colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s2","b3L_s2")
+head(kinsh,3); dim(kinsh)
+
+check.rows(kinsh,3)
+
 
 # close individual distances ----
 
@@ -383,8 +422,35 @@ for(i in 1:nrow(ih_out)){
   
 } # close for i
 
-head(ih_out,25)
 ghead(ddat); dim(ddat)
+
+# add site data and cluster assignment:
+
+head(sdt, 3); dim(sdt)
+head(ih_out,6); dim(ih_out)
+
+ih_dat<-ih_out
+ih_dat<-merge(ih_out, sdt, by="site", all.x=T, all.y=F)
+head(ih_dat,3); dim(ih_dat)
+
+# merge K on individual:
+head(kd,3); dim(kd)
+table(kd$indiv %in% ih_dat$ind)
+table(ih_dat$ind %in% kd$indiv)
+
+ih_dat<-merge(ih_dat, kd, by.x="ind", by.y="indiv", all.x=T, all.y=T)
+ih_dat$K3<-as.factor(ih_dat$K3)
+ih_dat$K4<-as.factor(ih_dat$K4)
+head(ih_dat,3); dim(ih_dat)
+
+m1<-lm(ind_het~burn2+K3, data=ih_dat)
+summary(m1)
+anova(m1)
+
+library(lmerTest)
+m2<-lmer(ind_het~burn2+(1|K3), data=ih_dat)
+summary(m2)
+anova(m2)
 
 # save.image("03_Workspaces/divdist_ALL.RData")
 
