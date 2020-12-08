@@ -332,17 +332,7 @@ neuc_df$same_site<-ifelse(neuc_df$site1==neuc_df$site2,1,0)
 neuc_df$same_block<-ifelse(neuc_df$block1==neuc_df$block2,1,0)
 check.rows(neuc_df,3)
 
-# If you're in the same site or block, you have a much higher chance of being a clone:
-# plot(as.factor(neuc_df$same_site), neuc_df$kinship_mle)
-# plot(as.factor(neuc_df$same_block), neuc_df$kinship_mle)
-mod1<-lm(kinship_mle~as.factor(same_site), data=neuc_df)
-mod2<-lm(kinship_mle~as.factor(same_block), data=neuc_df)
-mnull<-lm(kinship_mle~1, data=neuc_df)
-summary(mod1)
-summary(mod2)
-AIC(mod1); AIC(mod2); AIC(mnull)
-
-# what proportion of samples collected in the same site are clones?
+# what proportion of samples are clones, if we infer that kinship > 0.45 is a clone?
 table(neuc_df$kinship_mle>0.45)
 table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.45)
 table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.45)
@@ -368,6 +358,7 @@ text(0.43, 80,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship
 table(neuc_df$kinship_mle[neuc_df$same_site==1]<0.25)
 table(neuc_df$kinship_mle[neuc_df$same_block==1]<0.25)
 
+# although most clones are within the same block or site, there are still 800 pairs of plants that are clones from different blocks, i.e several km apart:
 table(neuc_df$kinship_mle[neuc_df$same_block==0]>0.45)
 
 head(neuc_df,3); dim(neuc_df)
@@ -395,6 +386,8 @@ colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s2","b3L_s2")
 head(kinsh,3); dim(kinsh)
 
 check.rows(kinsh,3)
+
+# save.image("03_Workspaces/divdist_ALL.RData")
 
 
 # close individual distances ----
@@ -445,16 +438,60 @@ ih_dat$K3<-as.factor(ih_dat$K3)
 ih_dat$K4<-as.factor(ih_dat$K4)
 head(ih_dat,3); dim(ih_dat)
 
+# MODEL individual heterozygosity ~ burn category:
+
 m1<-lm(ind_het~burn2+K3, data=ih_dat)
 summary(m1)
 anova(m1)
 
+# I think m2 is the best model to use for examining burn effects on diversity. It accounts for spatial autocorrelation of samples within the same block and for background genetic variation by fitting the genetic cluster as a random effect. 
 library(lmerTest)
-m2<-lmer(ind_het~burn2+long+(1|K3), data=ih_dat)
+m2<-lmer(ind_het~burn2+long+(1|K3)+(1|block), data=ih_dat)
 summary(m2)
 anova(m2)
 
 ih_dat[which(ih_dat$K3==1),]
+
+# MODEL individual heterozygosity ~ genetic cluster:
+
+m3<-lmer(ind_het~K3+(1|block), data=ih_dat)
+summary(m3)
+anova(m3)
+
+nd1<-data.frame(K3=as.factor(c(1,2,3)))
+p1<-predictSE(m3, newdata = nd1, se.fit=T)
+p1<-data.frame(nd1, fit=p1$fit, se=p1$se.fit)
+p1$lci<-p1$fit-(1.96*p1$se)
+p1$uci<-p1$fit+(1.96*p1$se)
+p1
+
+# PLOT genetic diversity ~ genetic cluster:
+
+# COLOURS:
+# The main structure plot used the colour order in switch.col and the structure plot in the dendro used switch.col2 - rearranged so they would match
+# switch.col is green, purple, orange
+switch.col<-c("#7FC97F", "#BEAED4", "#FDC086")
+
+# switch.col2 is orange, green, purple
+switch.col2<-c("#FDC086", "#7FC97F", "#BEAED4")
+
+# switch.col2 is in the correct order for plotting K1:K3
+ih_dat[which(ih_dat$ind=="X11b1_02"),] # K2 == green
+ih_dat[which(ih_dat$ind=="X08b_03"),] # K1 == orange
+ih_dat[which(ih_dat$ind=="X02b_03"),] # K3 == purple
+# plot(1:3, 1:3, col=switch.col2, cex=2, pch=16)
+
+head(ih_dat,3); dim(ih_dat)
+
+quartz("",4,4,dpi=100, pointsize=20)
+par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
+plot(1:3, p1$fit, ylim=c(min(p1$lci), max(p1$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
+arrows(1:3, p1$lci,1:3, p1$uci, code=3, angle=90, length=0.05,lwd=1.5)
+axis(side=1, at=c(1:3), labels = c(1,2,3))
+title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+text(2,0.12, labels="P < 0.001", adj=0)
+points(1:3, p1$fit, col=switch.col2, cex=2)
+points(1:3, p1$fit, col=switch.col2, cex=2,pch=20)
 
 # save.image("03_Workspaces/divdist_ALL.RData")
 
