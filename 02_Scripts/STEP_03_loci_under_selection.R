@@ -35,7 +35,7 @@ bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter P
 bs_dir<-"../Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
 dir(bs_dir)
 
-bs_fst<-paste(bs_dir,"Cenchrus_filt2_fst.txt",sep="/") #check fst file
+bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_fst.txt",sep="/") #check fst file
 
 # FST Outlier loci:
 # dev.new() 
@@ -237,7 +237,7 @@ pc3<-x$scores[,3]
 
 # colour-trtments
 # label-site_name
-
+library(stringr)
 site_name<-str_extract(poplist.names,"[0-9]+")
 colour_codes<-NA
 colour_codes[grep("b",poplist.names)]<-"red"
