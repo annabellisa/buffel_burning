@@ -29,7 +29,7 @@ gt_data<-snp_onerow
 
 # Directory with bayescan results:
 bs_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/Offline_Results/Old Files//BayeScan/Cenchrus_filt2_BS_po400_RESULTS" # check fst file?
-bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter Project\\Old Files\\BayeScan\\Cenchrus_BS_po400_RESULTS" 
+bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter Project\\Cenchrus_BS_po400_RESULTS" 
 
 
 bs_dir<-"../Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
