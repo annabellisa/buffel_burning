@@ -368,6 +368,8 @@ text(0.43, 80,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship
 table(neuc_df$kinship_mle[neuc_df$same_site==1]<0.25)
 table(neuc_df$kinship_mle[neuc_df$same_block==1]<0.25)
 
+table(neuc_df$kinship_mle[neuc_df$same_block==0]>0.45)
+
 head(neuc_df,3); dim(neuc_df)
 
 # is there a difference in the probability of being a clone (> 0.45) between the burnt and unburnt sites?
@@ -393,11 +395,7 @@ colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s2","b3L_s2")
 head(kinsh,3); dim(kinsh)
 
 check.rows(kinsh,3)
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 667da9426b799d0488889f17bfcf19d1cb3c899a
 
 # close individual distances ----
 
@@ -452,9 +450,11 @@ summary(m1)
 anova(m1)
 
 library(lmerTest)
-m2<-lmer(ind_het~burn2+(1|K3), data=ih_dat)
+m2<-lmer(ind_het~burn2+long+(1|K3), data=ih_dat)
 summary(m2)
 anova(m2)
+
+ih_dat[which(ih_dat$K3==1),]
 
 # save.image("03_Workspaces/divdist_ALL.RData")
 
