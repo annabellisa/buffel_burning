@@ -28,18 +28,18 @@ load("D:\\Onedrive\\OneDrive - The University of Queensland\\GitHub\\Binyin_Wint
 gt_data<-snp_onerow
 
 # Directory with bayescan results:
-bs_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/Offline_Results/Old Files//BayeScan/Cenchrus_filt2_BS_po400_RESULTS" # check fst file?
-bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter Project\\Cenchrus_BS_po400_RESULTS" 
 
+bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter Project\\Cenchrus_filt2_BS_po400_RESULTS" 
 
 bs_dir<-"../Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
+
 dir(bs_dir)
 
 bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_fst.txt",sep="/") #check fst file
 
 # FST Outlier loci:
 # dev.new() 
-bsres<-plot_bayescan(res=bs_fst,FDR=0.05) # error 
+bsres<-plot_bayescan(res=bs_fst,FDR=0.05) 
 bs_outl<-bsres$outliers
 bs_n_outl<-bsres$nb_outliers
 
@@ -47,7 +47,7 @@ bs_n_outl<-bsres$nb_outliers
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
 
-bslinf<-read.table("D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Old Files/BayeScan/bs_loci_filt1.txt", header = TRUE)
+bslinf<-read.table("D:\\Onedrive\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\RESULTS\\STRUCTURE\\STRUCTURE_DIR\\Cenchrus_filt2\\Cenchrus_filt2_loci.txt", header = TRUE)
 bslinf<-read.table("../Offline_Results/BayeScan/BayeScan_ANALYSIS/Cenchrus_filt2/bs_loci_filt2.txt", header = TRUE) 
 
 head(bslinf); dim(bslinf)
@@ -71,8 +71,9 @@ bs_sel<-paste(bs_dir,"Cenchrus_filt2_BS_po400.sel",sep="/")
 seldat<-read.table(bs_sel,colClasses="numeric")
 
 # Plot log likelihood:
-parameter<-"logL" # a few minutes
-plot(density(seldat[[parameter]]),xlab=parameter,main=paste(parameter,"posterior distribution PO=400"))
+parameter<-"logL" # a few minutes 
+plot(density(seldat[[parameter]]),xlab="log Likelihood",main="BayeScan posterior distribution")
+
 
 # Plot FST:
 quartz("",5,8,dpi=100) # Error
@@ -184,7 +185,7 @@ x <- pcadapt(input = filename, K = 22)
 
 quartz("",4,4,dpi=160,pointsize=12) # Error
 par(mar=c(4,4,0.5,0.5))
-plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
+plot(1:K,x$singular.values^2,xlab="Principal component",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "PCA scree plot")
 title(xlab="PC",mgp=c(2.5,1,0))
 grid()
 lines(1:K,x$singular.values^2)
@@ -574,7 +575,7 @@ head(summary(pc)$importance[2,])
 # Plot prop var explained for comparison with pcadapt (instead of stdev^2 used in example):
 dev.new("",4,4,dpi=160,pointsize=12)
 par(mar=c(4,4,0.5,0.5))
-plot(1:40,summary(pc)$importance[2,][1:40],xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
+plot(1:40,summary(pc)$importance[2,][1:40], main = "LFMM scree plot",xlab="Principal component ",ylab="Proportion variance explained",pch=20,las=1,type="n")
 title(xlab="PC",mgp=c(2.5,1,0))
 grid()
 lines(1:40,summary(pc)$importance[2,][1:40])
@@ -650,20 +651,23 @@ ggplot(data = lfres,mapping = aes(x= 1:nrow(lfres), y = -log(long_p,10))) +
  # geom_point(data = lfres_df_bu, aes(x = as.numeric(rowname),-log(burn_unburnt,10), colour = "green"))+
   labs(y ="-log10(p value)",
        x ="locus") +
-  theme_article()
+  theme_article() 
+  
 
 
 # AS manhattan (30 Oct 2020):
 quartz("",8,4,dpi=100)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 plot(1:nrow(lfres),-log(lfres$long_p,10),type="n")
-plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,xlab="locus",ylim= c(0,max(-log(lfres[,2:4],10))))
+plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,xlab="Locus",ylim= c(0,max(-log(lfres[,2:4],10))), main = "LFMM outlier loci for two PCs")
 
 points(1:nrow(lfres),-log(lfres$long_p,10),pch=20,col=as.factor(lfres$lo_q<0.05))
 
 points(rownames(lfres)[lfres$bu_q<alpha],-log(lfres$burn_unburnt_p[lfres$bu_q<alpha],10),pch=20,col="green")
 points(rownames(lfres)[lfres$lo_q<alpha],-log(lfres$long_p[lfres$lo_q<alpha],10),pch=20,col="blue")
-legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=20,col=c("green","blue"))
+legend("topleft",legend=c("PC longtitude"),pch=20,col=c("blue"))
+# legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=20,col=c("green","blue"))
+
 
 # Plot effect sizes:
 lfres$efs1<-efs.lfmm1
