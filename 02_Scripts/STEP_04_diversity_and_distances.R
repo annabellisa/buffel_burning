@@ -393,7 +393,11 @@ colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s2","b3L_s2")
 head(kinsh,3); dim(kinsh)
 
 check.rows(kinsh,3)
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 667da9426b799d0488889f17bfcf19d1cb3c899a
 
 # close individual distances ----
 
