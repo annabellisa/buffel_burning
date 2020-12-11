@@ -7,7 +7,7 @@
 ### Author: Annabel Smith & Binyin Di
 
 # AS Load workspace:
-load("03_workspaces/divdist_ALL.RData")
+load("03_workspaces/STEP04_divdist_ALL.RData")
 
 # BD Neutral Dataset: 20159 (20161)
 load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NeturalWksp.RData")
@@ -65,7 +65,7 @@ kdat<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt2.txt", header=T)
 kd<-kdat[,c("indiv", "K3", "K4")]
 head(kd,3); dim(kd)
 
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # close genind object ----
 
@@ -91,7 +91,7 @@ dir(gp_dir)
 print(Sys.time())
 fst<-diffCalc(paste(gp_dir,"Genepop_Neutral_filt2.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 # save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
 
 head(fst$pairwise$Fst)
@@ -173,7 +173,7 @@ m2$same_block<-ifelse(m2$same_block==T,1,0)
 check.rows(m2)
 
 # write.table(m2,"m2.txt",row.names=F,quote=F,sep="\t")
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # Analyse FST:
 
@@ -264,7 +264,7 @@ head(ibd_mle.coeff); dim(ibd_mle.coeff)
 
 # plot(ibd.coeff$kinship,ibd_mle.coeff$kinship)
 
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # combine:
 neuc_df$kinship_mle<-ibd_mle.coeff$kinship
@@ -296,7 +296,7 @@ for (i in 1:nrow(neuc_df)){
   
 } # close i
 
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # compare methods:
 
@@ -309,7 +309,7 @@ plot(neuc_df$kinship_mle, neuc_df$prop_match, pch=20, xlab="Kinship MLE", ylab="
 
 plot(neuc_df$kinship_mom, neuc_df$kinship_mle,  pch=20, xlab="Kinship MoM", ylab="Kinship MLE")
 
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # Are all samples WITHIN sites clones?
 # Kinship coefficient == 1/2 * relatedness coefficient, such that:
@@ -432,7 +432,7 @@ summary(m7)
 anova(m7)
 AIC(m7); AIC(m7null)
 
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 
 # close individual distances ----
@@ -540,7 +540,7 @@ text(2,0.12, labels="P < 0.001", adj=0)
 points(1:3, p1$fit, col=switch.col2, cex=2)
 points(1:3, p1$fit, col=switch.col2, cex=2,pch=20)
 
-# save.image("03_Workspaces/divdist_ALL.RData")
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # close individual diversity ----
 
@@ -595,7 +595,7 @@ gendiv_neutral <- basic.stats(genind_neutral, diploid = TRUE, digits = 2)
 str(gendiv_neutral) # 1 min
 head(gendiv_neutral$Ho)
 tail(gendiv_neutral$Ho)
-# save.image("03_workspaces/divdist_ALL.RData")
+# save.image("03_workspaces/STEP04_divdist_ALL.RData")
 
 gd_neutral<-data.frame(site=names(apply(gendiv_neutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_neutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_neutral$Ho,2,mean,na.rm=T),He=apply(gendiv_neutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_neutral$Fis,2,mean,na.rm=T))
 gd_neutral<-tidy.df(gd_neutral)
@@ -617,7 +617,7 @@ head(gd_nonneutral); dim(gd_nonneutral)
 gd_nonneutral$site<-substr(gd_nonneutral$site,1,nchar(as.character(gd_nonneutral$site))-3)
 head(gd_nonneutral)
 
-# save.image("03_workspaces/divdist_ALL.RData")
+# save.image("03_workspaces/STEP04_divdist_ALL.RData")
 
 ## -- ** ALLELIC RICHNESS:
 
@@ -639,7 +639,7 @@ head(ar_neutral$Ar,2)
 str(ar_nonneutral)
 head(ar_nonneutral$Ar,2)
 
-# save.image("03_workspaces/divdist_ALL.RData")
+# save.image("03_workspaces/STEP04_divdist_ALL.RData")
 
 # NF
 save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_NF.RData")
@@ -702,7 +702,7 @@ gd_all<-gd_all[,c(c(which(colnames(gd_all) %in% c("site","max_n"))),c(which(!col
 head(gd_all,3); dim(gd_all)
 
 # write.table(gd_all, "gd_all.txt", row.names=F, quote=F, sep="\t")
-# save.image("03_workspaces/divdist_ALL.RData")
+# save.image("03_workspaces/STEP04_divdist_ALL.RData")
 
 # Binding
 # dplyr from tidyverse to bind columns 

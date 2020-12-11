@@ -9,10 +9,8 @@
 #Set Working dir
 setwd("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
 
-
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
 load("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
-
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
 load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
@@ -45,8 +43,6 @@ ghead(filtered_data); dim(filtered_data)
 # --- *** Filter monomorphic loci *** --- #
 filtered_data<-mono_loci(filtered_data,3)
 ghead(filtered_data); dim(filtered_data)
-
-
 
 # --- *** DartSeq Quality Control (QC) filters *** --- #
 
@@ -95,14 +91,11 @@ ldf<-0.75
 
 ##BD's Script#
 LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
-
-dir(LD_dir)
 ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 
 # AS LD: 
 LD_dir_AS<-"RESULTS/LD_results"
-dir(LD_dir_AS)
-ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
+ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 head(ld_loc); dim(ld_loc)
 
 ldfilt<-as.character(ld_loc$locus)
@@ -125,7 +118,6 @@ ghead(filtered_data); dim(filtered_data)
 # for all neutrality tests, duplicated and monomorphic loci were removed and loci with < 50% call rate were removed. No other filters were applied. 
 
 # PCAdapt uses bed, bim, fam files (i.e. PLINK files) and LFMM a special format. See the format scripts below for these programs. 
-
 # BD: Directory with results:
 sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 
@@ -168,8 +160,8 @@ ghead(filtered_data); dim(filtered_data)
 ####   	 	 FORMAT DARTSEQ:    	 ####
 
 # For analyses that require DartSeq format (e.g. our genetic diversity analysis), the data can be written directly, without any further processing:
-write.csv(filtered_data, "dartseq_filt2.txt", quote=F, row.names=F)
-write.table(filtered_data, "dartseq_filt2.txt", quote=F, row.names=F, sep="\t")
+write.csv(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F)
+write.table(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F, sep="\t")
 
 ####   	 	 FORMAT GENEPOP:    	 ####
 
@@ -234,7 +226,7 @@ head(plink_locus_info)
 
 # parameter flags for param file:
 data<-filtered_data
-headline<-"Cenchrus_filt2"
+headline<-"Adaptive_DartSeq_Format"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -245,7 +237,7 @@ param.callrate<-T
 param.MAF<-T
 param.LD<-T
 param.HWE<-F
-param.neu<-T
+param.neu<-F
 param.dup<-T
 
 # my original plink parameter file was write_parameters() in the format_plink.R library but the genepop one is working better

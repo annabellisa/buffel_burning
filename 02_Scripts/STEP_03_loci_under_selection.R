@@ -16,9 +16,7 @@ load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/b
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
-load("D:\\Onedrive\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\03_Workspaces\\divdist_ALL.RData")
-
-
+load("03_Workspaces/STEP03_loci_under_selection.RData")
 
 #  POST-PROCESS BAYESCAN results:    	# ----
 
@@ -31,52 +29,53 @@ gt_data<-snp_onerow
 
 bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter Project\\Cenchrus_filt2_BS_po400_RESULTS" 
 
-bs_dir<-"../Offline_Results/BayeScan/Cenchrus_filt2_BS_po400_RESULTS"
+bs_dir<-"/Users/annabelsmith/OneDrive - The University of Queensland/02_TEACHING/STUDENTS/Binyin_Winter/Analysis/Offline_Results/BayeScan/BayeScan_ANALYSIS/Cenchrus_filt2"
 
 dir(bs_dir)
 
-bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_fst.txt",sep="/") #check fst file
-
-# FST Outlier loci:
-# dev.new() 
+# Define bayescan outliers from FST Outlier file:
+bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_RESULTS/Cenchrus_filt2_BS_po400_fst.txt",sep="/") 
 bsres<-plot_bayescan(res=bs_fst,FDR=0.05) 
 bs_outl<-bsres$outliers
 bs_n_outl<-bsres$nb_outliers
 
-# MARKER file to separate non-neutral loci:
+# Make MARKER file to separate non-neutral loci:
 
 # Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
 
 bslinf<-read.table("D:\\Onedrive\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\RESULTS\\STRUCTURE\\STRUCTURE_DIR\\Cenchrus_filt2\\Cenchrus_filt2_loci.txt", header = TRUE)
-bslinf<-read.table("../Offline_Results/BayeScan/BayeScan_ANALYSIS/Cenchrus_filt2/bs_loci_filt2.txt", header = TRUE) 
 
+bslinf<-read.table(paste(bs_dir,"bs_loci_filt2.txt",sep="/"), header = TRUE) 
 head(bslinf); dim(bslinf)
+
 bsoutl<-data.frame(lind=bs_outl,outl=1)
 head(bsoutl); dim(bsoutl)
 
 # Outlier loci:
 bslinf<-merge(bslinf,bsoutl,by="lind", all.x = T, all.y = F)
 bslinf$outl[which(is.na(bslinf$outl))]<-0
-head(bslinf)
-table(bslinf$outl)
+head(bslinf); dim(bslinf)
 check.rows(bslinf)
 
 colnames(bslinf)[which(colnames(bslinf)=="outl")]<-"bs_outl"
+table(bslinf$bs_outl)
 
 # write.table(bslinf,file="bayescan_outliers.txt",quote=F,row.names=F,sep="\t")
 
 # *** PLOT DIAGNOSTICS:
 
-bs_sel<-paste(bs_dir,"Cenchrus_filt2_BS_po400.sel",sep="/")
+bs_sel<-paste(bs_dir,"Cenchrus_filt2_BS_po400_RESULTS/Cenchrus_filt2_BS_po400.sel",sep="/")
 seldat<-read.table(bs_sel,colClasses="numeric")
+# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
 
 # Plot log likelihood:
+dev.new(width=5,height=5, noRStudioGD = T,dpi=100) 
+par(mfrow=c(1,1),mar=c(4,4,2,1),mgp=c(2,0.5,0))
 parameter<-"logL" # a few minutes 
-plot(density(seldat[[parameter]]),xlab="log Likelihood",main="BayeScan posterior distribution")
-
+plot(density(seldat[[parameter]]),xlab="log Likelihood",main="BayeScan posterior distribution", font.main=1)
 
 # Plot FST:
-quartz("",5,8,dpi=100) # Error
+dev.new(width=5,height=8, noRStudioGD = T,dpi=80) 
 par(mfrow=c(3,3),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
 for (i in grep("Fst",colnames(seldat))){
 par.thisrun<-colnames(seldat)[i]
@@ -86,17 +85,13 @@ legend("bottom",legend=par.thisrun,cex=1,bty="n")
 
 dim(seldat)
 
+# Plot alpha for a random selection of loci:
 alphacols<-colnames(seldat)[grep("alpha",colnames(seldat))]
-head(alphacols)
 outl_alpha<-paste("alpha",bs_outl,sep="")
 head(outl_alpha)
 table(outl_alpha %in% alphacols)
 
-# TRUE 
-# 5
-
-# Plot alpha for a random selection of loci:
-quartz("",12,8,dpi=80)
+dev.new(width=12,height=8, noRStudioGD = T,dpi=80) 
 par(mfrow=c(5,10),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
 for (i in 1:50){
 col.thisrun<-sample(outl_alpha,1)
@@ -106,54 +101,33 @@ legend("bottom",legend=par.thisrun,cex=1,bty="n")
 }
 
 # *** PLOT OUTLIER LOCI:
+
 loc.toanalyse<-as.character(bslinf$locus[which(bslinf$bs_outl==1)]) 
 length(loc.toanalyse)
 head(loc.toanalyse)
 
-# Location for heatmap files:	
-out.dir<-"../Offline_Results/RESULTS/BayeScan/new_heatmaps"
-out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Cenchrus_filt2_BS_po400"
-out.dir
-
-## Make sure they're all in site data
-
-# unique(gt_data$site) %in% sdat$site_code # add a new column
+# Make sure site in genotype and site data match:
+site_data<-sdat
+site_data$site<-sub("buf","X",site_data$site)
+ghead(gt_data)
+head(site_data,3)
+table(gt_data$site %in% site_data$site)
 
 # PLOT GENOTYPE FREQUENCIES BY LOCATION:
 
-# Takes about 15 seconds for 100
-
-head(loc.toanalyse)
-ghead(gt_data)
-head(sdat,3)
-dir(out.dir)
+loc.toanalyse # for Cenchrus there's only 5 outliers from BS:
 length(loc.toanalyse)
 
-sdat$site_code <- sub("buf","X",sdat$site)
-site_data<-sdat
+# Location for heatmap files:	
+out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Cenchrus_filt2_BS_po400"
+dir(out.dir)
 
-# this plots by longitude (see plot_freq_long folder for results)
-plot_freq_long(loc.toanalyse,gt_data,sdat,out.dir,5) 
+# this plots by longitude (see plot_freq_long folder for results); use "jpg" for windows or "pdf" for mac
+out.dir<-"RESULTS/BayeScan/plot_freq_long"
+plot_freq_long(loci=loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 5, out_file_type="pdf") 
 
-# From the manual:
-# plotting posterior distribution is very easy in R with the output of BayeScan:
-# first load the output file *.sel produced by BayeScan
-dir(bs_dir)
-
-# you can plot population specific Fst coefficient by setting
-parameter<-"Fst1"
-
-# if you test for selection, you can plot the posterior for alpha coefficient for selection:
-parameter<-"alpha41121"
-
-# you also have access to the likelihood with:
-parameter<-"logL"
-
-# if you have the package "boa" installed, you can very easily obtain Highest Probability 
-library(boa)
-
-# Density Interval (HPDI) for your parameter of interest (example for the 95% interval):
-boa.hpd(seldat[[parameter]],0.05)
+out.dir<-"RESULTS/BayeScan/plot_freq_burn"
+plot_freq_long(loci=loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 5, out_file_type="pdf") 
 
 # close BayeScan ----
 
@@ -161,12 +135,16 @@ boa.hpd(seldat[[parameter]],0.05)
 
 # tutorial:
 # browseVignettes("pcadapt")
-
-# Tutorial: https://bcm-uga.github.io/pcadapt/articles/pcadapt.html  
+# or: https://bcm-uga.github.io/pcadapt/articles/pcadapt.html  
 
 library(pcadapt)
 library(qvalue)
 library(grDevices)
+
+# to install qvalue:
+# https://www.bioconductor.org/packages/release/bioc/html/qvalue.html
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+# install.packages("BiocManager")
 
 path_to_file <- "RESULTS/PCAdapt/PCAdapt_files"
 
@@ -176,17 +154,17 @@ dir(path_to_file)
 
 filename <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
 
-### --- *** CHOOSE K *** --- ###
-K <- 22 # Capitalised K
-  
-x <- pcadapt(input = filename, K = 22) 
+### --- *** SET INITIAL K *** --- ###
 
-# CHOOSE K FROM SCREE PLOT: reproduce built in plot: plot(x, option = "screeplot")
+K <- 19 # Begin with the number of sample sites
+x <- pcadapt(input = filename, K = 19) 
 
-quartz("",4,4,dpi=160,pointsize=12) # Error
-par(mar=c(4,4,0.5,0.5))
-plot(1:K,x$singular.values^2,xlab="Principal component",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "PCA scree plot")
-title(xlab="PC",mgp=c(2.5,1,0))
+# CHOOSE K FROM SCREE PLOT:
+
+dev.new(width=4,height=4,dpi=160,pointsize=12, noRStudioGD = T)
+par(mar=c(4,4,2,0.5))
+plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "PCA scree plot", font.main=1)
+title(xlab="Principal component",mgp=c(2.5,1,0))
 grid()
 lines(1:K,x$singular.values^2)
 points(1:K,x$singular.values^2,pch=20)
@@ -199,10 +177,10 @@ head(famf)
 poplist.names <- as.character(famf$V1)
 head(poplist.names)
 
-# Reproduce inbuilt PC plot: plot(x, option = "scores", i = 1, j = 2, pop = poplist.names)
+# Reproduce inbuilt PC plot: 
 
-quartz("",10,10,dpi=80,pointsize=14) # Error
-par(mfrow=c(5,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
+dev.new(width=10,height=4,dpi=80,pointsize=14,noRStudioGD = T)
+par(mfrow=c(2,5),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 
 for (i in seq(1,ncol(x$scores),2)){
   pc1<-x$scores[,i]
@@ -212,285 +190,76 @@ for (i in seq(1,ncol(x$scores),2)){
   title(ylab=paste("PC",i+1,sep=""),cex.lab=1)
 }
 par(xpd=NA)
-legend(0, -2,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=9)
+legend(0.6, 0.55,legend=unique(poplist.names),col=rainbow(length(unique(poplist.names))),pch=20,ncol=3)
+par(xpd=F)
 
 ### --- *** SET K *** --- ###
 
-K<-3 # return 
+K<-2 # return 
 x <- pcadapt(input = filename, K = K) 
 summary(x)
 
+### --- *** CHECK LOADINGS FOR LD *** --- ###
 
-
-# Check for LD 
-dev.new("",10,4,dpi=80,pointsize=14) # Error
+dev.new(width=10,height=4,dpi=80,pointsize=14,noRStudioGD = T)
 par(mfrow=c(1,3),mar=c(4,4,1,1),mgp=c(2.5,1,0))
 for (i in 1:ncol(x$loadings)){
   plot(x$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
   }
-
-
 pc1<-x$scores[,1]
 pc2<-x$scores[,2]
 pc3<-x$scores[,3]
 
-
-
-# colour-trtments
-# label-site_name
-library(stringr)
-site_name<-str_extract(poplist.names,"[0-9]+")
-colour_codes<-NA
-colour_codes[grep("b",poplist.names)]<-"red"
-colour_codes[grep("u",poplist.names)]<-"blue"
-treatments<-NA
-treatments[grep("b",poplist.names)]<-"Burnt"
-treatments[grep("u",poplist.names)]<-"Unburnt"
-
-plotdata <- data.frame(pc1,pc2,pc3,colour_codes,site_name,treatments)
-
-
-
-
-# lattice methods 
-
-install.packages("lattice", dependencies = TRUE)
-library(lattice)
-show.settings()
-
-install.packages("gridExtra")
-library(gridExtra)
-require(gridExtra) 
-require(lattice)
-
-plot1<-xyplot(pc2~pc1, scales=list(cex=1, col="red"),
-              col=colour_codes, 
-              xlab="pc1", ylab="pc2",
-              main="pc1 v pc2",
-              panel.text(pc1, pc2, labels = poplist.names))
-
-plot2<-xyplot(pc2~pc3, scales=list(cex=1, col="red"),
-              col=colour_codes,
-              xlab="pc3", ylab="pc2",
-              main="pc2 v pc3")  
-  
-plot3<-xyplot(pc1~pc3, scales=list(cex=1, col="red"),
-              col=colour_codes,
-              xlab="pc3", ylab="pc1",
-              main="pc1 v pc3")
-
-grid.arrange(plot1,plot2,plot3, ncol=3) 
-
-text(pc1~pc3, labels = unique(poplist.names))
-
-# alternative, multi-panel by ggpairs() 
-
-library(tidyr)
-library(tidyverse)
-pc_long <- x$scores %>%
-  data.frame() %>%
-  rename(PC1 = 1, PC2 = 2, PC3 = 3) %>%
-  pivot_longer(cols = 1:3, 
-               names_to = "PC",
-               values_to = "Scores")
-# class(x$scores)
-  
-pc_mat<-x$scores
-names(pc_mat)<-c("PC1", "PC2", "PC3")
-pairs(x$scores, upper.panel = NULL)
-
-# GGally::ggpairs()
-pc_df<-data.frame(pc_mat)
-# install.packages("GGally")
-library(GGally)
-
-
-pc_df<-pc_df %>%
-  pivot_longer(cols = 1:3, 
-               names_to = "colour_codes",
-               values_to = "Scores")
-
-
-ggpairs(pc_df,  aes(colour = colour_codes)) +
-  theme_bw() +
-  scale_color_manual(values=c("red"="red","blue"="blue")) +
-  theme(text = element_text(size = 25)) 
-
-# Tidyverse, ggplot
-install.packages("quadprog")
-install.packages("directlabels", repos = "http://r-forge.r-project.org", dependencies = TRUE)
-install.packages("grid")
-install.packages("egg")
-
-library(directlabels)
-library(tidyverse)
-library(ggrepel)
-library(egg)
-
-
-
-plot1<-ggplot(plotdata,mapping = aes(x = pc1, y = pc2, colour = treatments),
-       xlab="pc1", ylab="pc2",
-       main="pc1 v pc2") +
-  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("Burnt"="red","Unburnt"="blue")) +
-  theme_article() +
-  theme(legend.position="bottom", text = element_text(size = 25)) +
-  labs(x = expression(italic("PC 1")),
-       y = expression(italic("PC 2"))) +
-  theme_article()
-
-
-plot2<-ggplot(plotdata,mapping = aes(x = pc1, y = pc3, colour = treatments),
-              xlab="pc1", ylab="pc3",
-              main="pc1 v pc3") +
-  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("Burnt"="red","Unburnt"="blue")) +
-  theme_article() +
-  theme(legend.position="bottom", text = element_text(size = 25)) +
-  labs(x = expression(italic("PC 1")),
-       y = expression(italic("PC 3"))) +
-  theme_article()
-
-plot3<-ggplot(plotdata,mapping = aes(x = pc2, y = pc3, colour = treatments),
-              xlab="pc2", ylab="pc3",
-              main="pc2 v pc3") +
-  geom_point(size = 2,alpha = 0.25) +  scale_color_manual(values=c("Burnt"="red","Unburnt"="blue")) +
-  theme_article() +
-  theme(legend.position="bottom", text = element_text(size = 25)) +
-  labs(x = expression(italic("PC 2")),
-       y = expression(italic("PC 3"))) +
-  theme_article()
-
-
-ggarrange(plot1,plot2,plot3)
-  
-# theme(axis.text = element_text(size = 20))               # Axis text size
-# For more: https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend
-
-# label method 1
-library(gghighlight)
-
-plot1_1<- plot1 +
-  #geom_label_repel(aes(label = site_name),nudge_y = .05) +
-  gghighlight() +
-  facet_wrap(~site_name)
-
-# label method 2
-plot1 + 
-geom_label_repel(aes(label = site_name),
-                 box.padding   = 0.01, 
-                 point.padding = 0.025) +
-  theme_article()
-
-# segment.color = 'grey50'
-# label method 3
-plot1 +
-  theme_article()+
-  geom_text(aes(label=ifelse(pc2<-0.1,as.character(poplist.names),'')),hjust=0,vjust=0)
-
-plot2<-ggplot(plotdata,mapping = aes(x = pc1, y = pc3, colour = colour_codes),
-              xlab="pc1", ylab="pc3",
-              main="pc1 v pc3") +
-  geom_point(size = 2,alpha = 0.25) + scale_color_manual(values=c("red"="red","blue"="blue")) +
-  theme_article() +
-  theme(text = element_text(size = 25)) 
-
-plot3<-ggplot(plotdata,mapping = aes(x = pc2, y = pc3, colour = colour_codes),
-              xlab="pc2", ylab="pc3",
-              main="pc2 v pc3") +
-  geom_point(size = 2,alpha = 0.25) + scale_color_manual(values=c("red"="red","blue"="blue")) +
-  theme_article() +
-  theme(text = element_text(size = 25)) 
-
-# Original plots 
-
-ggplot(mapping = aes(x = pc1, y = pc2, colour = site_name, shape = treatments),
-              xlab="pc1", ylab="pc2",
-              main="pc1 v pc2") +
-  geom_point(size = 10) +
-  geom_text(aes(label = poplist.names))
-
-# note: y~x | x,y
-# library(Rmisc)
-# multiplot(plot1_1, plot2_1, plot3_1, cols=3)
-
-# For future, 3D images: 
-install.packages("https://cran.r-project.org/src/contrib/Archive/plot3Drgl/plot3Drgl_1.0.tar.gz", repos = NULL, type = "source", dependencies = TRUE) 
-install.packages("plot3Drgl", dependencies = TRUE)
-install.packages("rgl")
-library(rgl)
-library(plot3Drgl)
-
-# plotrgl()
+# the loadings for PC3 suggest LD is an issue which is not surprising because we have not filtered LD loci for this initial stage; however, when I tried re-running the PCA with thinning, the problem on the loadings was not resolved. 
 
 # Get outliers based on q values:
 
-## be careful with NA, qvalue: no NA, p or pval has NA, and is.na_remove is pval without NAs
-loci <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
+loc_dat<-read.table(paste(path_to_file,"Cenchrus_filt1_loci.txt",sep="/"),header=T) 
+loc_dat$pvalue<-x$pvalues
 
-pval <-x$pvalues
-length(pval)
+# there are plenty of NAs:
+length(which(is.na(loc_dat$pvalue)))
 
-# write.table(pval,file="pval.txt",quote=F,row.names=F,sep="\t")
-is.na_remove<-x$pvalues[!is.na(x$pvalues)]
-qval <- qvalue(is.na_remove)$qvalues
-length(qval)
+# Get qvalues
+loc_dat$qvalue<-qvalue(loc_dat$pvalue)$qvalue
+length(which(is.na(loc_dat$qvalue)))
 
-# write.table(qval,file="qval.txt",quote=F,row.names=F,sep="\t")
+# Get outliers
+alpha <- 0.05
+loc_dat$outlier <- 0
+loc_dat$outlier[which(loc_dat$qvalue < alpha)]<-1
+table(loc_dat$outlier)
 
-# --------------------------------------------
-# https://statisticsglobe.com/r-is-na-function/
-# Detect if there are any NAs
-any(is.na(pval))
-
-# Locate NA in data set via which()
-which(is.na(pval))
-
-# if game
-for (i in 1:length(pval)) {
- if(is.na(pval[i])) {
-   print("Damn, it's an NA")
- }  
-  else {
-    print("Wow, that's awesome")
-  }
-}
-
-ifelse(is.na(pval), "Damn, it's an NA", "WOW, that's awesome")
-
-# ---------------------------
-
+# Associate outliers with PCs: library(pcadapt)
+qval <- qvalue(x$pvalues)$qvalues
 alpha <- 0.05
 outliers <- which(qval < alpha)
 length(outliers)
-# [1st run]4070 [2nd run]7040
 
-# Associate outliers with PCs: library(pcadapt)
-snp_pc <- get.pc(x, outliers) # 3 PCs as K=3?
-head(snp_pc)
+snp_pc <- get.pc(x,outliers)
+head(snp_pc); dim(snp_pc)
+range(snp_pc$PC)
+range(snp_pc$SNP)
 
-# write.table(snp_pc,"outliers_PCAdapt_from_snp_pc.txt",sep="\t",row.names=F,quote=F)
+# Add them to the main data frame:
+loc_dat<-merge(loc_dat, snp_pc, by.x="lind", by.y="SNP", all.x=T, all.y=F)
+loc_dat$PC[which(is.na(loc_dat$PC))]<-0
+check.rows(loc_dat)
+
+# most are outlying on PC2:
+table(loc_dat$PC)
+
+# write.table(loc_dat,"outliers_PCAdapt_from_snp_pc.txt",sep="\t",row.names=F,quote=F)
+
+save.image("03_Workspaces/STEP03_loci_under_selection.RData")
 
 # Reproduce manhattan plot:
+head(loc_dat); dim(loc_dat)
 
-qp<-data.frame(q = qval,p = is.na_remove)
-head(qp)
-plot(1:nrow(qp),-log(qp$p,10),type="n")
-points(1:nrow(qp),-log(qp$p,10),pch=20,col=as.factor(qp$q<0.05))
-# plot(1:nrow(qp),qp$q,pch=20,col=as.factor(qp$q<0.05))
-
-# get locus indices for outliers:
-pca_loc<-read.table("../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/PCAdapt/pcadapt_filt2/pcadapt_filt2_loci.txt",header=T)
-pca_loc<-read.table("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files/Cenchrus_filt1_loci.txt", header = T)
-
-pca_loc$pca_outl<-ifelse(pca_loc$lind %in% outliers,1,0)
-table(pca_loc$pca_outl)
-
-maindir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files/"
-orig_loci<-read.table(paste(maindir, "Cenchrus_filt1_loci.txt", sep="/"), header=T)
-head(orig_loci)
-head(pca_loc)
-
-table(orig_loci$locus == pca_loc$locus)
+dev.new(width=10,height=4,dpi=80,pointsize=14,noRStudioGD = T)
+par(mfrow=c(1,1),mar=c(3,4,1,1),mgp=c(2.5,1,0))
+plot(1:nrow(loc_dat),-log(loc_dat$pvalue,10),type="n", xlab="", ylab="-log10(pvalue)")
+points(1:nrow(loc_dat),-log(loc_dat$pvalue,10),pch=20, cex=0.5,col=ifelse(as.factor(loc_dat$qvalue<0.05)==T,"red","black"))
 
 # close PCAdapt ----
 

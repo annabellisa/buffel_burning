@@ -9,15 +9,16 @@ library(fields)
 
 # There are two functions:
 
-# plot geno frequencies by location (modified by BD, working on Windows only):
+# plot geno frequencies by location
 
-plot_freq_location<-function(loci,genotype_data,site_data,out.dir,number_to_plot){
+plot_freq_location<-function(loci,genotype_data,site_data,out.dir,number_to_plot,out_file_type){
 
 # loci = a character vector of loci to plot
 # gentoype_data = genetic data from which to calculate genotype frequencies
   # site_data = site data containing the variables for ordering (e.g. longitude)
   # out.dir = directory to put plots
 # number_to_plot = the number of loci to plot, from 1:number_to_plot, in case you don't want to plot all of them
+  # out_file_type = either "jpg" or "pdf" for windows and mac respectively
 
 for(i in 1:number_to_plot){
   
@@ -32,21 +33,23 @@ prop.df<-as.data.frame.matrix(t(apply(df.thisrun,1,function(y) unlist(lapply(y,f
 prop.df<-data.frame(site=rownames(prop.df),prop.df)
 colnames(prop.df)<-c("site","0","1","2")
 prop.df<-tidy.df(prop.df)
-head(prop.df)
 
-plr2<-site_data[,c("site_code","burn_unburnt","lat","long")] 
-if(length(which(duplicated(plr2$site_code)))>0) plr2<-plr2[-which(duplicated(plr2$site_code)),]
-prop.df<-merge(prop.df,plr2,by.x="site",by.y="site_code",all.x=T,all.y=F)
+head(plr2)
+
+plr2<-site_data[,c("site","burn_unburnt","lat","long")] 
+if(length(which(duplicated(plr2$site)))>0) plr2<-plr2[-which(duplicated(plr2$site)),]
+prop.df<-merge(prop.df,plr2,by.x="site",by.y="site",all.x=T,all.y=F)
+head(prop.df)
 
 # Order by burnt/unburnt and longitude:
 prop.df<-prop.df[order(prop.df$burn_unburnt, prop.df$long),] # rewriten by BD
 prop.df<-tidy.df(prop.df)
 head(prop.df)
 
-jpeg(file=paste(out.dir,paste(loc.thisrun,".jpg",sep=""),sep="/"), width = 800, height = 200, units = "px",pointsize=10, res = NA)
+if (out_file_type=="jpg") jpeg(file=paste(out.dir,paste(loc.thisrun,".jpg",sep=""),sep="/"), width = 800, height = 200, units = "px",pointsize=10, res = NA)
 
-# dev.new("",8,2,dpi=120,pointsize=10)
-# quartz("",8,2,dpi=120,pointsize=10)
+if (out_file_type=="pdf") pdf(file=paste(out.dir,paste(loc.thisrun,".pdf",sep=""),sep="/"),width=8,height=2,pointsize=10)
+
 par(mfrow=c(1,1),mar=c(4,5,2,1.5),oma=c(0,0,0,0))
 
 bk <- c(-100,seq(0,100,by=10))
@@ -71,15 +74,16 @@ dev.off()
 
 } # close plot_freq_location
 
-# plot geno frequencies by longitude (modified by BD, working on Windows only):
+# plot geno frequencies by longitude (modified by AS, working on Windows only (jpg) and Mac (pdf)):
 
-plot_freq_long<-function(loci,genotype_data,site_data,out.dir,number_to_plot){
+plot_freq_long<-function(loci,genotype_data,site_data,out.dir,number_to_plot,out_file_type){
   
   # loci = a character vector of loci to plot
   # gentoype_data = genetic data from which to calculate genotype frequencies
   # site_data = site data containing the variables for ordering (e.g. longitude)
   # out.dir = directory to put plots
   # number_to_plot = the number of loci to plot, from 1:number_to_plot, in case you don't want to plot all of them
+  # out_file_type = either "jpg" or "pdf" for windows and mac respectively
   
   for(i in 1:number_to_plot){
     
@@ -95,20 +99,20 @@ plot_freq_long<-function(loci,genotype_data,site_data,out.dir,number_to_plot){
     colnames(prop.df)<-c("site","0","1","2")
     prop.df<-tidy.df(prop.df)
     head(prop.df)
-    plr2<-site_data[,c("site_code","burn_unburnt","lat","long")] 
-    if(length(which(duplicated(plr2$site_code)))>0) plr2<-plr2[-which(duplicated(plr2$site_code)),]
-    prop.df<-merge(prop.df,plr2,by.x="site",by.y="site_code",all.x=T,all.y=F)
+    plr2<-site_data[,c("site","burn_unburnt","lat","long")] 
+    if(length(which(duplicated(plr2$site)))>0) plr2<-plr2[-which(duplicated(plr2$site)),]
+    prop.df<-merge(prop.df,plr2,by.x="site",by.y="site",all.x=T,all.y=F)
 
     # Order by longitude, then burnt/ unburnt:
     prop.df<-prop.df[order(prop.df$long, prop.df$burn_unburnt),] # rewriten by BD
     prop.df<-tidy.df(prop.df)
     head(prop.df)
     
-    jpeg(file=paste(out.dir,paste(loc.thisrun,".jpg",sep=""),sep="/"), width = 800, height = 200, units = "px",pointsize=10, res = NA)
+    if (out_file_type=="jpg") jpeg(file=paste(out.dir,paste(loc.thisrun,".jpg",sep=""),sep="/"), width = 800, height = 200, units = "px",pointsize=10, res = NA)
     
-    # dev.new("",8,2,dpi=120,pointsize=10)
-    # quartz("",8,2,dpi=120,pointsize=10)
-    par(mfrow=c(1,1),mar=c(4,5,2,1.5),oma=c(0,0,0,0))
+    if (out_file_type=="pdf") pdf(file=paste(out.dir,paste(loc.thisrun,".pdf",sep=""),sep="/"),width=8,height=2,pointsize=10)
+
+        par(mfrow=c(1,1),mar=c(4,5,2,1.5),oma=c(0,0,0,0))
     
     bk <- c(-100,seq(0,100,by=10))
     mc<-c("grey50",colorRampPalette(colors = c("white","blue"))(length(bk)-2))
