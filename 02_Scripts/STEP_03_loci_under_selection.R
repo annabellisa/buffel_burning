@@ -83,7 +83,7 @@ plot(density(seldat[[par.thisrun]]),xlab=par.thisrun,main="",cex.axis=0.75)
 legend("bottom",legend=par.thisrun,cex=1,bty="n")
 }
 
-dim(seldat)
+head(seldat); dim(seldat)
 
 # Plot alpha for a random selection of loci:
 alphacols<-colnames(seldat)[grep("alpha",colnames(seldat))]
@@ -139,16 +139,15 @@ plot_freq_long(loci=loc.toanalyse,genotype_data = gt_data,site_data = site_data,
 
 library(pcadapt)
 library(qvalue)
-library(grDevices)
 
 # to install qvalue:
 # https://www.bioconductor.org/packages/release/bioc/html/qvalue.html
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 # install.packages("BiocManager")
 
-path_to_file <- "RESULTS/PCAdapt/PCAdapt_files"
-
 path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files"
+
+path_to_file <- "RESULTS/PCAdapt/PCAdapt_files"
 
 dir(path_to_file)
 
@@ -162,8 +161,8 @@ x <- pcadapt(input = filename, K = 19)
 # CHOOSE K FROM SCREE PLOT:
 
 dev.new(width=4,height=4,dpi=160,pointsize=12, noRStudioGD = T)
-par(mar=c(4,4,2,0.5))
-plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "PCA scree plot", font.main=1)
+par(mar=c(4,4,1,0.5))
+plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "", font.main=1)
 title(xlab="Principal component",mgp=c(2.5,1,0))
 grid()
 lines(1:K,x$singular.values^2)
@@ -195,7 +194,7 @@ par(xpd=F)
 
 ### --- *** SET K *** --- ###
 
-K<-2 # return 
+K<-3 # return 
 x <- pcadapt(input = filename, K = K) 
 summary(x)
 
@@ -210,32 +209,28 @@ pc1<-x$scores[,1]
 pc2<-x$scores[,2]
 pc3<-x$scores[,3]
 
-# the loadings for PC3 suggest LD is an issue which is not surprising because we have not filtered LD loci for this initial stage; however, when I tried re-running the PCA with thinning, the problem on the loadings was not resolved. 
+# the loadings for PC3 suggest a potential LD issue which might not be surprising because we have not filtered LD loci for this neutrality testing phase; after re-running the PCA with thinning, the problem on the loadings on PC3 looked the same, so I have not pursued the thinning step. 
 
 # Get outliers based on q values:
 
 loc_dat<-read.table(paste(path_to_file,"Cenchrus_filt1_loci.txt",sep="/"),header=T) 
 loc_dat$pvalue<-x$pvalues
+head(loc_dat)
 
 # there are plenty of NAs:
 length(which(is.na(loc_dat$pvalue)))
 
-# Get qvalues
-loc_dat$qvalue<-qvalue(loc_dat$pvalue)$qvalue
-length(which(is.na(loc_dat$qvalue)))
-
-# Get outliers
+# Get outliers based on qvalues
+loc_dat$qvalue <- qvalue(x$pvalues)$qvalues
 alpha <- 0.05
+outliers <- which(loc_dat$qvalue < alpha)
 loc_dat$outlier <- 0
 loc_dat$outlier[which(loc_dat$qvalue < alpha)]<-1
+length(outliers)
 table(loc_dat$outlier)
+head(loc_dat); range(loc_dat$outlier)
 
 # Associate outliers with PCs: library(pcadapt)
-qval <- qvalue(x$pvalues)$qvalues
-alpha <- 0.05
-outliers <- which(qval < alpha)
-length(outliers)
-
 snp_pc <- get.pc(x,outliers)
 head(snp_pc); dim(snp_pc)
 range(snp_pc$PC)
@@ -246,7 +241,7 @@ loc_dat<-merge(loc_dat, snp_pc, by.x="lind", by.y="SNP", all.x=T, all.y=F)
 loc_dat$PC[which(is.na(loc_dat$PC))]<-0
 check.rows(loc_dat)
 
-# most are outlying on PC2:
+# most are outlying on PC2, none are outlying on PC3:
 table(loc_dat$PC)
 
 # write.table(loc_dat,"outliers_PCAdapt_from_snp_pc.txt",sep="\t",row.names=F,quote=F)
@@ -276,7 +271,7 @@ dir(lfmm_dir)
 # Genotype data:
 lfdat<-as.matrix(read.table(paste(lfmm_dir,"lfmm.txt",sep="/"),header=F)) # a few seconds 
 colnames(lfdat)<-NULL
-ghead(lfdat)
+ghead(lfdat); dim(lfdat)
 
 # Site data for each individual in the genotype file:
 lfsite<-read.table(paste(lfmm_dir,"lfmm_site.txt",sep="/"),header=T)
@@ -292,7 +287,8 @@ head(sdat)
 lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site"),which(colnames(sdat)=="burn_unburnt"),which(colnames(sdat)=="long"):which(colnames(sdat)=="site_code"))] 
 lfsd<-lfsd[order(lfsd$site),]
 lfsd<-tidy.df(lfsd)
-head(lfsd)
+lfsd$site<-NULL
+head(lfsd); dim(lfsd)
 
 # Make sure they're in the same order, these should all be T:
 lfsd$site_code==unique(lfsite$site)
@@ -300,57 +296,46 @@ lfsd$site_code==unique(lfsite$site)
 # This is for the biplot labels:
 rownames(lfsd)<-lfsd[,"site_code"] 
 
-# Make PCs:
-
-# burn_unburn to binary code: burnt is 1, otherwise, 0/
+# burn_unburn to binary code: burnt is 1, otherwise, 0
 lfsd$burn_unburnt<-ifelse(lfsd$burn_unburnt =="b",1,0)
-lf_pc<-princomp(lfsd[,c(2,3)],cor=T) 
-summary(lf_pc)
-# biplot(lf_pc,xlab="PC1",ylab="PC2",cex=0.7)
-lf_pc$loadings
-head(lf_pc$scores)
 
-# Add PCs to individual level data:
-lfpcs<-data.frame(site=rownames(lfsd),lf_pc$scores[,1])
-lfpcs<-tidy.df(lfpcs)
-head(lfpcs)
-
+# merge individual level (nrow==93) data with site data (nrow==19):
 lfsd2<-lfsite
-lfsd3<-merge(lfsd2, lfsd, by.y = "site_code", by.x = "site", all.x = TRUE, all.y = FALSE)
+head(lfsd); dim(lfsd)
+head(lfsd2); dim(lfsd2)
+
+lfsd3<-merge(lfsd2, lfsd, by.x = "site", by.y = "site_code",  all.x = TRUE, all.y = FALSE)
 
 #check:
 lfsite$ind == lfsd3$ind
+head(lfsd3); dim(lfsd3)
 
 # Reduce columns to burnt_unburnt and long - these are the environmental variables we're using in the model:
-lfs<-lfsd3[,c(4,5)]
-head(lfs)
+lfs<-lfsd3[,c("burn_unburnt","long")]
 head(lfs); dim(lfs)
 
 # The environmental matrix (X):
 lfs<-as.matrix(lfs[,1:2])
-head(lfs)
+head(lfs); dim(lfs)
 
 # The genotype matrix (Y):
-ghead(lfdat)
+ghead(lfdat); dim(lfdat)
 
-# choose K:
+# CHOOSE K FROM SCREE PLOT:
 pc <- prcomp(lfdat)
-head(pc$sdev)
-length(pc$sdev)
+head(pc$sdev); length(pc$sdev)
 summary(pc)$importance[,1:5]
 str(pc)
-head(summary(pc)$importance[2,])
 
-# Plot prop var explained for comparison with pcadapt (instead of stdev^2 used in example):
-dev.new("",4,4,dpi=160,pointsize=12)
-par(mar=c(4,4,0.5,0.5))
-plot(1:40,summary(pc)$importance[2,][1:40], main = "LFMM scree plot",xlab="Principal component ",ylab="Proportion variance explained",pch=20,las=1,type="n")
-title(xlab="PC",mgp=c(2.5,1,0))
+dev.new(width=4,height=4,dpi=160,pointsize=12, noRStudioGD = T)
+par(mar=c(4,4,1,0.5))
+plot(1:20,summary(pc)$importance[2,][1:20],xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "", font.main=1)
+title(xlab="Principal component",mgp=c(2.5,1,0))
 grid()
-lines(1:40,summary(pc)$importance[2,][1:40])
-points(1:40,summary(pc)$importance[2,][1:40],pch=20)
+lines(1:20,summary(pc)$importance[2,][1:20])
+points(1:20,summary(pc)$importance[2,][1:20],pch=20)
 
-# The screes from the PCAdapt and LFMM are similar; K between 3 and 5
+# The scree from PCAdapt suggests K==3, while the scree from LFMM suggests K==5
 
 # Ridge estimates and GWAS tests
 head(lfs) # The environmental matrix (X):
@@ -378,6 +363,8 @@ lfmm_loci<-read.table(paste(lfmm_dir,"lfmm_loci_filt2.txt",sep="/"),header=T)
 head(lfmm_loci)
 dim(lfmm_loci)
 
+# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
+
 # Add p and q values to locus info:
 lfres<-data.frame(locus=lfmm_loci$locus,pvalues)
 colnames(lfres)<-paste(colnames(lfres),"_p",sep="")
@@ -395,72 +382,39 @@ lfres$bu_outl<-ifelse(rownames(lfres) %in% lf_outl$bu_q,1,0)
 lfres$lo_outl<-ifelse(rownames(lfres) %in% lf_outl$lo_q,1,0)
 head(lfres)
 
-# no loci were outliers along the burn gradient with a q threshold of 0.05
-# 35 loci were outliers along the longitudinal gradient with a q threshold of 0.05
-
 table(lfres$bu_outl)
 table(lfres$lo_outl)
+
+# no loci were outliers along the burn gradient with a q threshold of 0.05
+# 35 loci were outliers along the longitudinal gradient with a q threshold of 0.05
 
 # Reproduce manhattan plot:
 lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="bu_outl"):ncol(lfres)])
 lfres$never_outl<-rowSums(lfres[,8,drop = FALSE]) 
 head(lfres)
 
-# BD ggplot:
-lfres_df_lo<-lfres %>% subset(lo_q<alpha)
-lfres_df_lo$rowname<-lfres %>% subset(lo_q<alpha) %>% row.names()
-
-lfres_df_bu<-lfres %>% subset(bu_q<alpha)
-lfres_df_bu$rowname<-lfres %>% subset(bu_q<alpha) %>% row.names()
-
-
-ggplot(data = lfres,mapping = aes(x= 1:nrow(lfres), y = -log(long_p,10))) +
-  geom_point(aes(x= 1:nrow(lfres),-log(long_p,10))) +
-  geom_point(data = lfres_df_lo, aes(x = as.numeric(rowname),-log(long_p,10)), colour = "red") +
- # geom_point(data = lfres_df_bu, aes(x = as.numeric(rowname),-log(burn_unburnt,10), colour = "green"))+
-  labs(y ="-log10(p value)",
-       x ="locus") +
-  theme_article() 
-  
-
-
-# AS manhattan (30 Oct 2020):
-quartz("",8,4,dpi=100)
+# AS manhattan:
+dev.new(width=10,height=4,dpi=80,pointsize=14,noRStudioGD = T)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 plot(1:nrow(lfres),-log(lfres$long_p,10),type="n")
-plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,xlab="Locus",ylim= c(0,max(-log(lfres[,2:4],10))), main = "LFMM outlier loci for two PCs")
+plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,xlab="Locus",ylim= c(0,max(-log(lfres[,2:4],10))), main = "")
 
 points(1:nrow(lfres),-log(lfres$long_p,10),pch=20,col=as.factor(lfres$lo_q<0.05))
 
-points(rownames(lfres)[lfres$bu_q<alpha],-log(lfres$burn_unburnt_p[lfres$bu_q<alpha],10),pch=20,col="green")
-points(rownames(lfres)[lfres$lo_q<alpha],-log(lfres$long_p[lfres$lo_q<alpha],10),pch=20,col="blue")
-legend("topleft",legend=c("PC longtitude"),pch=20,col=c("blue"))
+# none were outlying on the burn gradient, so plot longitude outliers only:
+points(rownames(lfres)[lfres$bu_q<alpha],-log(lfres$burn_unburnt_p[lfres$bu_q<alpha],10),pch=20,col="blue")
+points(rownames(lfres)[lfres$lo_q<alpha],-log(lfres$long_p[lfres$lo_q<alpha],10),pch=20,col="green")
+legend("topleft",legend=c("PC longtitude"),pch=20,col=c("green"))
 # legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=20,col=c("green","blue"))
-
 
 # Plot effect sizes:
 lfres$efs1<-efs.lfmm1
 lfres$efs2<-efs.lfmm2
-head(lfres)
+head(lfres,3); dim(lfres)
 
+# write.table(lfres,"lfmm_outliers.txt",sep="\t",quote=F, row.names=F)
 
-# BD ggplot
-lfres$rowname<-lfres %>% row.names()
-lfres_df_efs<-lfres %>% subset(never_outl == 0)
-
-ggplot(data = lfres_df_efs,mapping = aes(x= rowname)) +
-  geom_point(aes(x=rowname, y=efs1)) +
-  geom_point(aes(x=rowname, y=efs2)) +   
-  geom_hline(yintercept = 0,colour = "purple") +
-  geom_point(data = lfres_df_lo, aes(x = as.numeric(rowname),efs2), colour = "red") +
-  geom_point(data = lfres_df_bu, aes(x = as.numeric(rowname),efs1), colour = "green")+
-  labs(y ="Effect Size",
-       x ="Locus") +
-  theme_article()
-
-
-
-quartz("",8,4,dpi=100)
+dev.new(width=8,height=4, noRStudioGD = T,dpi=100)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 plot(1:nrow(lfres),lfres$efs1,type="n",ylab="Effect size",las=1,xlab="Locus",ylim=c(min(c(lfres$efs1,lfres$efs2,lfres$efs3))+-0.5,max(c(lfres$efs1,lfres$efs2,lfres$efs3))+0.5))
 
@@ -472,55 +426,98 @@ points(rownames(lfres)[lfres$lo_q<alpha],lfres$efs2[lfres$lo_q<alpha],pch=20,col
 
 abline(0,0,col="purple")
 
-# xofs<-rep(c(700,-700),length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1))]
-# yofs<-rep(c(0.04,-0.04),length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)))[1:length(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1))]
-
-text(which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)+xofs,lfres$efs1[which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)]+yofs,labels=lfres$locus_p[which(abs(lfres$efs1)>0.5 & lfres$bu_outl==1)])
+legend("topleft",legend=c("PC longtitude"),pch=20,col=c("green"))
 
 ## QQ plot:
+dev.new(width=8,height=4, noRStudioGD = T,dpi=100)
+par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 qqplot(rexp(length(pvalues), rate = log(10)),   -log10(pvalues), xlab = "Expected quantile",  pch = 19, cex = .4)
 abline(0,1)
 
-# Extra outlier loci plot from plot_freq_location()
+## PLOT GENOTYPE FREQUENCIES BY LOCATION:
+
+# Outlier loci along longitude PC:
 lfmm_loc.toanalyse<-as.character(lfres$locus_p[which(lfres$lo_outl==1)]) 
 length(lfmm_loc.toanalyse)
 head(lfmm_loc.toanalyse)
 
-# Location for files:	
-out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM"
-out.dir
+# Genotype and site data (gt_data has all loci before filtering but colnames are the same, so can be used for these plots)
+ghead(gt_data); dim(gt_data)
+head(site_data,3); dim(site_data)
 
-head(lfmm_loc.toanalyse)
-ghead(gt_data)
-head(sdat,3)
-dir(out.dir)
+# this plots by longitude (see plot_freq_long folder for results); use "jpg" for windows or "pdf" for mac
+out.dir<-"RESULTS/LFMM/plot_freq_long"
+plot_freq_long(loci=lfmm_loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 35, out_file_type="pdf") 
+
+out.dir<-"RESULTS/LFMM/plot_freq_burn"
+plot_freq_location(loci=lfmm_loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 35, out_file_type="pdf") 
+
+# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
 
 # close LFMM ----
 
 #  COMBINE RESULTS:    	# ----
 
-head(bslinf)
-head(pca_loc)
-head(lfr)
+pcadap_linf<-loc_dat[,c("lind","locus","outlier")]
+colnames(pcadap_linf)[which(colnames(pcadap_linf)=="outlier")]<-"pca_outl"
+lfmm_linf<-lfres[,c("locus_p","bu_outl","lo_outl")]
+lfmm_linf$lfmm_outl<-rowSums(lfmm_linf[,c("bu_outl","lo_outl")])
+table(lfmm_linf$lfmm_outl==lfmm_linf$lo_outl)
+lfmm_linf<-lfmm_linf[,c("locus_p","lfmm_outl")]
 
-dim(bslinf)
-dim(pca_loc)
-dim(lfr)
+head(bslinf,3); dim(bslinf) # BayeScan
+head(pcadap_linf,3); dim(pcadap_linf) # PCAdapt
+head(lfmm_linf,3); dim(lfmm_linf) # LFMM
 
-outl_all<-merge(bslinf,pca_loc,by=c("lind","locus"),all.x=T,all.y=F)
-outl_all<-merge(outl_all,lfr,by=c("locus"),all.x=T,all.y=F)
+table(bslinf$bs_outl)
+table(pcadap_linf$pca_outl)
+table(lfmm_linf$lfmm_outl)
+
+outl_all<-merge(bslinf,pcadap_linf,by=c("lind","locus"),all.x=T,all.y=F)
+
+outl_all<-merge(outl_all,lfmm_linf,by.x="locus",by.y="locus_p",all.x=T,all.y=F)
 outl_all<-outl_all[order(outl_all$lind),]
 outl_all<-tidy.df(outl_all)
-head(outl_all)
-
-outl_all$lfmm_outl<-ifelse(rowSums(outl_all[,c("lfmm_PC1","lfmm_PC2")])>0,1,0)
-outl_all[outl_all$lfmm_PC1==1,]
+head(outl_all); dim(outl_all)
 check.rows(outl_all)
 
 # There is very little overlap among three methods:
 table(rowSums(outl_all[,c("bs_outl","pca_outl","lfmm_outl")]))
 
 # write.table(outl_all,"outliers_all.txt",sep="\t",row.names=F,quote=F)
+
+# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
+
+# VENN diagram:
+
+library(VennDiagram)
+
+# Summarise overlap:
+res2<-outl_all[,c("bs_outl","pca_outl","lfmm_outl")]
+res2$sum1<-rowSums(cbind(res2[,1],res2[,2]))
+res2$sum2<-rowSums(cbind(res2[,2],res2[,3]))
+res2$sum3<-rowSums(cbind(res2[,1],res2[,3]))
+res2$sum4<-rowSums(cbind(res2[,1],res2[,2],res2[,3]))
+res2$sum1<-ifelse(res2$sum1==1,0,res2$sum1)
+res2$sum2<-ifelse(res2$sum2==1,0,res2$sum2)
+res2$sum3<-ifelse(res2$sum3==1,0,res2$sum3)
+res2$sum4<-ifelse(res2$sum4==1,0,res2$sum4)
+res2$sum4<-ifelse(res2$sum4==2,0,res2$sum4)
+res2$sum1<-ifelse(res2$sum1==2,1,res2$sum1)
+res2$sum2<-ifelse(res2$sum2==2,1,res2$sum2)
+res2$sum3<-ifelse(res2$sum3==2,1,res2$sum3)
+res2$sum4<-ifelse(res2$sum4==3,1,res2$sum4)
+head(res2)
+
+res3<-colSums(res2)
+res3
+
+venn.plot<-draw.triple.venn(res3[1],res3[2],res3[3],res3[4],res3[5],res3[6],res3[7], category=c("BayeScan","PCAdapt","LFMM"),fill=rgb(0,0,0,0.5),fontfamily="sans",cat.fontfamily="sans",cex=1, cat.pos=c(10,10,10),lwd=1)
+
+pdf(file="venn.pdf",width=4,height=4,pointsize=12)
+par(mar=c(4,4,1,1))
+grid.draw(venn.plot)
+dev.off()
 
 # close combine ----
 

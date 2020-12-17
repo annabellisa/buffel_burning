@@ -90,11 +90,11 @@ ldf<-0.75
 # Run Supplement_01_LD_tests.R #
 
 ##BD's Script#
-LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LD_results"
+LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/Filtering/LD_results"
 ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 
 # AS LD: 
-LD_dir_AS<-"RESULTS/LD_results"
+LD_dir_AS<-"RESULTS/Filtering/LD_results"
 ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 head(ld_loc); dim(ld_loc)
 

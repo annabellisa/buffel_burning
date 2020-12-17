@@ -22,7 +22,7 @@ plot_freq_location<-function(loci,genotype_data,site_data,out.dir,number_to_plot
 
 for(i in 1:number_to_plot){
   
-loc.thisrun<-loc.toanalyse[i]
+loc.thisrun<-loci[i]
 dat.thisrun<-data.frame(site=gt_data$site,locus=factor(gt_data[,loc.thisrun],levels=c(0,1,2)))
 head(dat.thisrun)
 
@@ -74,7 +74,7 @@ dev.off()
 
 } # close plot_freq_location
 
-# plot geno frequencies by longitude (modified by AS, working on Windows only (jpg) and Mac (pdf)):
+# plot geno frequencies by longitude (modified by AS, working on Windows (jpg) and Mac (pdf)):
 
 plot_freq_long<-function(loci,genotype_data,site_data,out.dir,number_to_plot,out_file_type){
   
@@ -87,7 +87,7 @@ plot_freq_long<-function(loci,genotype_data,site_data,out.dir,number_to_plot,out
   
   for(i in 1:number_to_plot){
     
-    loc.thisrun<-loc.toanalyse[i]
+    loc.thisrun<-loci[i]
     dat.thisrun<-data.frame(site=gt_data$site,locus=factor(gt_data[,loc.thisrun],levels=c(0,1,2)))
     head(dat.thisrun)
     

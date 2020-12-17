@@ -1,0 +1,60 @@
+# Trouble shooting
+plot1<- plot1 +
+  #geom_label_repel(aes(label = site_name),nudge_y = .05) +
+  gghighlight() +
+  facet_wrap(~DAT)
+plot2<- plot2 +
+  #geom_label_repel(aes(label = site_name),nudge_y = .05) +
+  gghighlight() +
+  facet_wrap(~DAT)
+plot3<- plot3 +
+  #geom_label_repel(aes(label = site_name),nudge_y = .05) +
+  gghighlight() +
+  facet_wrap(~DAT)
+plot4<- plot4+
+  #geom_label_repel(aes(label = site_name),nudge_y = .05) +
+  gghighlight() +
+  facet_wrap(~DAT)
+plot5<- plot5+
+  #geom_label_repel(aes(label = site_name),nudge_y = .05) +
+  gghighlight() +
+  facet_wrap(~DAT)
+  
+  
+  
+# Plotting 
+# *** PLOT OUTLIER LOCI:
+loc.toanalyse<-as.character(bslinf$locus[which(bslinf$bs_outl==1)]) 
+length(loc.toanalyse)
+head(loc.toanalyse)
+
+# Put files here:	
+out.dir<-"../ANALYSIS_RESULTS/LOCI_UNDER_SELECTION/BayeScan/bayescan_filt3/bayescan_filt3_50_random_heatmaps"
+out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Cenchrus_filt2_BS_po400"
+
+out.dir
+## Make sure they're all in site data
+
+# sdat$site_code <- sub("buf","X",sdat$site)
+# unique(gt_data$site) %in% sdat$site_code # add a new column
+
+# PLOT GENOTYPE FREQUENCIES BY LOCATION:
+
+# Takes about 15 seconds for 100
+
+head(loc.toanalyse)
+ghead(gt_data)
+head(sdat,3)
+dir(out.dir)
+
+
+sdat$site_code <- sub("buf","X",sdat$site)
+site_data<-sdat
+plot_freq_location(loc.toanalyse,gt_data,sdat,out.dir,5) # Error. 
+
+
+
+ordered by longtitude
+plot all 38 outliers 
+
+
