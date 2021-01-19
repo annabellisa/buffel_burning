@@ -9,18 +9,11 @@
 # AS Load workspace:
 load("03_workspaces/STEP04_divdist_ALL.RData")
 
-# BD Neutral Dataset: 20159 (20161)
-load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NeturalWksp.RData")
-
-# Non Netural Dataset: 3892 (3894)
-load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/NonNeturalWksp.RData")
-
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 # Load libraries:
-library(diveRsity);library(hierfstat);library(adegenet); library(ecodist); library(AICcmodavg)
-# library(geosphere)
+library(diveRsity);library(hierfstat);library(adegenet); library(ecodist); library(AICcmodavg);library(geosphere)
 
 #  GENIND object & site data:    	# ----
 
@@ -75,7 +68,48 @@ genind_neutral # all filters + neutral markers only (20159 loci)
 genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
 head(sdat,3); dim(sdat)
 
-#  FST & Mantel tests:    	# ----
+### -- *** 
+# Question 1: Does fire affect spatial genetic structure?
+
+#  HIERARCHICAL CLUSTERING:    	# ----
+
+# see also code in Supplement_02_plot_structure.R where this is re-run and plotted over structure results
+
+# hclust (in base R)
+# Consensus UPGMA dendrogram (see Acquadro et al. 2017)
+# https://popgen.nescent.org/2015-05-18-Dist-SNP.html
+# https://adegenet.r-forge.r-project.org/files/Glasgow2015/practical-introphylo.1.0.pdf
+# https://dyerlab.github.io/applied_population_genetics/genetic-distances.html
+
+# re-do distance matrix on raw data:
+ddir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/00_Data/Filtered_DartSeq_format"
+ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
+ghead(ddat)
+
+# data
+clust_dat<-ddat
+rownames(clust_dat)<-clust_dat$ind
+clust_dat<-clust_dat[,3:length(clust_dat)]
+ghead(clust_dat)
+
+# distance matrix and hierarchical clustering:
+hc_dist<-dist(x = clust_dat, method="euclidean")
+euc_clust<-hclust(hc_dist)
+str(euc_clust)
+head(neuc_df,3); dim(neuc_df)
+
+# plot:
+quartz("",10,4,dpi=140)
+par(mar=c(0,4,1,0), mgp=c(2.8,1,0))
+plot(euc_clust, cex=0.5, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)")
+
+hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hclust_name_order(euc_clust)))
+
+# write.table(hc1_names, "hclust1_order.txt", sep="\t", quote=F, row.names=F)
+
+# close hclust ----
+
+# FST & Mantel tests (SITE LEVEL ANALYSIS):    	# ----
 
 ### -- *** CALCULATE FST:
 
@@ -199,6 +233,119 @@ plot(fst_all$geog_dist, fst_all$fst, pch=20, xlab="Geographic distance (m)", yla
 mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1[1],2),"; p = ",round(mant1[3],2), sep=""), adj=0)
 
 # close FST ----
+
+# PCA:    	# ----
+
+  # PCA adegenet:
+  K_test<-22 # set big K
+  X_test <- scaleGen(genind_neutral, scale = FALSE, NA.method = "mean")
+  pcaX_test <- dudi.pca(X_test, cen = FALSE, scale = FALSE, scannf = FALSE, nf = K_test)
+  summary(pcaX_test)
+  
+  # Calculate variance explained
+  
+  # This tutorial is from one of the authors of ade4:
+  # https://pbil.univ-lyon1.fr/R/pdf/course2.pdf
+  var_expl_test <- pcaX_test$eig/sum(pcaX_test$eig)
+  head(cumsum(var_expl_test),20)
+  
+  ### --- *** CHOOSE K *** --- ###
+  
+  # CHOOSE K FROM SCREE PLOT (they are very consistent with PCAs from outlier tests):
+  
+  # Of eigen values:
+  dev.new(height=4,width=4,dpi=160,noRStudioGD = T,pointsize=12)
+  par(mar=c(4,4,0.5,0.5))
+  plot(1:K_test,pcaX_test$eig[1:22],xlab="",ylab="Eigenvalue",pch=20,las=1,type="n")
+  title(xlab="PC",mgp=c(2.5,1,0))
+  grid()
+  lines(1:K_test,pcaX_test$eig[1:22])
+  points(1:K_test,pcaX_test$eig[1:22],pch=20)
+  
+  # Or variance explained:
+  dev.new(height=4,width=4,dpi=160,noRStudioGD = T,pointsize=12)
+  par(mar=c(4,4,0.5,0.5))
+  plot(1:K_test,var_expl_test[1:22],xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
+  title(xlab="PC",mgp=c(2.5,1,0))
+  grid()
+  lines(1:K_test,var_expl_test[1:22])
+  points(1:K_test,var_expl_test[1:22],pch=20)
+  
+  # K=3
+  
+  ### --- *** SET K & re-run *** --- ###
+  
+  K<-3
+  
+  X <- scaleGen(genind_neutral, scale = FALSE, NA.method = "mean")
+  pcaX <- dudi.pca(X, cen = FALSE, scale = FALSE, scannf = FALSE, nf = K)
+  summary(pcaX)
+  
+  # Calculate variance explained
+  var_expl <- pcaX$eig/sum(pcaX$eig)
+  head(cumsum(var_expl),10)
+  
+  ### *** plot PCA
+  
+  head(pcaX$li)
+  rownames(pcaX$li)
+  head(sdat,2)
+  
+  # The genind object stores both individual names from the genpop file and population names, which it appears to take from the last individual in each population (this could be fixed by updating the pop names in the genepop format script but, for now, I'm just dealing with it here)
+  
+  ldat<-data.frame(rowpca=rownames(pcaX$li),genind_pop=pop(genind_neutral))
+  ldat$site_code<-sapply(ldat$genind_pop,function(x) substr(x,1,gregexpr("_",x)[[1]][1]-1))
+  ldat$site_code<-as.character(ldat$site_code)
+  ldat$ind<-1:nrow(ldat)
+  ldat<-tidy.df(ldat)
+  
+  sdt2<-sdt[,c("site","year","burn","burn2","lat","long")]
+
+  head(ldat,3); dim(ldat)
+  head(sdt2,2); dim(sdt2)
+  
+  # should all be TRUE:
+  table(ldat$site_code %in% sdt2$site); table(sdt2$site %in% ldat$site_code )
+  
+  # Add country code, re-merge and re-order:
+  ldat<-merge(ldat,sdt2,by.x="site_code",by.y="site",all.x=T,all.y=F)
+  ldat<-ldat[order(ldat$ind),]
+  ldat<-tidy.df(ldat)
+  
+  # Should all be TRUE:
+  rownames(pcaX$li) == ldat$rowpca
+  
+  # Add PCs to site data:
+  ldat<-cbind(ldat, pcaX$li)
+  head(ldat,3); dim(ldat)
+  
+  dev.new(height=6, width=6, noRStudioGD = T, dpi=100, pointsize=12)
+  par(mfrow=c(2,2), mar=c(4,4,1,1), mgp=c(2.5,1,0))
+
+    plot(1:K_test,var_expl_test[1:22],xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
+  title(xlab="PC",mgp=c(2.5,1,0))
+  grid()
+  lines(1:K_test,var_expl_test[1:22])
+  points(1:K_test,var_expl_test[1:22],pch=20)
+  
+  blankplot()
+  legend(x=1, y=5, legend = c("road unburnt","road burnt","burnt site 11"), pt.cex=1.5,col=c("black","red","orange"),pch=20)
+  
+  # colour order is 1,2,3==black,red,green,
+  # burnt(2)==green,unburnt(1)==black,burn2(3)==green,
+  # need it to be black, red, orange
+  
+  c.now<-data.frame(burn2=ldat$burn2,burn_order=as.numeric(ldat$burn2))
+  c.now$new.col<-c.now$burn_order
+  c.now$new.col<-ifelse(ifelse(ifelse(c.now$new.col==1,"black",c.now$new.col)==2,"red",ifelse(c.now$new.col==1,"black",c.now$new.col))==3,"orange",ifelse(ifelse(c.now$new.col==1,"black",c.now$new.col)==2,"red",ifelse(c.now$new.col==1,"black",c.now$new.col)))
+  head(c.now)
+  
+  plot(ldat$Axis1, ldat$Axis2, col=c.now$new.col, pch=20, xlab="Axis 1", ylab="Axis 2",cex=1.5)
+  plot(ldat$Axis1, ldat$Axis3, col=c.now$new.col, pch=20, xlab="Axis 1", ylab="Axis 3" ,cex=1.5)
+  
+# close PCA ----
+
+
 
 #  Individaul genetic distance & Relatedness	# ----
 
@@ -363,8 +510,6 @@ table(neuc_df$kinship_mle[neuc_df$same_block==0]>0.45)
 
 head(neuc_df,3); dim(neuc_df)
 
-
-
 # is there a difference in the probability of being a clone (> 0.45) between the burnt and unburnt sites?
 
 kinsh<-neuc_df
@@ -386,6 +531,8 @@ colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s2","b3L_s2")
 
 #
 head(kinsh,3); dim(kinsh)
+check.rows(kinsh)
+table(kinsh$same_block)
 
 # remove pw comparisons from different blocks:
 kinsh2<-kinsh[-which(kinsh$same_block==0),]
@@ -393,6 +540,7 @@ kinsh2<-kinsh[-which(kinsh$same_block==0),]
 # remove pw comparisons from different sites:
 kinsh3<-kinsh2[-which(kinsh2$same_site==0),]
 
+head(kinsh2,3); dim(kinsh2)
 head(kinsh3,3); dim(kinsh3)
 table(kinsh3$site1, kinsh3$clone)
 
@@ -434,9 +582,7 @@ AIC(m7); AIC(m7null)
 
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
-
 # close individual distances ----
-
 
 #  Individaul genetic diversity	# ----
 
@@ -544,45 +690,8 @@ points(1:3, p1$fit, col=switch.col2, cex=2,pch=20)
 
 # close individual diversity ----
 
-#  HIERARCHICAL CLUSTERING:    	# ----
 
-# see also code in Supplement_02_plot_structure.R where this is re-run and plotted over structure results
-
-# hclust (in base R)
-# Consensus UPGMA dendrogram (see Acquadro et al. 2017)
-# https://popgen.nescent.org/2015-05-18-Dist-SNP.html
-# https://adegenet.r-forge.r-project.org/files/Glasgow2015/practical-introphylo.1.0.pdf
-# https://dyerlab.github.io/applied_population_genetics/genetic-distances.html
-
-# re-do distance matrix on raw data:
-ddir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/00_Data/Filtered_DartSeq_format"
-ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
-ghead(ddat)
-
-# data
-clust_dat<-ddat
-rownames(clust_dat)<-clust_dat$ind
-clust_dat<-clust_dat[,3:length(clust_dat)]
-ghead(clust_dat)
-
-# distance matrix and hierarchical clustering:
-hc_dist<-dist(x = clust_dat, method="euclidean")
-euc_clust<-hclust(hc_dist)
-str(euc_clust)
-head(neuc_df,3); dim(neuc_df)
-
-# plot:
-quartz("",10,4,dpi=140)
-par(mar=c(0,4,1,0), mgp=c(2.8,1,0))
-plot(euc_clust, cex=0.5, xlab="", main="", cex.lab=0.8, las=1, ylab="Genetic distance (Euclidean)")
-
-hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hclust_name_order(euc_clust)))
-
-# write.table(hc1_names, "hclust1_order.txt", sep="\t", quote=F, row.names=F)
-
-# close hclust ----
-
-#  POPULATION LEVEL GENETIC DIVERSITY:    	# ----
+#  POPULATION-LEVEL GENETIC DIVERSITY (not including): 	# ----
 
 genind_neutral # all filters + neutral markers only (20159 loci)
 genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
