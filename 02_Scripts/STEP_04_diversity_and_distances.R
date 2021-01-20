@@ -116,8 +116,6 @@ hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hc
 # Load Genepop files
 gp_dir<-"00_Data/Genepop_Files"
 dir(gp_dir)
-gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files/"
-gp_dir<-"D:/Onedrive/OneDrive - The University of Queensland/Offline Winter Project/Shared/Genepop_Files"
 dir(gp_dir)
 
 # Get FST:
@@ -126,7 +124,6 @@ print(Sys.time())
 fst<-diffCalc(paste(gp_dir,"Genepop_Neutral_filt2.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
-# save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp.RData")
 
 head(fst$pairwise$Fst)
 head(fst$pairwise$gst)
@@ -156,8 +153,9 @@ range(fst_df$fst,na.rm=T)
 
 ### -- *** ADD GEOGRAPHIC DISTANCE:
 
+# The following formatting of FST (adding geog dist, etc) has been run and saved in fst_and_distances_all_sites.txt (until "Analyse FST")
+
 dat_dir<-"RESULTS/Diversity_and_Distance/FST"
-dat_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
 dir(dat_dir)
 
 # load fst data:
@@ -175,7 +173,9 @@ head(sdat,3)
 unique(c(levels(pwpop$pop1),levels(pwpop$pop2))) %in% sdat$pop
 
 sll<-sdat[,c("pop","lat","long")]
-head(sll)
+head(sll); dim(sll)
+head(pwpop,2); dim(pwpop)
+
 m1<-merge(pwpop,sll,by.x="pop1",by.y="pop",all.x=T,all.y=F)
 colnames(m1)[colnames(m1) %in% c("lat","long")]<-c("lat1","lon1")
 m1<-merge(m1,sll,by.x="pop2",by.y="pop",all.x=T,all.y=F)
@@ -343,10 +343,409 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   plot(ldat$Axis1, ldat$Axis2, col=c.now$new.col, pch=20, xlab="Axis 1", ylab="Axis 2",cex=1.5)
   plot(ldat$Axis1, ldat$Axis3, col=c.now$new.col, pch=20, xlab="Axis 1", ylab="Axis 3" ,cex=1.5)
   
+  # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
+  
 # close PCA ----
 
+# Question 2: Does fire affect genetic diversity?
+  
+ #  CALCULATE POPULATION-LEVEL Genetic diversity: 	# ----
+  
+  # The following section has been run and saved in "Genetic_Diversity_ALL.txt"
+  
+  genind_neutral # all filters + neutral markers only (20159 loci)
+  genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
+  head(sdat,3); dim(sdat)
+  
+  # Calculate genetic diversity per population in hierfstat:
+  
+  # neutral:
+  gendiv_neutral <- basic.stats(genind_neutral, diploid = TRUE, digits = 2)
+  str(gendiv_neutral) # 1 min
+  head(gendiv_neutral$Ho)
+  tail(gendiv_neutral$Ho)
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
+  
+  gd_neutral<-data.frame(site=names(apply(gendiv_neutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_neutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_neutral$Ho,2,mean,na.rm=T),He=apply(gendiv_neutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_neutral$Fis,2,mean,na.rm=T))
+  gd_neutral<-tidy.df(gd_neutral)
+  
+  gd_neutral$site<-substr(gd_neutral$site,1,nchar(as.character(gd_neutral$site))-3)
+  head(gd_neutral); dim(gd_neutral)
+  
+  # non-neutral
+  gendiv_nonneutral <- basic.stats(genind_nonneutral, diploid = TRUE, digits = 2)
+  
+  str(gendiv_nonneutral) # a few seconds
+  head(gendiv_nonneutral$Ho)
+  tail(gendiv_nonneutral$Ho)
+  
+  gd_nonneutral<-data.frame(site=names(apply(gendiv_nonneutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_nonneutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_nonneutral$Ho,2,mean,na.rm=T),He=apply(gendiv_nonneutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_nonneutral$Fis,2,mean,na.rm=T))
+  gd_nonneutral<-tidy.df(gd_nonneutral)
+  head(gd_nonneutral); dim(gd_nonneutral)
+  
+  gd_nonneutral$site<-substr(gd_nonneutral$site,1,nchar(as.character(gd_nonneutral$site))-3)
+  head(gd_nonneutral)
+  
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
+  
+  ## -- ** ALLELIC RICHNESS:
+  
+  head(sdat,3); dim(sdat)
+  genind_neutral
+  genind_nonneutral
+  
+  print(Sys.time())
+  ar_neutral<- allelic.richness(genind_neutral, diploid = TRUE) # 1 min
+  print(Sys.time())
+  
+  print(Sys.time())
+  ar_nonneutral<- allelic.richness(genind_nonneutral, diploid = TRUE) # a few seconds
+  print(Sys.time())
+  
+  str(ar_neutral)
+  head(ar_neutral$Ar,2)
+  
+  str(ar_nonneutral)
+  head(ar_nonneutral$Ar,2)
+  
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
+  
+  # Summarise
+  
+  # Neutral:
+  head(ar_neutral$Ar,2)
+  ar_neutral$min.all
+  ar_neutral_res<-data.frame(site=levels(genind_neutral@pop),ar_neutral=apply(ar_neutral$Ar,2,mean,na.rm=T))
+  head(ar_neutral_res); dim(ar_neutral_res)
+  
+  # Non-Neutral:
+  head(ar_nonneutral$Ar,2)
+  ar_nonneutral$min.all
+  ar_nonneutral_res<-data.frame(site=levels(genind_nonneutral@pop),ar_nonneutral=apply(ar_nonneutral$Ar,2,mean,na.rm=T))
+  head(ar_nonneutral_res); dim(ar_nonneutral_res)
+  
+  # combine allelic richness into table with other genetic diversity data:
+  
+  # fix up the names on AR data frames:
+  ar_neutral_res$site<-substr(ar_neutral_res$site,1,nchar(as.character(ar_neutral_res$site))-3)
+  head(ar_neutral_res)
+  ar_nonneutral_res$site<-substr(ar_nonneutral_res$site,1,nchar(as.character(ar_nonneutral_res$site))-3)
+  head(ar_nonneutral_res)
+  
+  # check:
+  gd_neutral$site %in% ar_neutral_res$site
+  ar_neutral_res$site %in% gd_neutral$site
+  
+  gd_nonneutral$site %in% ar_nonneutral_res$site
+  ar_nonneutral_res$site %in% gd_nonneutral$site
+  
+  # merge
+  head(gd_neutral,3); dim(gd_neutral)
+  head(ar_neutral_res,3); dim(ar_neutral_res)
+  gd_neutral<-merge(gd_neutral, ar_neutral_res, by="site", all.x=T, all.y=F)
+  
+  head(gd_nonneutral,3); dim(gd_nonneutral)
+  head(ar_nonneutral_res,3); dim(ar_nonneutral_res)
+  gd_nonneutral<-merge(gd_nonneutral, ar_nonneutral_res, by="site", all.x=T, all.y=F)
+  
+  # combine neutral and non-neutral:
+  
+  colnames(gd_neutral)[colnames(gd_neutral) %in% c("Ho","He","Fis")]<-paste(colnames(gd_neutral)[colnames(gd_neutral) %in% c("Ho","He","Fis")],"_neutral",sep="")
+  colnames(gd_nonneutral)[colnames(gd_nonneutral) %in% c("Ho","He","Fis")]<-paste(colnames(gd_nonneutral)[colnames(gd_nonneutral) %in% c("Ho","He","Fis")],"_nonneutral",sep="")
+  
+  head(gd_neutral,3); dim(gd_neutral)
+  head(gd_nonneutral,3); dim(gd_nonneutral)
+  
+  gd_all<-gd_neutral
+  gd_all$max_n<-NULL
+  gd_all<-merge(gd_all,gd_nonneutral, by="site", all.x=T, all.y=F)
+  gd_all<-gd_all[,c(c(which(colnames(gd_all) %in% c("site","max_n"))),c(which(!colnames(gd_all) %in% c("site","max_n"))))]
+  head(gd_all,3); dim(gd_all)
+  
+  # write.table(gd_all, "gd_all.txt", row.names=F, quote=F, sep="\t")
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
+  
+  # close calc genetic diversity ----
+  
+#  ANALYSE POPULATION-LEVEL Genetic diversity:	# ----
+  
+  gd_all<-read.table("RESULTS/Diversity_and_distance/Genetic_Diversity/Genetic_Diversity_ALL.txt", header=T)
+  head(gd_all,3)
+  
+  # simplify site data
+  sdt3<-sdat[,c("block","site","pop","burn_unburnt","no_samples","lat","long")]
+  sdt3$site<-paste("X",substr(sdt3$site, 4, nchar(as.character(sdt3$site))),sep="")
+  
+  # merge with genetic diversity data:
+  sdt3$site %in% gd_all$site
+  gd_all$site %in% sdt3$site
+  gd_all<-merge(gd_all, sdt3, by="site", all.x=T, all.y=F)
+  
+  # add second treatment variable:
+  gd_all$treatment<-gd_all$burn_unburnt
+  gd_all$burn_unburnt<-NULL
+  gd_all$trt<-as.character(gd_all$treatment)
+  gd_all$trt[grep("b",gd_all$trt)]<-"b1"
+  gd_all$trt[grep("X11",gd_all$site)]<-"b2"
+  gd_all$trt<-factor(gd_all$trt, levels=c("u","b1","b2"))
+  head(gd_all,3); dim(gd_all)
+  
+  # Analyse the influence of fire treatment on population level genetic diversity. 
+  
+  # Given the very strong background genetic structure in the data, it makes no sense to do this without controlling for phylogeny... So take the assignment probability for each individual, and calculate the mean for each site:
+  
+  site_assig<-read.table("00_Data/assig_prob_K3_Cenchrus_filt2.txt", header=T)
+  site_assig<-cbind(site_assig, matrix(data=c(1,2,3),ncol=3,nrow=nrow(site_assig),byrow=T))
+  site_assig$genstr<-apply(site_assig[,3:8],1,function(x) weighted.mean(x[4:6], x[1:3]))
+  head(site_assig)
+  range(site_assig$genstr)
 
+  mean_genstr<-aggregate(genstr~site, data=site_assig,mean)
+  head(mean_genstr)
+  head(gd_all,3); dim(gd_all)
+  
+  # Add mean assignment to site level data:
+  gd_all<-merge(gd_all, mean_genstr, by="site", all.x=T, all.y=F)
+  gd_all[,c(1,length(gd_all))]
+  
+  # Add K based on most common genetic cluster among individuals at each site:
+  gd_all$K<-round(gd_all$genstr,0)
+  
+  ## -- ** Admixture Diversity Score:
+  
+  ### ---- provide calculations on the level of admixture per population
+  
+  # Working from equations in Harismendy et al. 2019, Journal of the American Medical Informatics Association, 26(5), 2019, 457–46
+  
+  # 93 individuals 
+  head(site_assig); dim(site_assig)
 
+  # Associated site data (19 sites):
+  head(sdt2,2); dim(sdt2)
+  head(gd_all,3); dim(gd_all)
+  
+  # Use individual level data for the analysis:
+  head(site_assig); dim(site_assig)
+
+  # This is the Diversity Score from Harismendy. We don't need the first eqn (the cumulative admixture fraction), because ours already sum to 1. 
+  
+  # This diversity score is the same as the shannon diversity index but with a scaling factor to account for the number of clusters (Hmax). That is, it makes the diversity score relative to complete evenness. 
+  
+  DS<-function(x,K) {
+    Hmax<-K*((1/K)*log(1/K))
+    (-sum(x*log(x)))/-Hmax
+  }
+  
+  # SET K:
+  K<-3
+  
+  # Calculate admixture diversity for all individuals:
+  ds_div<-apply(site_assig[3:5], 1, DS, K=3)
+  range(ds_div)
+  site_assig$ds_div<-ds_div
+  head(site_assig); dim(site_assig)
+  
+  # Summarise site-level admixture diversity:
+  addiv_site<-aggregate(ds_div~site,FUN=mean,data=site_assig)
+  gd_all<-merge(gd_all, addiv_site, by="site", all.x=T, all.y=F)
+  head(gd_all,2); dim(gd_all)
+  
+  ## ANALYSIS:
+  head(gd_all,2); dim(gd_all)
+  gd_all[,c("site","genstr","ds_div","K")]
+  plot(gd_all$ds_div,gd_all$ar_neutral)
+  plot(gd_all$K,gd_all$ds_div)
+  
+  # neutral models:
+  mod1.a<-lm(ar_neutral~1, data=gd_all)
+  mod1.b<-lm(ar_neutral~trt, data=gd_all)
+  mod1.c<-lm(ar_neutral~trt+ds_div, data=gd_all)
+  mod1.d<-lm(ar_neutral~trt*ds_div, data=gd_all)
+  AICc(mod1.a); AICc(mod1.b); AICc(mod1.c); AICc(mod1.d)
+  
+  summary(mod1.b); anova(mod1.b)
+  summary(mod1.c); anova(mod1.c)
+  
+  nd_neut<-data.frame(trt=levels(gd_all$trt))
+  p_neut<-predict(mod1.b, newdata = nd_neut, se.fit=T)
+  p_neut<-data.frame(nd_neut, fit=p_neut$fit, se=p_neut$se.fit)
+  p_neut$lci<-p_neut$fit-(1.96*p_neut$se)
+  p_neut$uci<-p_neut$fit+(1.96*p_neut$se)
+  p_neut
+  
+  dev.new(height=4,width=4.5,dpi=100, noRStudioGD = T,pointsize=16)
+  par(mfrow=c(1,1),mar=c(3,4,0.5,0.5), mgp=c(2.8,0.8,0))
+  plot(1:3, p_neut$fit, ylim=c(min(p_neut$lci), max(p_neut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Site-level allelic richness", xlab="", xaxt="n", col="black")
+  arrows(1:3, p_neut$lci,1:3, p_neut$uci, code=3, angle=90, length=0.05,lwd=1.5)
+  axis(side=1, at=c(1:3), labels = c("unburnt","road burn","site 11"))
+  text(1,1.3, labels=paste("P = ",round(anova(mod1.b)$"Pr(>F)"[1],2),sep=""), adj=0)
+ 
+  # non-neutral models:
+  mod2.a<-lm(ar_nonneutral~1, data=gd_all)
+  mod2.b<-lm(ar_nonneutral~trt, data=gd_all)
+  mod2.c<-lm(ar_nonneutral~trt+ds_div, data=gd_all)
+  mod2.d<-lm(ar_nonneutral~trt*ds_div, data=gd_all)
+  AICc(mod2.a); AICc(mod2.b); AICc(mod2.c); AICc(mod2.d)
+  
+  summary(mod2.b); anova(mod2.b)
+  
+  # close analyse genetic diversity ----
+  
+#  Individaul genetic diversity	# ----
+  
+  ghead(ddat); dim(ddat)
+  
+  # Codes for onerow formatted data:
+  # 0 = Reference allele homozygote
+  # 1 = SNP allele homozygote
+  # 2 = heterozygote
+  
+  # 3 MINS on laptop
+  
+  ih_out<-data.frame(ddat[,1:2],ind_het=NA)
+  head(ih_out,25)
+  
+  for(i in 1:nrow(ih_out)){
+    ind.cons<-as.character(ddat[i,3:length(ddat)])
+    t.cons<-data.frame(ind.cons=as.numeric(names(table(ind.cons))),count=as.numeric(table(ind.cons)),stringsAsFactors=F)
+    
+    if(length(which(is.na(t.cons$ind.cons)))>0) t.cons<-t.cons[-which(is.na(t.cons$ind.cons)),] else stop("no zero category")
+    
+    if(length(which(t.cons$ind.cons==2))==0) ih_out[i,3]<-"no_heterozygotes" else ih_out[i,3]<-t.cons$count[t.cons$ind.cons==2]/sum(t.cons$count)
+    
+  } # close for i
+  
+  ghead(ddat); dim(ddat)
+  
+  # add site data and cluster assignment:
+  
+  # sdt[,which(is.na(colnames(sdt)))]<-NULL
+  head(sdt, 3); dim(sdt)
+  head(ih_out,6); dim(ih_out)
+  
+  ih_dat<-ih_out
+  ih_dat<-merge(ih_out, sdt, by="site", all.x=T, all.y=F)
+  head(ih_dat,3); dim(ih_dat)
+  
+  # merge K on individual:
+  head(kd,3); dim(kd)
+  table(kd$indiv %in% ih_dat$ind)
+  table(ih_dat$ind %in% kd$indiv)
+  
+  ih_dat<-merge(ih_dat, kd, by.x="ind", by.y="indiv", all.x=T, all.y=T)
+  ih_dat$K3<-as.factor(ih_dat$K3)
+  ih_dat$K4<-as.factor(ih_dat$K4)
+  head(ih_dat,3); dim(ih_dat)
+  
+  # Add admixture diversity score:
+  head(site_assig,2); dim(site_assig)
+  sassig<-site_assig[,c("indiv","ds_div")]
+  head(sassig); dim(sassig)
+  table(sassig$indiv %in% ih_dat$ind)
+  
+  ih_dat<-merge(ih_dat, sassig, by.x="ind", by.y="indiv", all.x=T, all.y=F)
+  
+  # MODEL individual heterozygosity ~ burn category:
+  
+  plot(ih_dat$ds_div, ih_dat$ind_het)
+  plot(ih_dat$K3, ih_dat$ind_het)
+  plot(ih_dat$ind_het~ih_dat$K3*ih_dat$burn2)
+  
+  head(ih_dat,3); dim(ih_dat)
+  table(ih_dat$K3, ih_dat$burn2) # rank deficient data structure
+  
+  mod3.a<-lm(ind_het~1, data=ih_dat)
+  mod3.b<-lm(ind_het~burn2, data=ih_dat)
+  mod3.c<-lm(ind_het~burn2+K3, data=ih_dat)
+  mod3.d<-lm(ind_het~burn2*K3, data=ih_dat)
+ 
+  mod3.e<-lm(ind_het~burn2+K3+long, data=ih_dat)
+
+   AICc(mod3.a); AICc(mod3.b); AICc(mod3.c); AICc(mod3.d); AICc(mod3.e)
+  
+  summary(mod3.c); anova(mod3.c)
+  
+  nd_ih<-data.frame(burn2=levels(ih_dat$burn2),K3=as.factor(rep(c(1,2,3),rep(3,3))))
+  p_ih<-predict(mod3.d, newdata = nd_ih, se.fit=T)
+  p_ih<-data.frame(nd_ih, fit=p_ih$fit, se=p_ih$se.fit)
+  p_ih$lci<-p_ih$fit-(1.96*p_ih$se)
+  p_ih$uci<-p_ih$fit+(1.96*p_ih$se)
+  p_ih
+  
+  # PLOT individual heterozygosity from TOP MODEL:
+  
+  dev.new(height=4,width=6,dpi=100,noRStudioGD = T, pointsize=16)
+  par(mfrow=c(1,1),mar=c(3,4,0.5,0.5), mgp=c(2.8,0.8,0))
+  plot((1:3)-0.05, p_ih$fit[p_ih$K3==1], ylim=c(min(p_ih$lci), max(p_ih$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col="#FDC086")
+  arrows((1:3)-0.05, p_ih$lci[p_ih$K3==1],(1:3)-0.05,p_ih$uci[p_ih$K3==1], code=3, angle=90, length=0.05,lwd=1)
+  points((1:3)-0.05, p_ih$fit[p_ih$K3==1], pch=20, col="#FDC086")
+  
+  arrows(1:3, p_ih$lci[p_ih$K3==2],1:3,p_ih$uci[p_ih$K3==2], code=3, angle=90, length=0.05,lwd=1)
+  points(1:3, p_ih$fit[p_ih$K3==2], pch=20, col="#7FC97F")
+  
+  arrows((1:3)+0.05, p_ih$lci[p_ih$K3==3],(1:3)+0.05,p_ih$uci[p_ih$K3==3], code=3, angle=90, length=0.05,lwd=1)
+  points((1:3)+0.05, p_ih$fit[p_ih$K3==3], pch=20, col="#BEAED4")
+  
+  axis(side=1, at=c(1:3), labels = c("unburnt","road burn","site 11"))
+  title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+  
+  
+  # OLD note: I think m2 is the best model to use for examining burn effects on diversity. It accounts for spatial autocorrelation of samples within the same block and for background genetic variation by fitting the genetic cluster as a random effect. 
+  # There is no effect of burn category ("u", "b" and "b2") on individual heterozygosity:
+  library(lmerTest)
+  m2<-lmer(ind_het~burn2+long+(1|K3)+(1|block), data=ih_dat)
+  summary(m2)
+  anova(m2)
+  
+  ih_dat[which(ih_dat$K3==1),]
+  
+  # MODEL individual heterozygosity ~ genetic cluster:
+  
+  m3<-lmer(ind_het~K3+(1|block), data=ih_dat)
+  summary(m3)
+  anova(m3)
+  
+  nd1<-data.frame(K3=as.factor(c(1,2,3)))
+  p1<-predictSE(m3, newdata = nd1, se.fit=T)
+  p1<-data.frame(nd1, fit=p1$fit, se=p1$se.fit)
+  p1$lci<-p1$fit-(1.96*p1$se)
+  p1$uci<-p1$fit+(1.96*p1$se)
+  p1
+  
+  # PLOT genetic diversity ~ genetic cluster:
+  
+  # COLOURS:
+  # The main structure plot used the colour order in switch.col and the structure plot in the dendro used switch.col2 - rearranged so they would match
+  # switch.col is green, purple, orange
+  switch.col<-c("#7FC97F", "#BEAED4", "#FDC086")
+  
+  # switch.col2 is orange, green, purple
+  switch.col2<-c("#FDC086", "#7FC97F", "#BEAED4")
+  
+  # switch.col2 is in the correct order for plotting K1:K3
+  ih_dat[which(ih_dat$ind=="X11b1_02"),] # K2 == green
+  ih_dat[which(ih_dat$ind=="X08b_03"),] # K1 == orange
+  ih_dat[which(ih_dat$ind=="X02b_03"),] # K3 == purple
+  # plot(1:3, 1:3, col=switch.col2, cex=2, pch=16)
+  
+  head(ih_dat,3); dim(ih_dat)
+  
+  quartz("",4,4,dpi=100, pointsize=20)
+  par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
+  plot(1:3, p1$fit, ylim=c(min(p1$lci), max(p1$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
+  arrows(1:3, p1$lci,1:3, p1$uci, code=3, angle=90, length=0.05,lwd=1.5)
+  axis(side=1, at=c(1:3), labels = c(1,2,3))
+  title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+  text(2,0.12, labels="P < 0.001", adj=0)
+  points(1:3, p1$fit, col=switch.col2, cex=2)
+  points(1:3, p1$fit, col=switch.col2, cex=2,pch=20)
+  
+  # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
+  
+# close individual diversity ----
+  
+# Question 3: Does fire influence the mode of reproduction?
+  
 #  Individaul genetic distance & Relatedness	# ----
 
 genind_neutral
@@ -584,376 +983,7 @@ AIC(m7); AIC(m7null)
 
 # close individual distances ----
 
-#  Individaul genetic diversity	# ----
 
-head(neuc_df,3); dim(neuc_df)
-ghead(ddat); dim(ddat)
-
-# Codes for onerow formatted data:
-# 0 = Reference allele homozygote
-# 1 = SNP allele homozygote
-# 2 = heterozygote
-
-# 3 MINS on laptop
-
-ih_out<-data.frame(ddat[,1:2],ind_het=NA)
-head(ih_out,25)
-
-for(i in 1:nrow(ih_out)){
-  ind.cons<-as.character(ddat[i,3:length(ddat)])
-  t.cons<-data.frame(ind.cons=as.numeric(names(table(ind.cons))),count=as.numeric(table(ind.cons)),stringsAsFactors=F)
-  
-  if(length(which(is.na(t.cons$ind.cons)))>0) t.cons<-t.cons[-which(is.na(t.cons$ind.cons)),] else stop("no zero category")
-  
-  if(length(which(t.cons$ind.cons==2))==0) ih_out[i,3]<-"no_heterozygotes" else ih_out[i,3]<-t.cons$count[t.cons$ind.cons==2]/sum(t.cons$count)
-  
-} # close for i
-
-ghead(ddat); dim(ddat)
-
-# add site data and cluster assignment:
-
-head(sdt, 3); dim(sdt)
-head(ih_out,6); dim(ih_out)
-
-ih_dat<-ih_out
-ih_dat<-merge(ih_out, sdt, by="site", all.x=T, all.y=F)
-head(ih_dat,3); dim(ih_dat)
-
-# merge K on individual:
-head(kd,3); dim(kd)
-table(kd$indiv %in% ih_dat$ind)
-table(ih_dat$ind %in% kd$indiv)
-
-ih_dat<-merge(ih_dat, kd, by.x="ind", by.y="indiv", all.x=T, all.y=T)
-ih_dat$K3<-as.factor(ih_dat$K3)
-ih_dat$K4<-as.factor(ih_dat$K4)
-head(ih_dat,3); dim(ih_dat)
-
-# MODEL individual heterozygosity ~ burn category:
-
-m1<-lm(ind_het~burn2+K3, data=ih_dat)
-summary(m1)
-anova(m1)
-
-# I think m2 is the best model to use for examining burn effects on diversity. It accounts for spatial autocorrelation of samples within the same block and for background genetic variation by fitting the genetic cluster as a random effect. 
-# There is no effect of burn category ("u", "b" and "b2") on individual heterozygosity:
-library(lmerTest)
-m2<-lmer(ind_het~burn2+long+(1|K3)+(1|block), data=ih_dat)
-summary(m2)
-anova(m2)
-
-ih_dat[which(ih_dat$K3==1),]
-
-# MODEL individual heterozygosity ~ genetic cluster:
-
-m3<-lmer(ind_het~K3+(1|block), data=ih_dat)
-summary(m3)
-anova(m3)
-
-nd1<-data.frame(K3=as.factor(c(1,2,3)))
-p1<-predictSE(m3, newdata = nd1, se.fit=T)
-p1<-data.frame(nd1, fit=p1$fit, se=p1$se.fit)
-p1$lci<-p1$fit-(1.96*p1$se)
-p1$uci<-p1$fit+(1.96*p1$se)
-p1
-
-# PLOT genetic diversity ~ genetic cluster:
-
-# COLOURS:
-# The main structure plot used the colour order in switch.col and the structure plot in the dendro used switch.col2 - rearranged so they would match
-# switch.col is green, purple, orange
-switch.col<-c("#7FC97F", "#BEAED4", "#FDC086")
-
-# switch.col2 is orange, green, purple
-switch.col2<-c("#FDC086", "#7FC97F", "#BEAED4")
-
-# switch.col2 is in the correct order for plotting K1:K3
-ih_dat[which(ih_dat$ind=="X11b1_02"),] # K2 == green
-ih_dat[which(ih_dat$ind=="X08b_03"),] # K1 == orange
-ih_dat[which(ih_dat$ind=="X02b_03"),] # K3 == purple
-# plot(1:3, 1:3, col=switch.col2, cex=2, pch=16)
-
-head(ih_dat,3); dim(ih_dat)
-
-quartz("",4,4,dpi=100, pointsize=20)
-par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
-plot(1:3, p1$fit, ylim=c(min(p1$lci), max(p1$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
-arrows(1:3, p1$lci,1:3, p1$uci, code=3, angle=90, length=0.05,lwd=1.5)
-axis(side=1, at=c(1:3), labels = c(1,2,3))
-title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
-text(2,0.12, labels="P < 0.001", adj=0)
-points(1:3, p1$fit, col=switch.col2, cex=2)
-points(1:3, p1$fit, col=switch.col2, cex=2,pch=20)
-
-# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
-
-# close individual diversity ----
-
-
-#  POPULATION-LEVEL GENETIC DIVERSITY (not including): 	# ----
-
-genind_neutral # all filters + neutral markers only (20159 loci)
-genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
-head(sdat,3); dim(sdat)
-
-# Calculate genetic diversity per population in hierfstat:
-
-# neutral:
-gendiv_neutral <- basic.stats(genind_neutral, diploid = TRUE, digits = 2)
-str(gendiv_neutral) # 1 min
-head(gendiv_neutral$Ho)
-tail(gendiv_neutral$Ho)
-# save.image("03_workspaces/STEP04_divdist_ALL.RData")
-
-gd_neutral<-data.frame(site=names(apply(gendiv_neutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_neutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_neutral$Ho,2,mean,na.rm=T),He=apply(gendiv_neutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_neutral$Fis,2,mean,na.rm=T))
-gd_neutral<-tidy.df(gd_neutral)
-
-gd_neutral$site<-substr(gd_neutral$site,1,nchar(as.character(gd_neutral$site))-3)
-head(gd_neutral); dim(gd_neutral)
-
-# non-neutral
-gendiv_nonneutral <- basic.stats(genind_nonneutral, diploid = TRUE, digits = 2)
-
-str(gendiv_nonneutral) # a few seconds
-head(gendiv_nonneutral$Ho)
-tail(gendiv_nonneutral$Ho)
-
-gd_nonneutral<-data.frame(site=names(apply(gendiv_nonneutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_nonneutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_nonneutral$Ho,2,mean,na.rm=T),He=apply(gendiv_nonneutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_nonneutral$Fis,2,mean,na.rm=T))
-gd_nonneutral<-tidy.df(gd_nonneutral)
-head(gd_nonneutral); dim(gd_nonneutral)
-
-gd_nonneutral$site<-substr(gd_nonneutral$site,1,nchar(as.character(gd_nonneutral$site))-3)
-head(gd_nonneutral)
-
-# save.image("03_workspaces/STEP04_divdist_ALL.RData")
-
-## -- ** ALLELIC RICHNESS:
-
-head(sdat,3); dim(sdat)
-genind_neutral
-genind_nonneutral
-
-print(Sys.time())
-ar_neutral<- allelic.richness(genind_neutral, diploid = TRUE) # 1 min
-print(Sys.time())
-
-print(Sys.time())
-ar_nonneutral<- allelic.richness(genind_nonneutral, diploid = TRUE) # a few seconds
-print(Sys.time())
-
-str(ar_neutral)
-head(ar_neutral$Ar,2)
-
-str(ar_nonneutral)
-head(ar_nonneutral$Ar,2)
-
-# save.image("03_workspaces/STEP04_divdist_ALL.RData")
-
-# NF
-save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_NF.RData")
-
-# N-NF
-save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/03_Workspaces/divdist_wksp_N_NF.RData")
-
-# Summarise
-
-# Netural Theory of Molecular Evolution
-
-# Neutral:
-head(ar_neutral$Ar,2)
-ar_neutral$min.all
-ar_neutral_res<-data.frame(site=levels(genind_neutral@pop),ar_neutral=apply(ar_neutral$Ar,2,mean,na.rm=T))
-head(ar_neutral_res); dim(ar_neutral_res)
-
-# Non-Neutral:
-head(ar_nonneutral$Ar,2)
-ar_nonneutral$min.all
-ar_nonneutral_res<-data.frame(site=levels(genind_nonneutral@pop),ar_nonneutral=apply(ar_nonneutral$Ar,2,mean,na.rm=T))
-head(ar_nonneutral_res); dim(ar_nonneutral_res)
-
-# combine allelic richness into table with other genetic diversity data:
-
-# fix up the names on AR data frames:
-ar_neutral_res$site<-substr(ar_neutral_res$site,1,nchar(as.character(ar_neutral_res$site))-3)
-head(ar_neutral_res)
-ar_nonneutral_res$site<-substr(ar_nonneutral_res$site,1,nchar(as.character(ar_nonneutral_res$site))-3)
-head(ar_nonneutral_res)
-
-# check:
-gd_neutral$site %in% ar_neutral_res$site
-ar_neutral_res$site %in% gd_neutral$site
-
-gd_nonneutral$site %in% ar_nonneutral_res$site
-ar_nonneutral_res$site %in% gd_nonneutral$site
-
-# merge
-head(gd_neutral,3); dim(gd_neutral)
-head(ar_neutral_res,3); dim(ar_neutral_res)
-gd_neutral<-merge(gd_neutral, ar_neutral_res, by="site", all.x=T, all.y=F)
-
-head(gd_nonneutral,3); dim(gd_nonneutral)
-head(ar_nonneutral_res,3); dim(ar_nonneutral_res)
-gd_nonneutral<-merge(gd_nonneutral, ar_nonneutral_res, by="site", all.x=T, all.y=F)
-
-# combine neutral and non-neutral:
-
-colnames(gd_neutral)[colnames(gd_neutral) %in% c("Ho","He","Fis")]<-paste(colnames(gd_neutral)[colnames(gd_neutral) %in% c("Ho","He","Fis")],"_neutral",sep="")
-colnames(gd_nonneutral)[colnames(gd_nonneutral) %in% c("Ho","He","Fis")]<-paste(colnames(gd_nonneutral)[colnames(gd_nonneutral) %in% c("Ho","He","Fis")],"_nonneutral",sep="")
-
-head(gd_neutral,3); dim(gd_neutral)
-head(gd_nonneutral,3); dim(gd_nonneutral)
-
-gd_all<-gd_neutral
-gd_all$max_n<-NULL
-gd_all<-merge(gd_all,gd_nonneutral, by="site", all.x=T, all.y=F)
-gd_all<-gd_all[,c(c(which(colnames(gd_all) %in% c("site","max_n"))),c(which(!colnames(gd_all) %in% c("site","max_n"))))]
-head(gd_all,3); dim(gd_all)
-
-# write.table(gd_all, "gd_all.txt", row.names=F, quote=F, sep="\t")
-# save.image("03_workspaces/STEP04_divdist_ALL.RData")
-
-# Binding
-# dplyr from tidyverse to bind columns 
-
-library(tidyverse)
-sdatcoord<- sdat %>%
-  select(burn_unburnt,lat,long)
-colnames(sdatcoord)[1]<-"treatment"
-
-# Neutral 
-ar<-data.frame(ar= ar_res_rd$ar_default_rd)
-joint_data_frame<-bind_cols(gd_filt1,sdatcoord, ar)
-# write.table(joint_data_frame,"joint_netural_dataset.txt",sep="\t",row.names=F,quote=F)
-
-# NonNetural
-ar<-data.frame(ar = ar_res_adapt$ar_default_adapt)
-joint_data_frame<-bind_cols(gd_filt1,sdatcoord,ar)
-# write.table(joint_data_frame,"joint_nonnetural_dataset.txt",sep="\t",row.names=F,quote=F)
-
-# close calc genetic diversity ----
-
-#  ANALYSE Genetic diversity:    	# ----
-
-gd_all<-read.table("RESULTS/Diversity_and_Distance/Genetic_Diversity/Genetic_Diversity_ALL.txt", header=T)
-head(gd_all,3)
-
-# simplify site data
-sdt<-sdat[,c("block","site","pop","burn_unburnt","no_samples","lat","long")]
-sdt$site<-paste("X",substr(sdt$site, 4, nchar(as.character(sdt$site))),sep="")
-
-# merge with genetic diversity data:
-sdt$site %in% gd_all$site
-gd_all$site %in% sdt$site
-gd_all<-merge(gd_all, sdt, by="site", all.x=T, all.y=F)
-
-# add second treatment variable:
-gd_all$treatment<-gd_all$burn_unburnt
-gd_all$burn_unburnt<-NULL
-gd_all$trt<-as.character(gd_all$treatment)
-gd_all$trt[grep("b",gd_all$trt)]<-"b1"
-gd_all$trt[grep("X11",gd_all$site)]<-"b2"
-gd_all$trt<-factor(gd_all$trt, levels=c("u","b1","b2"))
-head(gd_all,3); dim(gd_all)
-
-# neutral models:
-mod1.a<-lm(ar_neutral~1, data=gd_all)
-mod2.a<-lm(ar_neutral~trt, data=gd_all)
-mod3.a<-lm(ar_neutral~trt+long, data=gd_all)
-mod4.a<-lm(ar_neutral~trt*long, data=gd_all)
-AICc(mod1.a); AICc(mod2.a); AICc(mod3.a); AICc(mod4.a)
-summary(mod2.a); anova(mod2.a)
-
-# non-neutral models:
-mod1.b<-lm(ar_nonneutral~1, data=gd_all)
-mod2.b<-lm(ar_nonneutral~trt, data=gd_all)
-mod3.b<-lm(ar_nonneutral~trt+long, data=gd_all)
-mod4.b<-lm(ar_nonneutral~trt*long, data=gd_all)
-AICc(mod1.b); AICc(mod2.b); AICc(mod3.b); AICc(mod4.b)
-summary(mod2.b); anova(mod2.b)
-
-
-# add genetic clusters from STRUCTURE analysis (this is only useful for the individual level analysis:
-gclust<-read.table("00_Data/K_genetic_clusters.txt", header=T)
-gclust$site %in% sdt$site
-head(gclust,3); dim(gclust)
-
-
-# BD:
-
-joint_data_frame$trt<-as.character(joint_data_frame$treatment)
-
-joint_data_frame$trt[grep("X11",joint_data_frame$site)]<-"b2"
-joint_data_frame$trt<-as.factor(joint_data_frame$trt)
-joint_data_frame$trt<-relevel(joint_data_frame$trt,"u")
-levels(joint_data_frame$trt)
-
-# Models
-mod1<-lm(ar~treatment , data = joint_data_frame)
-summary(mod1)
-anova(mod1)
-
-mod1.1<-lm(ar~trt, data = joint_data_frame)
-summary(mod1.1)
-anova(mod1.1)
-
-plot(ar~trt, data = joint_data_frame)
-
-mod2<-lm(He~treatment + long, data =joint_data_frame)
-summary(mod2)
-anova(mod2)
-
-
-mod3<-lm(ar~treatment + long, data = joint_data_frame[-which(joint_data_frame$site%in%c("X11b1_0", "X11b2_0", "X11b3_0")),])
-summary(mod3)
-anova(mod3)
-
-
-
-plot(as.factor(joint_data_frame$treatment), joint_data_frame$ar)
-
-
-
-# joint_data_frame$treatment[which(joint_data_frame$site%in%c("X11b1_0", "X11b2_0", "X11b3_0"))]
-
-
-new.dataframe<-data.frame(trt = factor(c("u", "b", "b2"),levels = c("u", "b", "b2")))
-
-
-
-p1<-predict(mod1.1, new.dataframe, se.fit = TRUE)
-
-p1
-
-new.dataframe$se<- p1$se.fit
-new.dataframe$fit<-p1$fit
-print(new.dataframe)
-
-
-
-# upper & lower confidence interval
-
-# Question: why are the differences? 
-p1$uci<-p1$fit+(1.96*p1$se.fit)
-p1$lci<-p1$fit-(1.96*p1$se.fit)
-
-# install.packages("Rmisc", dependencies = TRUE)
-# library(Rmisc)
-# p1$uci<-CI(p1$fit,ci=0.95)
-# p1$lci<-CI(p1$fit,ci=0.95)
-
-
-new.dataframe$uci<-p1$uci
-new.dataframe$lci<-p1$lci
-
-library("tidyverse")
-ggplot(data = new.dataframe, mapping = aes(x = trt,
-                                           y = fit)) +
-  ylab("estimated allelic richness")+
-  geom_point()+
-  geom_errorbar(aes(ymin = lci, ymax = uci, position = "dodge"), width = 0.2)
-
-# close analyse genetic diversity ----
 
 
 
