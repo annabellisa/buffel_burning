@@ -21,13 +21,6 @@ library(diveRsity);library(hierfstat);library(adegenet); library(ecodist); libra
 gp_dir<-"00_Data/Genepop_Files"
 dir(gp_dir)
 
-# NF
-gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/NF_Format"
-
-# N-NF
-gp_dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/N_NF_Format"
-dir(gp_dir)
-
 # Make genind objects:
 
 # ~~ Neutral (~ 5 min for 20159 loci)
@@ -713,7 +706,7 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   
 # Question 3: Does fire influence the mode of reproduction?
   
-#  Individaul genetic distance & Relatedness	# ----
+#  Individaul genetic distance & relatedness	# ----
 
 genind_neutral
 
@@ -907,7 +900,20 @@ head(kinsh,3); dim(kinsh)
 
 # Add K genetic clusters:
 head(ih_dat,3); dim(ih_dat)
+indK<-ih_dat[,c("ind","K3")]
+head(indK,3); dim(indK)
 
+indK$ind %in% unique(c(kinsh$ind1, kinsh$ind2))
+unique(c(kinsh$ind1, kinsh$ind2)) %in% indK$ind
+
+kinsh<-merge(kinsh, indK, by.x="ind1", by.y="ind", all.x=T, all.y=F)
+colnames(kinsh)[which(colnames(kinsh)==c("K3"))]<-c("K3_s1")
+kinsh<-merge(kinsh, indK, by.x="ind2", by.y="ind", all.x=T, all.y=F)
+colnames(kinsh)[which(colnames(kinsh)==c("K3"))]<-c("K3_s2")
+
+# add same flag for K:
+kinsh$same_K<-ifelse(kinsh$K3_s1==kinsh$K3_s2,1,0)
+head(kinsh,3); dim(kinsh)
 
 # remove pw comparisons from different blocks:
 kinsh2<-kinsh[-which(kinsh$same_block==0),]
@@ -919,8 +925,12 @@ kinsh2$same_b3L<-ifelse(kinsh2$b3L_s1==kinsh2$b3L_s2,1,0)
 # remove pw comparisons from different sites:
 kinsh3<-kinsh2[-which(kinsh2$same_site==0),]
 
-head(kinsh2,3); dim(kinsh2)
-head(kinsh3,3); dim(kinsh3)
+# remove pw comparisons from different K:
+kinsh4<-kinsh[-which(kinsh$same_K==0),]
+
+head(kinsh2,3); dim(kinsh2) # same block
+head(kinsh3,3); dim(kinsh3) # same site
+head(kinsh4,3); dim(kinsh4) # same K
 
 # Focussing on within site comparisons (i.e. kinsh3), for each site calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
 
@@ -958,7 +968,30 @@ AICc(mod5.b); AICc(mod5.bNULL)
 head(kinsh3,2); dim(kinsh3)
 
 plot(kinsh3$b3L_s1, kinsh3$kinship_mle)
-mantel(kinship_mle~b3L_s2, data=kinsh3)
+
+# Focussing on within K comparisons (i.e. kinsh4), for each K, calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
+
+head(kinsh4,3); dim(kinsh4) # same K
+
+prop_cloneK<-aggregate(clone~K3_s1, data=kinsh4, FUN=function(x) length(x[x==1])/length(x))
+colnames(prop_cloneK)<-c("K","prop_clone")
+prop_cloneK
+
+plot()
+
+dev.new(height=4,width=8,noRStudioGD = T,dpi=100, pointsize=20)
+par(mfrow=c(1,2),mar=c(3,3.5,1.5,0.5), mgp=c(2.3,0.8,0))
+
+plot(kinsh3$b3L_s1, kinsh3$kinship_mle, las=1, ylab="Kinship coefficient", xlab="", xaxt="n")
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(0.7,2,3.3), labels = c("unburnt","road burn","site 11"), tick = F, cex.axis=0.8)
+title(xlab="Fire regime", mgp=c(2,1,0))
+mtext("A",side=3, at=0.5, line=0.3)
+
+plot(as.factor(kinsh4$K3_s1), kinsh4$kinship_mle, pch=20, las=1, ylab="Kinship coefficient", xlab="", xaxt="n")
+axis(side=1, at=c(1:3), labels = c(1,2,3))
+title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+mtext("B",side=3, at=0.5, line=0.3)
 
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
