@@ -938,23 +938,54 @@ head(prop_clone); dim(prop_clone)
 
 plot(prop_clone$burn2, prop_clone$prop_clone)
 
-# The problem with the quasibinomial is the inability to get an AIC:
 mod5.a<-glm(prop_clone~burn2, data=prop_clone, family="quasibinomial")
 mod5.aNULL<-glm(prop_clone~1, data=prop_clone, family="quasibinomial")
 summary(mod5.a)
 AICc(mod5.a); AICc(mod5.aNULL)
 
-# The binomial model suggest no effect of burn category on the probability of being a clone:
 mod5.b<-glm(prop_clone~burn2, data=prop_clone, family="binomial")
 mod5.bNULL<-glm(prop_clone~1, data=prop_clone, family="binomial")
 summary(mod5.b)
-anova(mod5.b)
 AICc(mod5.b); AICc(mod5.bNULL)
 
-head(kinsh3,2); dim(kinsh3)
+anova(mod5.a)
+QAIC(mod5.a)
 
-plot(kinsh3$b3L_s1, kinsh3$kinship_mle)
-mantel(kinship_mle~b3L_s2, data=kinsh3)
+# site 11 has a lower probability of clonality than the other sites. This is interesting because this site did not have higher individual heterozygosity. It did have higher allelic richness, but this was most likely because it included samples from two genetic clusters. However, since we have only a site-level coordinate, not individual plant coordinates, we cannot know if this reflects a different spatial sampling regime at this site (but we should check this with JF)
+# There is no difference in probability of clonality between unburnt and the regular, roadside burnt sites
+m4<-glmer(clone~b3L_s1+(1|site1), family="binomial", data=kinsh3)
+m4null<-glmer(clone~1+(1|site1), family="binomial", data=kinsh3)
+summary(m4)
+anova(m4)
+AICc(m4); AICc(m4null)
+
+m5<-lmer(kinship_mle~b3L_s1+(1|site1), data=kinsh3)
+m5null<-lmer(kinship_mle~1+(1|site1), data=kinsh3)
+summary(m5)
+anova(m5)
+AIC(m5); AIC(m5null)
+
+# Removing site 11 to look only at the unburnt and roadside burnt sites, there is no influence of burn category on the probability of being a clone:
+
+# We could explore this more formally with GDM but I don't think it's worth it, given the lack of result shown here. The GDM takes a similar approach and will likely reveal the same thing
+
+kinsh4<-kinsh3
+which(kinsh4$block1=="X11")==which(kinsh4$block2=="X11")
+kinsh4<-kinsh4[-which(kinsh4$block1=="X11"),]
+kinsh4<-tidy.df(kinsh4)
+head(kinsh4,3); dim(kinsh4)
+
+m6<-glm(clone~b3L_s1, family="binomial", data=kinsh4)
+m6null<-glm(clone~1, family="binomial", data=kinsh4)
+summary(m6)
+anova(m6)
+AIC(m6); AIC(m6null)
+
+m7<-lm(kinship_mle~b3L_s1, data=kinsh4)
+m7null<-lm(kinship_mle~1, data=kinsh4)
+summary(m7)
+anova(m7)
+AIC(m7); AIC(m7null)
 
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
