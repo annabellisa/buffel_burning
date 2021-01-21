@@ -905,6 +905,10 @@ colnames(kinsh)[which(colnames(kinsh)==c("b2L","b3L"))]<-c("b2L_s2","b3L_s2")
 
 head(kinsh,3); dim(kinsh)
 
+# Add K genetic clusters:
+head(ih_dat,3); dim(ih_dat)
+
+
 # remove pw comparisons from different blocks:
 kinsh2<-kinsh[-which(kinsh$same_block==0),]
 
