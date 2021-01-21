@@ -96,7 +96,6 @@ ghead(clust_dat)
 hc_dist<-dist(x = clust_dat, method="euclidean")
 euc_clust<-hclust(hc_dist)
 str(euc_clust)
-head(neuc_df,3); dim(neuc_df)
 
 # plot:
 quartz("",10,4,dpi=140)
@@ -553,8 +552,8 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   ## ANALYSIS:
   head(gd_all,2); dim(gd_all)
   gd_all[,c("site","genstr","ds_div","K")]
-  plot(gd_all$ds_div,gd_all$ar_neutral)
-  plot(gd_all$K,gd_all$ds_div)
+  # plot(gd_all$ds_div,gd_all$ar_neutral)
+  # plot(gd_all$K,gd_all$ds_div)
   
   # neutral models:
   mod1.a<-lm(ar_neutral~1, data=gd_all)
@@ -562,6 +561,10 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   mod1.c<-lm(ar_neutral~trt+ds_div, data=gd_all)
   mod1.d<-lm(ar_neutral~trt*ds_div, data=gd_all)
   AICc(mod1.a); AICc(mod1.b); AICc(mod1.c); AICc(mod1.d)
+  
+  # Including longitude does not improve the model fit:
+  mod1.e<-lm(ar_neutral~trt+long, data=gd_all)
+  AICc(mod1.b); AICc(mod1.e)
   
   summary(mod1.b); anova(mod1.b)
   summary(mod1.c); anova(mod1.c)
@@ -647,72 +650,36 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   
   # MODEL individual heterozygosity ~ burn category:
   
-  plot(ih_dat$ds_div, ih_dat$ind_het)
-  plot(ih_dat$K3, ih_dat$ind_het)
-  plot(ih_dat$ind_het~ih_dat$K3*ih_dat$burn2)
+  # plot(ih_dat$ds_div, ih_dat$ind_het)
+  # plot(ih_dat$K3, ih_dat$ind_het)
+  # plot(ih_dat$ind_het~ih_dat$K3*ih_dat$burn2)
   
   head(ih_dat,3); dim(ih_dat)
   table(ih_dat$K3, ih_dat$burn2) # rank deficient data structure
   
-  mod3.a<-lm(ind_het~1, data=ih_dat)
-  mod3.b<-lm(ind_het~burn2, data=ih_dat)
-  mod3.c<-lm(ind_het~burn2+K3, data=ih_dat)
-  mod3.d<-lm(ind_het~burn2*K3, data=ih_dat)
- 
-  mod3.e<-lm(ind_het~burn2+K3+long, data=ih_dat)
-
-   AICc(mod3.a); AICc(mod3.b); AICc(mod3.c); AICc(mod3.d); AICc(mod3.e)
+  mod3.a<-lmer(ind_het~1+(1|site), REML=F, data=ih_dat)
+  mod3.b<-lmer(ind_het~burn2+(1|site),REML=F, data=ih_dat)
+  mod3.c<-lmer(ind_het~K3+(1|site),REML=F, data=ih_dat)
+  mod3.d<-lmer(ind_het~burn2+K3+(1|site), REML=F,data=ih_dat)
+  mod3.e<-lmer(ind_het~burn2*K3+(1|site), REML=F,data=ih_dat)
   
+  # Adding the diversity score does not improve the model fit:
+  mod3.f<-lmer(ind_het~K3+ds_div+(1|site),REML=F, data=ih_dat)
+  summary(mod3.f)
+  AICc(mod3.c); AICc(mod3.f)
+  
+  AICc(mod3.a); AICc(mod3.b); AICc(mod3.c); AICc(mod3.d); AICc(mod3.e)
+
   summary(mod3.c); anova(mod3.c)
   
-  nd_ih<-data.frame(burn2=levels(ih_dat$burn2),K3=as.factor(rep(c(1,2,3),rep(3,3))))
-  p_ih<-predict(mod3.d, newdata = nd_ih, se.fit=T)
+  nd_ih<-data.frame(K3=as.factor(c(1,2,3)))
+  p_ih<-predictSE(mod3.c, newdata = nd_ih, se.fit=T)
   p_ih<-data.frame(nd_ih, fit=p_ih$fit, se=p_ih$se.fit)
   p_ih$lci<-p_ih$fit-(1.96*p_ih$se)
   p_ih$uci<-p_ih$fit+(1.96*p_ih$se)
   p_ih
   
-  # PLOT individual heterozygosity from TOP MODEL:
-  
-  dev.new(height=4,width=6,dpi=100,noRStudioGD = T, pointsize=16)
-  par(mfrow=c(1,1),mar=c(3,4,0.5,0.5), mgp=c(2.8,0.8,0))
-  plot((1:3)-0.05, p_ih$fit[p_ih$K3==1], ylim=c(min(p_ih$lci), max(p_ih$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col="#FDC086")
-  arrows((1:3)-0.05, p_ih$lci[p_ih$K3==1],(1:3)-0.05,p_ih$uci[p_ih$K3==1], code=3, angle=90, length=0.05,lwd=1)
-  points((1:3)-0.05, p_ih$fit[p_ih$K3==1], pch=20, col="#FDC086")
-  
-  arrows(1:3, p_ih$lci[p_ih$K3==2],1:3,p_ih$uci[p_ih$K3==2], code=3, angle=90, length=0.05,lwd=1)
-  points(1:3, p_ih$fit[p_ih$K3==2], pch=20, col="#7FC97F")
-  
-  arrows((1:3)+0.05, p_ih$lci[p_ih$K3==3],(1:3)+0.05,p_ih$uci[p_ih$K3==3], code=3, angle=90, length=0.05,lwd=1)
-  points((1:3)+0.05, p_ih$fit[p_ih$K3==3], pch=20, col="#BEAED4")
-  
-  axis(side=1, at=c(1:3), labels = c("unburnt","road burn","site 11"))
-  title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
-  
-  
-  # OLD note: I think m2 is the best model to use for examining burn effects on diversity. It accounts for spatial autocorrelation of samples within the same block and for background genetic variation by fitting the genetic cluster as a random effect. 
-  # There is no effect of burn category ("u", "b" and "b2") on individual heterozygosity:
-  library(lmerTest)
-  m2<-lmer(ind_het~burn2+long+(1|K3)+(1|block), data=ih_dat)
-  summary(m2)
-  anova(m2)
-  
-  ih_dat[which(ih_dat$K3==1),]
-  
-  # MODEL individual heterozygosity ~ genetic cluster:
-  
-  m3<-lmer(ind_het~K3+(1|block), data=ih_dat)
-  summary(m3)
-  anova(m3)
-  
-  nd1<-data.frame(K3=as.factor(c(1,2,3)))
-  p1<-predictSE(m3, newdata = nd1, se.fit=T)
-  p1<-data.frame(nd1, fit=p1$fit, se=p1$se.fit)
-  p1$lci<-p1$fit-(1.96*p1$se)
-  p1$uci<-p1$fit+(1.96*p1$se)
-  p1
-  
-  # PLOT genetic diversity ~ genetic cluster:
+  # PLOT TOP MODEL: genetic diversity ~ genetic cluster:
   
   # COLOURS:
   # The main structure plot used the colour order in switch.col and the structure plot in the dendro used switch.col2 - rearranged so they would match
@@ -730,18 +697,18 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   
   head(ih_dat,3); dim(ih_dat)
   
-  quartz("",4,4,dpi=100, pointsize=20)
+  dev.new(height=4,width=4,noRStudioGD = T,dpi=100, pointsize=20)
   par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
-  plot(1:3, p1$fit, ylim=c(min(p1$lci), max(p1$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
-  arrows(1:3, p1$lci,1:3, p1$uci, code=3, angle=90, length=0.05,lwd=1.5)
+  plot(1:3, p_ih$fit, ylim=c(min(p_ih$lci), max(p_ih$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
+  arrows(1:3, p_ih$lci,1:3, p_ih$uci, code=3, angle=90, length=0.05,lwd=1.5)
   axis(side=1, at=c(1:3), labels = c(1,2,3))
   title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
   text(2,0.12, labels="P < 0.001", adj=0)
-  points(1:3, p1$fit, col=switch.col2, cex=2)
-  points(1:3, p1$fit, col=switch.col2, cex=2,pch=20)
+  points(1:3, p_ih$fit, col=switch.col2, cex=2)
+  points(1:3, p_ih$fit, col=switch.col2, cex=2,pch=20)
   
   # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
-  
+
 # close individual diversity ----
   
 # Question 3: Does fire influence the mode of reproduction?
