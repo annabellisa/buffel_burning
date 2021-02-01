@@ -587,7 +587,7 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   
   # close analyse genetic diversity ----
   
-#  Individaul genetic diversity	# ----
+#  Individual genetic diversity	# ----
   
   ghead(ddat); dim(ddat)
   
@@ -706,7 +706,7 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   
 # Question 3: Does fire influence the mode of reproduction?
   
-#  Individaul genetic distance & relatedness	# ----
+#  Individual genetic distance & relatedness	# ----
 
 genind_neutral
 
