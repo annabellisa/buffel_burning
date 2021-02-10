@@ -982,7 +982,6 @@ prop_cloneK<-aggregate(clone~K3_s1, data=kinsh4, FUN=function(x) length(x[x==1])
 colnames(prop_cloneK)<-c("K","prop_clone")
 prop_cloneK
 
-plot()
 
 dev.new(height=4,width=8,noRStudioGD = T,dpi=100, pointsize=20)
 par(mfrow=c(1,2),mar=c(3,3.5,1.5,0.5), mgp=c(2.3,0.8,0))
