@@ -740,6 +740,11 @@ head(neuc_df); dim(neuc_df)
 # http://corearray.sourceforge.net/tutorials/SNPRelate/
 
 library("SNPRelate")
+# To install this package, start R (version "4.0") and enter:
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+  # install.packages("BiocManager")
+# BiocManager::install("SNPRelate")
+
 str.dir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt2"
 dir(str.dir)
 
