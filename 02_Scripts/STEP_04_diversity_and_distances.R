@@ -207,6 +207,7 @@ dir(dat_dir)
 # load fst data:
 fst_all<-read.table(paste(dat_dir,"fst_and_distances_all_sites.txt",sep="/"),header=T)
 head(fst_all,2)
+summary(fst_all$fst)
 
 # sites with the very large FSTs correspond to the structure clusters... they're probably different lines
 fst_all[,1:3]
@@ -223,6 +224,12 @@ par(mar=c(4,4,2,1), mgp=c(2.5,1,0))
 plot(fst_all$geog_dist, fst_all$fst, pch=20, xlab="Geographic distance (m)", ylab="FST", las=1)
 # pval2 = one-tailed p-value (null hypothesis: r >= 0).
 mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1[1],2),"; p = ",round(mant1[3],2), sep=""), adj=0)
+
+## WITHOUT STATS (for paper)
+# plot FST:
+quartz("",6,4,dpi=100)
+par(mar=c(4,4,0.5,0.5), mgp=c(2.5,1,0))
+plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)", xlim=c(0,100),ylab=expression("Genetic distance ("*italic("F")[ST]*")"), las=1)
 
 # close FST ----
 
@@ -312,16 +319,20 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   head(ldat,3); dim(ldat)
   
   dev.new(height=6, width=6, noRStudioGD = T, dpi=100, pointsize=12)
-  par(mfrow=c(2,2), mar=c(4,4,1,1), mgp=c(2.5,1,0))
+  par(mfrow=c(2,2), mar=c(4,4,1,1), mgp=c(2.5,1,0), oma=c(0,0,1.5,0))
 
     plot(1:K_test,var_expl_test[1:22],xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n")
-  title(xlab="PC",mgp=c(2.5,1,0))
+  title(xlab="Principal Component",mgp=c(2.3,1,0))
   grid()
   lines(1:K_test,var_expl_test[1:22])
   points(1:K_test,var_expl_test[1:22],pch=20)
+  mtext("(a)", side = 3, line=0.5, cex = 1, adj=0)
   
   blankplot()
-  legend(x=1, y=5, legend = c("road unburnt","road burnt","burnt site 11"), pt.cex=1.5,col=c("black","red","orange"),pch=20)
+  
+  par(xpd=NA)
+  legend(x=5.4, y=0.8, legend = c("road unburnt","road burnt","burnt site 11"), pt.cex=1.5,col=c("black","red","orange"),pch=20)
+  par(xpd=F)
   
   # colour order is 1,2,3==black,red,green,
   # burnt(2)==green,unburnt(1)==black,burn2(3)==green,
@@ -332,8 +343,11 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   c.now$new.col<-ifelse(ifelse(ifelse(c.now$new.col==1,"black",c.now$new.col)==2,"red",ifelse(c.now$new.col==1,"black",c.now$new.col))==3,"orange",ifelse(ifelse(c.now$new.col==1,"black",c.now$new.col)==2,"red",ifelse(c.now$new.col==1,"black",c.now$new.col)))
   head(c.now)
   
-  plot(ldat$Axis1, ldat$Axis2, col=c.now$new.col, pch=20, xlab="Axis 1", ylab="Axis 2",cex=1.5)
-  plot(ldat$Axis1, ldat$Axis3, col=c.now$new.col, pch=20, xlab="Axis 1", ylab="Axis 3" ,cex=1.5)
+  plot(ldat$Axis1, ldat$Axis2, col=c.now$new.col, pch=20, xlab="PC 1", ylab="PC 2",cex=1.5, las=1, mgp=c(2.3,1,0))
+  mtext("(b)", side = 3, line=0.5, cex = 1, adj=0)
+  
+  plot(ldat$Axis1, ldat$Axis3, col=c.now$new.col, pch=20, xlab="PC 1", ylab="PC 3" ,cex=1.5, las=1, mgp=c(2.3,1,0))
+  mtext("(c)", side = 3, line=0.5, cex = 1, adj=0)
   
   # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
   
@@ -551,13 +565,10 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   # neutral models:
   mod1.a<-lm(ar_neutral~1, data=gd_all)
   mod1.b<-lm(ar_neutral~trt, data=gd_all)
+  mod1.b2<-lm(ar_neutral~ds_div, data=gd_all)
   mod1.c<-lm(ar_neutral~trt+ds_div, data=gd_all)
   mod1.d<-lm(ar_neutral~trt*ds_div, data=gd_all)
-  AICc(mod1.a); AICc(mod1.b); AICc(mod1.c); AICc(mod1.d)
-  
-  # Including longitude does not improve the model fit:
-  mod1.e<-lm(ar_neutral~trt+long, data=gd_all)
-  AICc(mod1.b); AICc(mod1.e)
+  AICc(mod1.a); AICc(mod1.b); AICc(mod1.b2); AICc(mod1.c); AICc(mod1.d)
   
   summary(mod1.b); anova(mod1.b)
   summary(mod1.c); anova(mod1.c)
@@ -569,6 +580,7 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   p_neut$uci<-p_neut$fit+(1.96*p_neut$se)
   p_neut
   
+  # PLOT NEUTRAL ONLY
   dev.new(height=4,width=4.5,dpi=100, noRStudioGD = T,pointsize=16)
   par(mfrow=c(1,1),mar=c(3,4,0.5,0.5), mgp=c(2.8,0.8,0))
   plot(1:3, p_neut$fit, ylim=c(min(p_neut$lci), max(p_neut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Site-level allelic richness", xlab="", xaxt="n", col="black")
@@ -579,24 +591,54 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   # non-neutral models:
   mod2.a<-lm(ar_nonneutral~1, data=gd_all)
   mod2.b<-lm(ar_nonneutral~trt, data=gd_all)
+  mod2.b2<-lm(ar_nonneutral~ds_div, data=gd_all)
   mod2.c<-lm(ar_nonneutral~trt+ds_div, data=gd_all)
   mod2.d<-lm(ar_nonneutral~trt*ds_div, data=gd_all)
-  AICc(mod2.a); AICc(mod2.b); AICc(mod2.c); AICc(mod2.d)
+  AICc(mod2.a); AICc(mod2.b); AICc(mod2.b2); AICc(mod2.c); AICc(mod2.d)
   
   summary(mod2.b); anova(mod2.b)
+  
+  nnd_neut<-data.frame(trt=levels(gd_all$trt))
+  p_nneut<-predict(mod2.b, newdata = nnd_neut, se.fit=T)
+  p_nneut<-data.frame(nnd_neut, fit=p_nneut$fit, se=p_nneut$se.fit)
+  p_nneut$lci<-p_nneut$fit-(1.96*p_nneut$se)
+  p_nneut$uci<-p_nneut$fit+(1.96*p_nneut$se)
+  p_nneut
+  
+  ## neutral and non-neutral together
+  
+  dev.new(height=4,width=9,dpi=100, noRStudioGD = T,pointsize=16)
+  par(mfrow=c(1,2),mar=c(3,4,1.5,0.5), mgp=c(2.8,0.8,0))
+  plot(1:3, p_neut$fit, ylim=c(min(p_neut$lci), max(p_neut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Neutral allelic richness", xlab="", xaxt="n", col="black")
+  arrows(1:3, p_neut$lci,1:3, p_neut$uci, code=3, angle=90, length=0.05,lwd=1.5)
+  axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
+  text(1,1.3, labels=paste("P = ",round(anova(mod1.b)$"Pr(>F)"[1],2),sep=""), adj=0)
+  mtext("(a)", side=3, line=0.5, adj=0)
+  
+  plot(1:3, p_nneut$fit, ylim=c(min(p_nneut$lci), max(p_nneut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Non-neutral allelic richness", xlab="", xaxt="n", col="black")
+  arrows(1:3, p_nneut$lci,1:3, p_nneut$uci, code=3, angle=90, length=0.05,lwd=1.5)
+  axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
+  text(1,1.3, labels=paste("P = ",round(anova(mod2.b)$"Pr(>F)"[1],2),sep=""), adj=0)
+  mtext("(b)", side=3, line=0.5, adj=0)
   
   # close analyse genetic diversity ----
   
 #  Individual genetic diversity	# ----
   
+  # Neutral data set:
   ghead(ddat); dim(ddat)
+  
+  # Non-neutral data set:
+  nndat<-read.table(paste("00_Data/Filtered_DartSeq_format","dartseq_filt3_adaptive.txt", sep="/"), header=T)
+  ghead(nndat); dim(nndat)
   
   # Codes for onerow formatted data:
   # 0 = Reference allele homozygote
   # 1 = SNP allele homozygote
   # 2 = heterozygote
   
-  # 3 MINS on laptop
+  # Neutral
+  # 3 MINS on laptop 
   
   ih_out<-data.frame(ddat[,1:2],ind_het=NA)
   head(ih_out,25)
@@ -611,16 +653,39 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
     
   } # close for i
   
+  # Non-neutral
+  
+  ih_out_nn<-data.frame(nndat[,1:2],ind_het=NA)
+  head(ih_out_nn,15); dim(ih_out_nn)
+  ghead(nndat); dim(nndat)
+  
+  for(i in 1:nrow(ih_out_nn)){
+    ind.cons<-as.character(nndat[i,3:length(nndat)])
+    t.cons<-data.frame(ind.cons=as.numeric(names(table(ind.cons))),count=as.numeric(table(ind.cons)),stringsAsFactors=F)
+    
+    if(length(which(is.na(t.cons$ind.cons)))>0) t.cons<-t.cons[-which(is.na(t.cons$ind.cons)),] else stop("no zero category")
+    
+    if(length(which(t.cons$ind.cons==2))==0) ih_out_nn[i,3]<-"no_heterozygotes" else ih_out_nn[i,3]<-t.cons$count[t.cons$ind.cons==2]/sum(t.cons$count)
+    
+  } # close for i
+  
+  ih_out_nn$ind_het<-as.numeric(ih_out_nn$ind_het)
+  
   ghead(ddat); dim(ddat)
+  ghead(nndat); dim(nndat)
   
   # add site data and cluster assignment:
   
   # sdt[,which(is.na(colnames(sdt)))]<-NULL
   head(sdt, 3); dim(sdt)
   head(ih_out,6); dim(ih_out)
+  head(ih_out_nn,6); dim(ih_out_nn)
   
-  ih_dat<-ih_out
-  ih_dat<-merge(ih_out, sdt, by="site", all.x=T, all.y=F)
+  colnames(ih_out)[which(colnames(ih_out)=="ind_het")]<-"ind_het_neut"
+  colnames(ih_out_nn)[which(colnames(ih_out_nn)=="ind_het")]<-"ind_het_nonneut"
+  
+  ih_dat<-data.frame(ih_out,ind_het_nonneut=ih_out_nn[,3])
+  ih_dat<-merge(ih_dat, sdt, by="site", all.x=T, all.y=F)
   head(ih_dat,3); dim(ih_dat)
   
   # merge K on individual:
@@ -643,34 +708,57 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   
   # MODEL individual heterozygosity ~ burn category:
   
-  # plot(ih_dat$ds_div, ih_dat$ind_het)
-  # plot(ih_dat$K3, ih_dat$ind_het)
-  # plot(ih_dat$ind_het~ih_dat$K3*ih_dat$burn2)
-  
+  # NEUTRAL
   head(ih_dat,3); dim(ih_dat)
   table(ih_dat$K3, ih_dat$burn2) # rank deficient data structure
   
-  mod3.a<-lmer(ind_het~1+(1|site), REML=F, data=ih_dat)
-  mod3.b<-lmer(ind_het~burn2+(1|site),REML=F, data=ih_dat)
-  mod3.c<-lmer(ind_het~K3+(1|site),REML=F, data=ih_dat)
-  mod3.d<-lmer(ind_het~burn2+K3+(1|site), REML=F,data=ih_dat)
-  mod3.e<-lmer(ind_het~burn2*K3+(1|site), REML=F,data=ih_dat)
+  mod3.a<-lmer(ind_het_neut~1+(1|site), REML=F, data=ih_dat)
+  mod3.b<-lmer(ind_het_neut~burn2+(1|site),REML=F, data=ih_dat)
+  mod3.c<-lmer(ind_het_neut~K3+(1|site),REML=F, data=ih_dat)
+  mod3.d<-lmer(ind_het_neut~burn2+K3+(1|site), REML=F,data=ih_dat)
+  mod3.e<-lmer(ind_het_neut~burn2*K3+(1|site), REML=F,data=ih_dat)
+  
+  AICc(mod3.a); AICc(mod3.b); AICc(mod3.c); AICc(mod3.d); AICc(mod3.e)
+
+  summary(mod3.c); anova(mod3.c)
+  summary(mod3.e); anova(mod3.e)
   
   # Adding the diversity score does not improve the model fit:
   mod3.f<-lmer(ind_het~K3+ds_div+(1|site),REML=F, data=ih_dat)
   summary(mod3.f)
   AICc(mod3.c); AICc(mod3.f)
   
-  AICc(mod3.a); AICc(mod3.b); AICc(mod3.c); AICc(mod3.d); AICc(mod3.e)
+  # NON-NEUTRAL
+  head(ih_dat,3); dim(ih_dat)
 
-  summary(mod3.c); anova(mod3.c)
+  mod6.a<-lmer(ind_het_nonneut~1+(1|site), REML=F, data=ih_dat)
+  mod6.b<-lmer(ind_het_nonneut~burn2+(1|site),REML=F, data=ih_dat)
+  mod6.c<-lmer(ind_het_nonneut~K3+(1|site),REML=F, data=ih_dat)
+  mod6.d<-lmer(ind_het_nonneut~burn2+K3+(1|site), REML=F,data=ih_dat)
+  mod6.e<-lmer(ind_het_nonneut~burn2*K3+(1|site), REML=F,data=ih_dat)
   
+  AICc(mod6.a); AICc(mod6.b); AICc(mod6.c); AICc(mod6.d); AICc(mod6.e)
+  
+  summary(mod6.c); anova(mod6.c)
+  summary(mod6.d); anova(mod6.d)
+  
+  # MODEL ESTIMATES:
+  
+  # NEUTRAL
   nd_ih<-data.frame(K3=as.factor(c(1,2,3)))
   p_ih<-predictSE(mod3.c, newdata = nd_ih, se.fit=T)
   p_ih<-data.frame(nd_ih, fit=p_ih$fit, se=p_ih$se.fit)
   p_ih$lci<-p_ih$fit-(1.96*p_ih$se)
   p_ih$uci<-p_ih$fit+(1.96*p_ih$se)
   p_ih
+  
+  # NON-NEUTRAL
+  nd_ih_nn<-data.frame(K3=as.factor(c(1,2,3)))
+  p_ih_nn<-predictSE(mod6.c, newdata = nd_ih_nn, se.fit=T)
+  p_ih_nn<-data.frame(nd_ih_nn, fit=p_ih_nn$fit, se=p_ih_nn$se.fit)
+  p_ih_nn$lci<-p_ih_nn$fit-(1.96*p_ih_nn$se)
+  p_ih_nn$uci<-p_ih_nn$fit+(1.96*p_ih_nn$se)
+  p_ih_nn
   
   # PLOT TOP MODEL: genetic diversity ~ genetic cluster:
   
@@ -690,6 +778,7 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   
   head(ih_dat,3); dim(ih_dat)
   
+  # NEUTRAL
   dev.new(height=4,width=4,noRStudioGD = T,dpi=100, pointsize=20)
   par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
   plot(1:3, p_ih$fit, ylim=c(min(p_ih$lci), max(p_ih$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
@@ -699,6 +788,17 @@ mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1
   text(2,0.12, labels="P < 0.001", adj=0)
   points(1:3, p_ih$fit, col=switch.col2, cex=2)
   points(1:3, p_ih$fit, col=switch.col2, cex=2,pch=20)
+  
+  # NON-NEUTRAL
+  dev.new(height=4,width=4,noRStudioGD = T,dpi=100, pointsize=20)
+  par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
+  plot(1:3, p_ih_nn$fit, ylim=c(min(p_ih_nn$lci), max(p_ih_nn$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
+  arrows(1:3, p_ih_nn$lci,1:3, p_ih_nn$uci, code=3, angle=90, length=0.05,lwd=1.5)
+  axis(side=1, at=c(1:3), labels = c(1,2,3))
+  title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+  text(2,0.12, labels="P < 0.001", adj=0)
+  points(1:3, p_ih_nn$fit, col=switch.col2, cex=2)
+  points(1:3, p_ih_nn$fit, col=switch.col2, cex=2,pch=20)
   
   # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
