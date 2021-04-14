@@ -498,7 +498,7 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   
   # Analyse the influence of fire treatment on population level genetic diversity. 
   
-  # Given the very strong background genetic structure in the data, it makes no sense to do this without controlling for phylogeny... So take the assignment probability for each individual, and calculate the mean for each site:
+  # Given the very strong background genetic structure in the data, we must control for phylogeny. Use assignment probabilities from STRUCTURE:
   
   site_assig<-read.table("00_Data/assig_prob_K3_Cenchrus_filt2.txt", header=T)
   site_assig<-cbind(site_assig, matrix(data=c(1,2,3),ncol=3,nrow=nrow(site_assig),byrow=T))
@@ -506,17 +506,6 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   head(site_assig)
   range(site_assig$genstr)
 
-  mean_genstr<-aggregate(genstr~site, data=site_assig,mean)
-  head(mean_genstr)
-  head(gd_all,3); dim(gd_all)
-  
-  # Add mean assignment to site level data:
-  gd_all<-merge(gd_all, mean_genstr, by="site", all.x=T, all.y=F)
-  gd_all[,c(1,length(gd_all))]
-  
-  # Add K based on most common genetic cluster among individuals at each site:
-  gd_all$K<-round(gd_all$genstr,0)
-  
   ## -- ** Admixture Diversity Score:
   
   ### ---- provide calculations on the level of admixture per population
@@ -558,7 +547,7 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   
   ## ANALYSIS:
   head(gd_all,2); dim(gd_all)
-  gd_all[,c("site","genstr","ds_div","K")]
+  gd_all[,c("site","ds_div")]
   # plot(gd_all$ds_div,gd_all$ar_neutral)
   # plot(gd_all$K,gd_all$ds_div)
   
@@ -689,7 +678,8 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   head(ih_dat,3); dim(ih_dat)
   
   # merge K on individual:
-  head(kd,3); dim(kd)
+  # kd has the correct individual level K values:
+   head(kd,3); dim(kd)
   table(kd$indiv %in% ih_dat$ind)
   table(ih_dat$ind %in% kd$indiv)
   
@@ -950,18 +940,21 @@ table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.45)
 
 quartz("",6,6,dpi=100)
 par(mfrow=c(2,2),mar=c(4,4,2,1), mgp=c(2.5,1,0))
-hist(neuc_df$kinship_mle, main="all samples", font.main=1, xlab="", ylab="",las=1)
+hist(neuc_df$kinship_mle, main="", font.main=1, xlab="", ylab="",las=1)
 arrows(0.45,0,0.45,2500,length=0, col="red", lwd=1.5)
+mtext(text = "(a) all samples", side=3, line=0.5, adj=0)
 
 text(0.43, 2000,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship_mle>0.45)[2]/sum(table(neuc_df$kinship_mle>0.45)), 2),sep=""),col="red", adj=1)
 
-hist(neuc_df$kinship_mle[neuc_df$same_block==1], main="within block", font.main=1, xlab="", ylab="",las=1, ylim=c(0,200))
+hist(neuc_df$kinship_mle[neuc_df$same_block==1], main="", font.main=1, xlab="", ylab="",las=1, ylim=c(0,200))
 arrows(0.45,0,0.45,200,length=0, col="red", lwd=1.5)
+mtext(text = "(b) within location", side=3, line=0.5, adj=0)
 
 text(0.43, 160,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.45)[2]/sum(table(neuc_df$kinship_mle[neuc_df$same_block==1]>0.45)), 2),sep=""),col="red", adj=1)
 
-hist(neuc_df$kinship_mle[neuc_df$same_site==1], main="within site", font.main=1, xlab="", ylab="",las=1, ylim=c(0,100))
+hist(neuc_df$kinship_mle[neuc_df$same_site==1], main="", font.main=1, xlab="", ylab="",las=1, ylim=c(0,100))
 arrows(0.45,0,0.45,100,length=0, col="red", lwd=1.5)
+mtext(text = "(c) within site", side=3, line=0.5, adj=0)
 
 text(0.43, 80,paste("proportion of pairs\n> 0.45 = ",round(table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.45)[2]/sum(table(neuc_df$kinship_mle[neuc_df$same_site==1]>0.45)), 2),sep=""),col="red", adj=1)
 
@@ -1037,7 +1030,7 @@ head(kinsh2,3); dim(kinsh2) # same block
 head(kinsh3,3); dim(kinsh3) # same site
 head(kinsh4,3); dim(kinsh4) # same K
 
-# Focussing on within site comparisons (i.e. kinsh3), for each site calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
+  # Focussing on within site comparisons (i.e. kinsh3), for each site calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
 
 prop_clone<-aggregate(clone~site1, data=kinsh3, FUN=function(x) length(x[x==1])/length(x))
 colnames(prop_clone)<-c("site","prop_clone")
@@ -1053,49 +1046,68 @@ length(d.now$clone[d.now$clone==1])/length(d.now$clone)
 # add site data to clone proportions:
 head(sdt2)
 prop_clone<-merge(prop_clone, sdt2, by="site", all.x=T, all.y=F)
+# plot(prop_clone$burn2, prop_clone$prop_clone)
+
+# Merge with the diversity score to account for background genetic structure:
+# **** UP TO HERE
+# NEED TO UPDATE WITH THE PROPOER K FROM 
+head(indK,3); dim(indK)
+
+# the old on in gd_all was incorrect
+head(gd_all,2); dim(gd_all)
+gd_ds<-gd_all[,c("site","ds_div","K")]
+
+prop_clone<-merge(prop_clone, gd_ds, by="site", all.x=T, all.y=F)
 head(prop_clone); dim(prop_clone)
+# plot(prop_clone$prop_clone, prop_clone$ds_div)
+# plot(prop_clone$burn2, prop_clone$prop_clone)
 
-plot(prop_clone$burn2, prop_clone$prop_clone)
-
-# The problem with the quasibinomial is the inability to get an AIC:
-mod5.a<-glm(prop_clone~burn2, data=prop_clone, family="quasibinomial")
-mod5.aNULL<-glm(prop_clone~1, data=prop_clone, family="quasibinomial")
-summary(mod5.a)
-AICc(mod5.a); AICc(mod5.aNULL)
-
-# The binomial model suggest no effect of burn category on the probability of being a clone:
-mod5.b<-glm(prop_clone~burn2, data=prop_clone, family="binomial")
+# The binomial model suggest minimal effect of burn category on the probability of being a clone:
 mod5.bNULL<-glm(prop_clone~1, data=prop_clone, family="binomial")
-summary(mod5.b)
-anova(mod5.b)
-AICc(mod5.b); AICc(mod5.bNULL)
+mod5.b1<-glm(prop_clone~burn2, data=prop_clone, family="binomial")
+mod5.b2<-glm(prop_clone~ds_div, data=prop_clone, family="binomial")
+mod5.b3<-glm(prop_clone~burn2+ds_div, data=prop_clone, family="binomial")
+mod5.b4<-glm(prop_clone~burn2*ds_div, data=prop_clone, family="binomial")
+summary(mod5.b1)
+AICc(mod5.bNULL); AICc(mod5.b1); AICc(mod5.b2); AICc(mod5.b3); AICc(mod5.b4)
 
-head(kinsh3,2); dim(kinsh3)
+nd.b1<-data.frame(burn2=factor(c("u","b","b2"),level=c("u","b","b2")))
+pr.b1<-predict(mod5.b1, newdata = nd.b1, type="response", se.fit=T)
+pr.b1<-data.frame(nd.b1, fit=pr.b1$fit, se=pr.b1$se.fit)
+pr.b1$lci<-pr.b1$fit-(1.96*pr.b1$se)
+pr.b1$uci<-pr.b1$fit+(1.96*pr.b1$se)
+pr.b1$lci[which(pr.b1$lci<0)]<-0
 
-plot(kinsh3$b3L_s1, kinsh3$kinship_mle)
+# PLOT ESTIMATED site-level proportion CLONE
+dev.new(height=4,width=4.5,dpi=100, noRStudioGD = T,pointsize=16)
+par(mfrow=c(1,1),mar=c(3,4,0.5,0.5), mgp=c(2.8,0.8,0))
+plot(1:3, pr.b1$fit, ylim=c(min(pr.b1$lci), max(pr.b1$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Proportion asexual individuals", xlab="", xaxt="n", col="black")
+arrows(1:3, pr.b1$lci,1:3, pr.b1$uci, code=3, angle=90, length=0.05,lwd=1.5)
+axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
 
 # Focussing on within K comparisons (i.e. kinsh4), for each K, calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
 
+head(kinsh3,2); dim(kinsh3)
+plot(kinsh3$b3L_s1, kinsh3$kinship_mle)
 head(kinsh4,3); dim(kinsh4) # same K
 
 prop_cloneK<-aggregate(clone~K3_s1, data=kinsh4, FUN=function(x) length(x[x==1])/length(x))
 colnames(prop_cloneK)<-c("K","prop_clone")
 prop_cloneK
 
-
 dev.new(height=4,width=8,noRStudioGD = T,dpi=100, pointsize=20)
 par(mfrow=c(1,2),mar=c(3,3.5,1.5,0.5), mgp=c(2.3,0.8,0))
 
 plot(kinsh3$b3L_s1, kinsh3$kinship_mle, las=1, ylab="Kinship coefficient", xlab="", xaxt="n")
 axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
-axis(side=1, at=c(0.7,2,3.3), labels = c("unburnt","road burn","site 11"), tick = F, cex.axis=0.8)
+axis(side=1, at=c(1,2,3), labels = c("unburnt","burnt","site 11"), tick = F, cex.axis=0.8)
 title(xlab="Fire regime", mgp=c(2,1,0))
-mtext("A",side=3, at=0.5, line=0.3)
+mtext("(a)",side=3, at=0.5, line=0.3)
 
 plot(as.factor(kinsh4$K3_s1), kinsh4$kinship_mle, pch=20, las=1, ylab="Kinship coefficient", xlab="", xaxt="n")
 axis(side=1, at=c(1:3), labels = c(1,2,3))
 title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
-mtext("B",side=3, at=0.5, line=0.3)
+mtext("(b)",side=3, at=0.5, line=0.3)
 
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 

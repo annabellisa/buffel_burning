@@ -50,7 +50,7 @@ head(sdat,2); dim(sdat)
 # Set K and run this whole section
 
 # SET K:
-K<-3
+K<-4
 
 # Get assignment probabilities:
 # use out_dir or res_dir, depending on where results are:
@@ -156,6 +156,18 @@ mtext("West - East", side=1, line=2.8, cex=1.8)
 par(xpd=NA)
 arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
 par(xpd=F)
+
+
+### SI PLOT (K=4 on its own):
+quartz(title="Fig",width=16,height=4,dpi=80,pointsize=10)
+par(mfrow=c(1,1),oma=c(1,0,1,0))
+str_plot_V10(K = 4,all_dat_K4,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="site")
+mtext("West - East", side=1, line=2.8, cex=1.8)
+par(xpd=NA)
+arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
+par(xpd=F)
+
+
 
 
 ### Order samples along dendrogram:
