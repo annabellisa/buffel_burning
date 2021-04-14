@@ -568,7 +568,7 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   p_neut$lci<-p_neut$fit-(1.96*p_neut$se)
   p_neut$uci<-p_neut$fit+(1.96*p_neut$se)
   p_neut
-  
+
   # PLOT NEUTRAL ONLY
   dev.new(height=4,width=4.5,dpi=100, noRStudioGD = T,pointsize=16)
   par(mfrow=c(1,1),mar=c(3,4,0.5,0.5), mgp=c(2.8,0.8,0))
@@ -1049,20 +1049,16 @@ prop_clone<-merge(prop_clone, sdt2, by="site", all.x=T, all.y=F)
 # plot(prop_clone$burn2, prop_clone$prop_clone)
 
 # Merge with the diversity score to account for background genetic structure:
-# **** UP TO HERE
-# NEED TO UPDATE WITH THE PROPOER K FROM 
-head(indK,3); dim(indK)
 
-# the old on in gd_all was incorrect
 head(gd_all,2); dim(gd_all)
-gd_ds<-gd_all[,c("site","ds_div","K")]
-
+gd_ds<-gd_all[,c("site","ds_div")]
 prop_clone<-merge(prop_clone, gd_ds, by="site", all.x=T, all.y=F)
 head(prop_clone); dim(prop_clone)
 # plot(prop_clone$prop_clone, prop_clone$ds_div)
 # plot(prop_clone$burn2, prop_clone$prop_clone)
 
-# The binomial model suggest minimal effect of burn category on the probability of being a clone:
+# What is the effect of burn category on the probability of being a clone (site level analysis with binomial models)?
+
 mod5.bNULL<-glm(prop_clone~1, data=prop_clone, family="binomial")
 mod5.b1<-glm(prop_clone~burn2, data=prop_clone, family="binomial")
 mod5.b2<-glm(prop_clone~ds_div, data=prop_clone, family="binomial")
@@ -1085,10 +1081,23 @@ plot(1:3, pr.b1$fit, ylim=c(min(pr.b1$lci), max(pr.b1$uci)), pch=20, xlim=c(0.75
 arrows(1:3, pr.b1$lci,1:3, pr.b1$uci, code=3, angle=90, length=0.05,lwd=1.5)
 axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
 
+# get effects and 95% CI on link scale
+pr.b1_EFS<-predict(mod5.b1, newdata = nd.b1, type="link", se.fit=T)
+pr.b1_EFS<-data.frame(nd.b1, fit=pr.b1_EFS$fit, se=pr.b1_EFS$se.fit)
+pr.b1_EFS$lci<-pr.b1_EFS$fit-(1.96*pr.b1_EFS$se)
+pr.b1_EFS$uci<-pr.b1_EFS$fit+(1.96*pr.b1_EFS$se)
+
+# plot effect sizes:
+dev.new(height=5,width=4,dpi=100, noRStudioGD = T,pointsize=16)
+par(mfrow=c(1,1),mar=c(3,4,0.5,0.5), mgp=c(2.8,0.8,0))
+plot(pr.b1_EFS$fit,1:3,  xlim=c(min(pr.b1_EFS$lci), max(pr.b1_EFS$uci)), pch=20, las=1, ylab="", xlab="", yaxt="n", col="black")
+arrows(pr.b1_EFS$lci,1:3, pr.b1_EFS$uci,1:3, code=3, angle=90, length=0.05,lwd=1.5)
+arrows(0,0, 0,4, code=3, angle=90, length=0,lwd=1.5)
+
 # Focussing on within K comparisons (i.e. kinsh4), for each K, calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
 
-head(kinsh3,2); dim(kinsh3)
 plot(kinsh3$b3L_s1, kinsh3$kinship_mle)
+head(kinsh3,2); dim(kinsh3) # same burn
 head(kinsh4,3); dim(kinsh4) # same K
 
 prop_cloneK<-aggregate(clone~K3_s1, data=kinsh4, FUN=function(x) length(x[x==1])/length(x))
