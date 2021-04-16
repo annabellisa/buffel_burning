@@ -50,7 +50,7 @@ head(sdat,2); dim(sdat)
 # Set K and run this whole section
 
 # SET K:
-K<-4
+K<-3
 
 # Get assignment probabilities:
 # use out_dir or res_dir, depending on where results are:
@@ -218,13 +218,13 @@ layout(matrix(c(1,1,1,1,2), 5, 1, byrow = TRUE))
 layout.show(2)
 
 plot(euc_clust, cex=0.8, xlab="", main="", cex.lab=1, las=1, ylab="Genetic distance (Euclidean)", sub="")
-mtext("A", side=3, line=0.5, adj=0, at=-6.5)
+mtext("(a)", side=3, line=0.5, adj=0, at=-6.5)
 
 # re-arrange colours so they match the colours used in the structure plot:
 switch.col2<-switch.col[c(3,1,2)]
 
 str_plot_V11(K = 3,K3_dend_order,sdat2,las.opt=2,yaxs.loc=-2.5,cex.axis=0.7,col.pal="switch.col2",site.lab="")
-mtext("B", side=3, line=0.5, adj=0, at=-7.5)
+mtext("(b)", side=3, line=0.5, adj=0, at=-7.5)
 
 
 
