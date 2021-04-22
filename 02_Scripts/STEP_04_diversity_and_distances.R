@@ -778,8 +778,29 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   AICc(mod3.a); AICc(mod3.b); AICc(mod3.c); AICc(mod3.d); AICc(mod3.e)
 
   summary(mod3.c); anova(mod3.c)
-  summary(mod3.e); anova(mod3.e)
+  summary(mod3.d); anova(mod3.d)
   
+  # plot fire + K for fun (mod3.d)
+  nd_fk<-data.frame(K3=rep(as.factor(c(1,2,3)),rep(3,3)), burn2=factor(c("u","b","b2"), levels=c("u","b","b2")))
+  p_fk<-predictSE(mod3.d, newdata = nd_fk, se.fit=T)
+  p_fk<-data.frame(nd_fk, fit=p_fk$fit, se=p_fk$se.fit)
+  p_fk$lci<-p_fk$fit-(1.96*p_fk$se)
+  p_fk$uci<-p_fk$fit+(1.96*p_fk$se)
+  p_fk
+  
+  dev.new(height=4,width=4,noRStudioGD = T,dpi=100, pointsize=20)
+  xofs.now<-0.1
+  par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
+  plot(1:3-xofs.now, p_fk$fit[p_fk$K3==1], ylim=c(min(p_fk$lci), max(p_fk$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2[1])
+  arrows(1:3-xofs.now, p_fk$lci[p_fk$K3==1],1:3-xofs.now, p_fk$uci[p_fk$K3==1], code=3, angle=90, length=0.05,lwd=1.5)
+  points(1:3-xofs.now, p_fk$fit[p_fk$K3==1], pch=20, col=switch.col2[1])
+  arrows(1:3, p_fk$lci[p_fk$K3==2],1:3, p_fk$uci[p_fk$K3==2], code=3, angle=90, length=0.05,lwd=1.5)
+  points(1:3, p_fk$fit[p_fk$K3==2], pch=20, col=switch.col2[2])
+  arrows(1:3+xofs.now, p_fk$lci[p_fk$K3==3],1:3+xofs.now, p_fk$uci[p_fk$K3==3], code=3, angle=90, length=0.05,lwd=1.5)
+  points(1:3+xofs.now, p_fk$fit[p_fk$K3==3], pch=20, col=switch.col2[3])
+  axis(side=1, at=c(1:3), labels = c("u","b","b2"))
+  title(xlab="Fire category", mgp=c(2,1,0))
+
   # Adding the diversity score does not improve the model fit:
   mod3.f<-lmer(ind_het~K3+ds_div+(1|site),REML=F, data=ih_dat)
   summary(mod3.f)
