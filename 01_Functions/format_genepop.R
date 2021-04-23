@@ -47,7 +47,7 @@ ghead(gp_cons1)
 for (i in 1:no.sites){
 
 pop.thisrun<-gp_cons1[gp_cons1$site==sites[i],]
-ghead(pop.thisrun)
+ghead(pop.thisrun); dim(pop.thisrun)
 
 if(i==1) write.table(paste(gp.head,gp.loci,sep="\n"),file=pg.file.name,append=F,row.names=F,col.names=F,quote=F)
 

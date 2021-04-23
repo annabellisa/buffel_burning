@@ -117,6 +117,7 @@ fst<-diffCalc(paste(gp_dir,"Genepop_Neutral_filt2.gen",sep="/"),fst=T,pairwise=T
 print(Sys.time())
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
+
 head(fst$pairwise$Fst)
 head(fst$pairwise$gst)
 head(fst$pairwise$Gst)
@@ -768,6 +769,7 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   # NEUTRAL
   head(ih_dat,3); dim(ih_dat)
   table(ih_dat$K3, ih_dat$burn2) # rank deficient data structure
+  summary(ih_dat$ind_het_neut)
   
   mod3.a<-lmer(ind_het_neut~1+(1|site), REML=F, data=ih_dat)
   mod3.b<-lmer(ind_het_neut~burn2+(1|site),REML=F, data=ih_dat)

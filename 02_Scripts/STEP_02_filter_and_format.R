@@ -157,11 +157,34 @@ ghead(filtered_data); dim(filtered_data)
 
 # close filter loci ----
 
-####   	 	 FORMAT DARTSEQ:    	 ####
+####   	 	 FORMAT DARTSEQ
 
 # For analyses that require DartSeq format (e.g. our genetic diversity analysis), the data can be written directly, without any further processing:
 write.csv(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F)
 write.table(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F, sep="\t")
+
+####   	 	 FORMAT genepop by K3
+
+dir("00_Data/Filtered_DartSeq_format")
+filt2_loci<-read.table("00_Data/Filtered_DartSeq_format/dartseq_filt2_loci.txt", sep="", header=T)
+head(filt2_loci); dim(filt2_loci)
+table(filt2_loci$locus %in% colnames(filtered_data))
+filtered_data<-filtered_data[,c(1:2,which(colnames(filtered_data) %in% filt2_loci$locus))]
+
+dir("00_Data")
+kclust<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt2.txt", header=T)
+kclust<-kclust[,c("indiv", "K3")]
+
+kclust$indiv %in% filtered_data$ind
+ghead(filtered_data); dim(filtered_data)
+head(kclust); dim(kclust)
+filtered_data<-merge(filtered_data, kclust, by.x="ind", by.y="indiv", all.x=T, all.y=F)
+filtered_data$site<-NULL
+filtered_data<-filtered_data[,c(which(colnames(filtered_data) %in% c("K3", "ind")),grep("L",colnames(filtered_data)))]
+filtered_data<-filtered_data[,c(2,1,grep("L", colnames(filtered_data)))]
+colnames(filtered_data)[which(colnames(filtered_data)=="K3")]<-"site"
+filtered_data$site<-as.factor(filtered_data$site)
+ghead(filtered_data); dim(filtered_data)
 
 ####   	 	 FORMAT GENEPOP:    	 ####
 
@@ -173,7 +196,7 @@ write.table(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F, sep="\t")
 data<-filtered_data
 
 # parameter flags for param file:
-headline<-"Genepop_NonNeutral"
+headline<-"Genepop_byK_Neutral"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -185,7 +208,7 @@ param.repavg<-T
 param.MAF<-T
 param.LD<-T
 param.HWE<-F
-param.neu<-F
+param.neu<-T
 
 ghead(data); dim(data)
 
