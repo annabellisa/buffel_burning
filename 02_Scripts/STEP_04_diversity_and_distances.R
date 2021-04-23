@@ -110,13 +110,21 @@ gp_dir<-"00_Data/Genepop_Files"
 dir(gp_dir)
 dir(gp_dir)
 
-# Get FST:
+# Get FST by site:
 # ~ 2 min for Cenchrus 20159 loci
 print(Sys.time())
 fst<-diffCalc(paste(gp_dir,"Genepop_Neutral_filt2.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
+# Get FST by K:
+# < 1 min for Cenchrus 20159 loci
+print(Sys.time())
+fst_byK<-diffCalc(paste(gp_dir,"Genepop_byK_Neutral.gen",sep="/"),fst=T,pairwise=T)
+print(Sys.time())
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
+
+head(fst_byK$pairwise$Fst)
 
 head(fst$pairwise$Fst)
 head(fst$pairwise$gst)
