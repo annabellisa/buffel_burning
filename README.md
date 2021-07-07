@@ -1,26 +1,26 @@
-# Binyin winter project
+# Binyin_Winter project
 
-R scripts for analysing Cenchrus ciliaris SNP data 
+R scripts for analysing Cenchrus ciliaris SNP data, to examine roadside burning effects
 
-## Description
+## Content Description
 
-Files:
+00_Data: Site and SNP data used in Di et al. 
 
-1. xx. 
+01_Functions: All functions used in analysis
 
-2. xx. 
+02_Scripts: Scripts for processing and analysis
 
-3. xx.
+03_Workspaces: Saved workspaces
 
-## Authors
+## Code Authors
 
 Annabel Smith and Di Binyin 
 
 ## Manuscript
 
-TBA 
+Di, B., Firn, J., Buckley, Y.M., Lomas, K., Pausas, J.G., Smith, A.L., in preparation. The impact of roadside burning on genetic diversity in a high-biomass invasive grass.
 
 ## License
 
-Binyin winter project by Annabel Smith and Di Binyin is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
+Binyin Winter project by Annabel Smith and Di Binyin is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
 Based on a work at https://github.com/annabellisa/Binyin_Winter.
