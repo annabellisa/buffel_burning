@@ -1,4 +1,4 @@
-# Binyin_Winter project
+# Genetic diversity in buffel grass 
 
 R scripts for analysing Cenchrus ciliaris SNP data, to examine roadside burning effects
 
