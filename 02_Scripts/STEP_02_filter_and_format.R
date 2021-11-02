@@ -5,7 +5,7 @@
 
 ### filter SNP loci & format for different software
 ### Author: Annabel Smith & Di Binyin
-
+#testing new github thing
 #Set Working dir
 setwd("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
 
