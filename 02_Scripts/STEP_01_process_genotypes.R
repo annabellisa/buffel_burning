@@ -7,7 +7,7 @@
 ### Author: Annabel Smith & Di Binyin
 
 # Load workspace:
-load("binyin_winter.RData")
+load("buffel_burning.RData")
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))

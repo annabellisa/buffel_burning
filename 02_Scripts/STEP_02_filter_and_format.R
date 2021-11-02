@@ -12,17 +12,17 @@
 setwd("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
 
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
-load("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+load("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
-load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+load("buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
-# "binyin_winter.RData" is for the full data set (69,799 loci); filtered data sets should be saved to different RData files.
+# "buffel_burning.RData" is for the full data set (69,799 loci); filtered data sets should be saved to different RData files.
 
-# save.image("binyin_winter.RData")
+# save.image("buffel_burning.RData")
 
 # FULL DATA SET:  
 

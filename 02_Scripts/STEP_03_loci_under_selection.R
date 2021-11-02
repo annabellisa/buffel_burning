@@ -9,10 +9,10 @@
 ### Author: Annabel Smith, Binyin Di
 
 # AS Load and tidy workspace and remove everything except necessary objects:
-load("binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
+load("buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # BD load R.Data and Functions
-load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData")
+load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/buffel_burning.RData")
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))

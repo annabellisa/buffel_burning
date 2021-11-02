@@ -7,8 +7,8 @@
 ### Author: Annabel Smith & Di Binyin
 
 # Binyin: Load and tidy workspace and remove everything except necessary objects:
-load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
-load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/GitHub/Binyin_Winter/binyin_winter.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
+load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
+load("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/GitHub/Binyin_Winter/buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
 
 # Annabel: Load and tidy workspace and remove everything except necessary objects:
 load("../Offline_Results/LD_40711_loci/LD_40711_loci.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat", "filtered_data")))
