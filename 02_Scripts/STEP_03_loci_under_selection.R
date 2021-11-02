@@ -3,7 +3,8 @@
 # ------------- STEP 03  ------------- #
 # ------------------------------------ #
 
-### Post-process BayeScan (run in command line) and run PCAdapt and LFMM to detect loci under selection
+### PCAdapt and LFMM to detect loci under selection
+### Updated after first peer-review
 
 ### Author: Annabel Smith, Binyin Di
 
@@ -17,119 +18,6 @@ load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/b
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
 load("03_Workspaces/STEP03_loci_under_selection.RData")
-
-#  POST-PROCESS BAYESCAN results:    	# ----
-
-# *** ANALYSE OUTLIER LOCI:
-
-# Rename data:
-gt_data<-snp_onerow
-
-# Directory with bayescan results:
-
-bs_dir<-"D:\\Onedrive\\OneDrive - The University of Queensland\\Offline Winter Project\\Cenchrus_filt2_BS_po400_RESULTS" 
-
-bs_dir<-"/Users/annabelsmith/OneDrive - The University of Queensland/02_TEACHING/STUDENTS/Binyin_Winter/Analysis/Offline_Results/BayeScan/BayeScan_ANALYSIS/Cenchrus_filt2"
-
-dir(bs_dir)
-
-# Define bayescan outliers from FST Outlier file:
-bs_fst<-paste(bs_dir,"Cenchrus_filt2_BS_po400_RESULTS/Cenchrus_filt2_BS_po400_fst.txt",sep="/") 
-bsres<-plot_bayescan(res=bs_fst,FDR=0.05) 
-bs_outl<-bsres$outliers
-bs_n_outl<-bsres$nb_outliers
-
-# Make MARKER file to separate non-neutral loci:
-
-# Get locus index (this is the locus index file that is made in format_structure() function for bayescan):
-
-bslinf<-read.table("D:\\Onedrive\\OneDrive - The University of Queensland\\GitHub\\Binyin_Winter\\RESULTS\\STRUCTURE\\STRUCTURE_DIR\\Cenchrus_filt2\\Cenchrus_filt2_loci.txt", header = TRUE)
-
-bslinf<-read.table(paste(bs_dir,"bs_loci_filt2.txt",sep="/"), header = TRUE) 
-head(bslinf); dim(bslinf)
-
-bsoutl<-data.frame(lind=bs_outl,outl=1)
-head(bsoutl); dim(bsoutl)
-
-# Outlier loci:
-bslinf<-merge(bslinf,bsoutl,by="lind", all.x = T, all.y = F)
-bslinf$outl[which(is.na(bslinf$outl))]<-0
-head(bslinf); dim(bslinf)
-check.rows(bslinf)
-
-colnames(bslinf)[which(colnames(bslinf)=="outl")]<-"bs_outl"
-table(bslinf$bs_outl)
-
-# write.table(bslinf,file="bayescan_outliers.txt",quote=F,row.names=F,sep="\t")
-
-# *** PLOT DIAGNOSTICS:
-
-bs_sel<-paste(bs_dir,"Cenchrus_filt2_BS_po400_RESULTS/Cenchrus_filt2_BS_po400.sel",sep="/")
-seldat<-read.table(bs_sel,colClasses="numeric")
-# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
-
-# Plot log likelihood:
-dev.new(width=5,height=5, noRStudioGD = T,dpi=100) 
-par(mfrow=c(1,1),mar=c(4,4,2,1),mgp=c(2,0.5,0))
-parameter<-"logL" # a few minutes 
-plot(density(seldat[[parameter]]),xlab="log Likelihood",main="BayeScan posterior distribution", font.main=1)
-
-# Plot FST:
-dev.new(width=5,height=8, noRStudioGD = T,dpi=80) 
-par(mfrow=c(3,3),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
-for (i in grep("Fst",colnames(seldat))){
-par.thisrun<-colnames(seldat)[i]
-plot(density(seldat[[par.thisrun]]),xlab=par.thisrun,main="",cex.axis=0.75)
-legend("bottom",legend=par.thisrun,cex=1,bty="n")
-}
-
-head(seldat); dim(seldat)
-
-# Plot alpha for a random selection of loci:
-alphacols<-colnames(seldat)[grep("alpha",colnames(seldat))]
-outl_alpha<-paste("alpha",bs_outl,sep="")
-head(outl_alpha)
-table(outl_alpha %in% alphacols)
-
-dev.new(width=12,height=8, noRStudioGD = T,dpi=80) 
-par(mfrow=c(5,10),mar=c(2,2,0.2,0.2),mgp=c(2,0.5,0))
-for (i in 1:50){
-col.thisrun<-sample(outl_alpha,1)
-par.thisrun<-colnames(seldat)[which(colnames(seldat)==col.thisrun)]
-plot(density(seldat[[par.thisrun]]),xlab=par.thisrun,main="",cex.axis=0.75)
-legend("bottom",legend=par.thisrun,cex=1,bty="n")
-}
-
-# *** PLOT OUTLIER LOCI:
-
-loc.toanalyse<-as.character(bslinf$locus[which(bslinf$bs_outl==1)]) 
-length(loc.toanalyse)
-head(loc.toanalyse)
-
-# Make sure site in genotype and site data match:
-site_data<-sdat
-site_data$site<-sub("buf","X",site_data$site)
-ghead(gt_data)
-head(site_data,3)
-table(gt_data$site %in% site_data$site)
-
-# PLOT GENOTYPE FREQUENCIES BY LOCATION:
-
-loc.toanalyse # for Cenchrus there's only 5 outliers from BS:
-length(loc.toanalyse)
-
-# Location for heatmap files:	
-out.dir<-"C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/BayeScan/Cenchrus_filt2_BS_po400"
-dir(out.dir)
-
-# this plots by longitude (see plot_freq_long folder for results); use "jpg" for windows or "pdf" for mac
-out.dir<-"RESULTS/BayeScan/plot_freq_long"
-plot_freq_long(loci=loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 5, out_file_type="pdf") 
-
-out.dir<-"RESULTS/BayeScan/plot_freq_burn"
-plot_freq_long(loci=loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 5, out_file_type="pdf") 
-
-# close BayeScan ----
 
 #  PCADAPT:    	# ----
 

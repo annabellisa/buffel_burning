@@ -4,8 +4,10 @@
 # ------------------------------------ #
 
 ### filter SNP loci & format for different software
+### Updated after first peer-review
+
 ### Author: Annabel Smith & Di Binyin
-#testing new github thing
+
 #Set Working dir
 setwd("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
 
@@ -22,9 +24,7 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 
 # save.image("binyin_winter.RData")
 
-#########################################
-####	     FULL DATA SET:    		 ####
-#########################################
+# FULL DATA SET:  
 
 ###-->> Set data:
 data_name<-"snp_onerow"
@@ -38,7 +38,7 @@ filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% dup_loc)]
 filtered_data<-tidy.df(filtered_data)
 ghead(filtered_data); dim(filtered_data)
 
-####	     FILTER LOCI:    		 ####
+# FILTER LOCI:    	# ----
 
 # --- *** Filter monomorphic loci *** --- #
 filtered_data<-mono_loci(filtered_data,3)
@@ -157,13 +157,15 @@ ghead(filtered_data); dim(filtered_data)
 
 # close filter loci ----
 
-####   	 	 FORMAT DARTSEQ
+# FORMAT DARTSEQ:    	# ----
 
 # For analyses that require DartSeq format (e.g. our genetic diversity analysis), the data can be written directly, without any further processing:
 write.csv(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F)
 write.table(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F, sep="\t")
 
-####   	 	 FORMAT genepop by K3
+# close format DartSeq ----
+
+# FORMAT genepop by K3:    	# ----
 
 dir("00_Data/Filtered_DartSeq_format")
 filt2_loci<-read.table("00_Data/Filtered_DartSeq_format/dartseq_filt2_loci.txt", sep="", header=T)
@@ -185,6 +187,8 @@ filtered_data<-filtered_data[,c(2,1,grep("L", colnames(filtered_data)))]
 colnames(filtered_data)[which(colnames(filtered_data)=="K3")]<-"site"
 filtered_data$site<-as.factor(filtered_data$site)
 ghead(filtered_data); dim(filtered_data)
+
+# close format genepop K3 ----
 
 ####   	 	 FORMAT GENEPOP:    	 ####
 
@@ -349,19 +353,6 @@ head(data[,1:2])
 write.table(data[,1:2],"lfmm_site.txt",row.names=F,quote=F,sep="\t")
 
 # close format lfmm ----
-
-####   	 	 CHANGE SITE-names (BayeScan):	   	 ####
-
-ghead(filtered_data); dim(filtered_data)
-old.site.name<-filtered_data$site
-new.site.name<-filtered_data$site
-
-# this is a hack that uses the first three characters and replaces them directly; not generalisable to other data sets and use with caution
-
-new.site.name<-substr(new.site.name,start=1,stop=3)
-filtered_data$site<-as.factor(new.site.name)
-
-# close change site names ----
 
 ####   	 	 FORMAT STRUCTURE:	   	 ####
   
