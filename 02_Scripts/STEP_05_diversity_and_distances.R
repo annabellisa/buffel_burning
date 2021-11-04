@@ -1,13 +1,13 @@
 
 # ------------------------------------ #
-# ------------- STEP 04  ------------- #
+# ------------- STEP 05  ------------- #
 # ------------------------------------ #
 
 ### Diversity & distances
 ### Author: Annabel Smith & Binyin Di
 
 # AS Load workspace:
-load("03_workspaces/STEP04_divdist_ALL.RData")
+load("03_workspaces/STEP05_divdist_ALL.RData")
 
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))

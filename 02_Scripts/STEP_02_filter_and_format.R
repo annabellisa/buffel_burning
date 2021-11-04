@@ -8,13 +8,7 @@
 
 ### Author: Annabel Smith & Di Binyin
 
-#Set Working dir
-setwd("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter")
-
-# Binyin: Load and tidy workspace and remove everything except necessary objects:
-load("D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
-
-# Annabel: Load and tidy workspace and remove everything except necessary objects:
+# Load and tidy workspace and remove everything except necessary objects:
 load("buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
 # load functions:
@@ -57,8 +51,6 @@ head(m_summary); dim(m_summary)
 range(m_summary$missing)
 filtered_data<-missing_sum$filt_dat
 ghead(filtered_data); dim(filtered_data)
-
-# save.image("C:/Users/s4467005/OneDrive - The University of Queensland/GitHub/Binyin_Winter/0.5 Datasets_filter_and_format/Max Cutoff.RData")
 
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:

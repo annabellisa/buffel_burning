@@ -1,6 +1,6 @@
 
 # ------------------------------------ #
-# ------------- STEP 03  ------------- #
+# ------------- STEP 04  ------------- #
 # ------------------------------------ #
 
 ### PCAdapt and LFMM to detect loci under selection
@@ -11,13 +11,10 @@
 # AS Load and tidy workspace and remove everything except necessary objects:
 load("buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
 
-# BD load R.Data and Functions
-load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/buffel_burning.RData")
-
 # load functions:
 invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
 
-load("03_Workspaces/STEP03_loci_under_selection.RData")
+load("03_Workspaces/STEP04_loci_under_selection.RData")
 
 #  PCADAPT:    	# ----
 

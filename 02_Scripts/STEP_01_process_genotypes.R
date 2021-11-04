@@ -18,7 +18,6 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 data.dir<-"/Users/annabelsmith/Documents/01_Current/PROJECTS/02_FIRESCAPE/DATA/01_FIRESCAPE_sample_data/DHype_DCen_original_data_DO_NOT_MODIFY/Report-DCen19-4425"
 dir(data.dir)
 
-
 ### ~~~ SINGLE ROW SNP data ~~~ ###
 
 # The first six rows contain metadata:
