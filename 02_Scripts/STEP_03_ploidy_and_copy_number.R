@@ -5,23 +5,33 @@
 
 ### Estimate ploidy of individuals (Gompert and Mock 2017) and copy number of loci (McKinney et al. 2017)
 
-### Updated after first peer-review
+### Added in response to peer-review
 
 ### Code author: Annabel Smith (except where indicated)
 
-# AS Load and tidy workspace and remove everything except necessary objects:
-load("buffel_burning.RData"); rm(list=setdiff(ls(), c("snp_onerow","linf","sdat")))
-
-# load functions:
-invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) source(x)))
-
+# Load workspace including data and functions:
 load("03_Workspaces/STEP03_ploidy_and_CN.RData")
 
-# The data include all 40,711 loci after only the most basic fileters were applied:
+# The data (filtered_data) include all 40,711 loci after only the most basic fileters were applied:
 # Duplicate sequences removed
 # Monomorphic loci removed
 # Call rate > 50% 
 
+ghead(filtered_data); dim(filtered_data)
+
+library(gbs2ploidy)
+?gbs2ploidy
+
+# The simulated data is for 200 individuals at 10,000 loci
+data(dat)
+str(dat)
+ghead(dat[[1]]); dim(dat[[1]])
+ghead(dat[[2]]); dim(dat[[2]])
+head(dat[[3]])
+
+
+
+# HDplot to identify paralogs: 
 
 # This function, written by McKinney et al. (2017), was downloaded on 4/11/21 from: https://datadryad.org/stash/dataset/doi:10.5061/dryad.cm08m
 
