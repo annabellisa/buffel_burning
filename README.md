@@ -12,6 +12,8 @@ R scripts for analysing Cenchrus ciliaris SNP data, to examine roadside burning 
 
 03_Workspaces: Saved workspaces
 
+04_RESULTS: Results necessary for further processing
+
 ## Code Authors
 
 Annabel Smith and Di Binyin (unless otherwise stated within script)
