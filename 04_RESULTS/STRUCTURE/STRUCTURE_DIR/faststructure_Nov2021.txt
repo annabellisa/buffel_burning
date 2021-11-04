@@ -1,0 +1,87 @@
+##### fastStructure
+
+# Nov 2021
+
+# see below for anaconda install instructions
+
+# fastStructure stopped working via the direct route around Oct 2020. I had been using it successfully for years via that route and, despite a huge effort to get the pipeline working again, I could only get it to work through anaconda. 
+
+# activate python2 VE
+conda activate dictator
+
+# cd to the software folder (bin) and paste the input files (bed, bim, fam) to the same directory:
+cd /Users/annabelsmith/anaconda3/envs/dictator/bin
+
+# working
+python2 structure.py
+
+# assign name:
+infile="Cenchrus_filt2"
+out_dir="Cenchrus_filt2_results"
+out_prefix="Cenchrus_filt2"
+
+echo $infile
+echo $out_dir
+
+# make out dir if it doesn't exist
+# mkdir "$out_dir"
+
+# 1-10 start (only takes a few mins on Cenchrus_filt2)
+
+# Set max K and run analysis:
+for i in {1..11} 
+do
+
+K_thisrun=$i
+
+python2 structure.py -K $i --input=$infile --output=$out_prefix --format=bed --seed=100
+
+done
+
+# (it didn't put them in the outdir, but I'm not worried about this for now)
+
+# remove allele frequency files:
+rm *meanP
+
+python2 chooseK.py --input=$out_prefix
+
+
+# ----------------------------------
+# anaconda install of faststructure
+
+# installed command line: https://www.anaconda.com/products/individual#macos
+# 64-Bit Command Line Installer (454 MB)
+# read manual and accepted defaults
+# installed in the awkward location: Users/annabelsmith/anaconda3
+# need to close and re-open for it to work
+# then conda should run from any location
+
+# get list of installed packages
+conda list 
+
+# need to create a new environment for python2, following: https://towardsdatascience.com/environment-management-with-conda-python-2-3-b9961a8a5097
+
+conda create -n dictator python=2.7 ipykernel
+
+# To activate this environment, use
+#
+#     $ conda activate dictator
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
+
+# then run these lines, which worked
+
+conda activate dictator
+
+conda install -c bioconda faststructure
+
+# cd to the software folder (bin) and paste the input files to the same directory:
+cd /Users/annabelsmith/anaconda3/envs/dictator/bin
+
+
+## -------------------------------------
+# notes on install problems, 26 Oct 2020, moved to Offline_Results folder
+# script and notes on non-anaconda run of fastStructure moved to offline results
+

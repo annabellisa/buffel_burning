@@ -19,7 +19,6 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 ### Alternatively, load R.Data
 load("D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/0.5 Datasets_filter_and_format/Max Cutoff.RData")
 
-
 # This is the full data set:
 ghead(snp_onerow); dim(snp_onerow)
 
@@ -111,7 +110,6 @@ ld_df<-tidy.df(ld_df)
 dir("../Offline_Results/LD_40711_loci")
 
 dir("D:/Onedrive/OneDrive - The University of Queensland/Smith Lab/RESULTS/Offline_Results/LD_40711_loci")
-
 
 # no need to run this section if loading the LD_selection.RData workspace below
 LD_dir_AS<-"../Offline_Results/LD_40711_loci"

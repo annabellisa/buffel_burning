@@ -22,5 +22,6 @@ Di, B., Firn, J., Buckley, Y.M., Lomas, K., Pausas, J.G., Smith, A.L., under rev
 
 ## License
 
-Binyin Winter project by Annabel Smith and Di Binyin is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
-Based on a work at https://github.com/annabellisa/Binyin_Winter.
+The buffel_burning project by Annabel Smith and Di Binyin is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.
+
+Based on a work at https://github.com/annabellisa/buffel_burning.
