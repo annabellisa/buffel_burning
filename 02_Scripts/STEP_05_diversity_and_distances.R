@@ -377,6 +377,7 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   # neutral:
   gendiv_neutral <- basic.stats(genind_neutral, diploid = TRUE, digits = 2)
   str(gendiv_neutral) # 1 min
+  head(gendiv_neutral$Fis)
   head(gendiv_neutral$Ho)
   tail(gendiv_neutral$Ho)
   # save.image("03_workspaces/STEP04_divdist_ALL.RData")

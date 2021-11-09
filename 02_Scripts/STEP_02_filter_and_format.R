@@ -52,6 +52,48 @@ range(m_summary$missing)
 filtered_data<-missing_sum$filt_dat
 ghead(filtered_data); dim(filtered_data)
 
+# --- *** PARALOG filter *** --- #
+
+# Following the method of Hohenlohe et al (2011, MER): "...we excluded additional putative SNP loci as homeologs by examining the pattern of observed heterozygosity within each species...We applied two stringent filters based on these measures: putative loci with Hobs > 0.5 within either species and those with FIS < 0.0 within either species were eliminated"
+
+# It makes sense to do this within K3 clusters from structure because these might correspond to different cytotypes. 
+
+# Here we're making a genind object to get the Hobs and FIS for each K3 cluster separately. 
+
+# Make genind object
+
+gp_dir<-"00_Data/Genepop_Files"
+dir(gp_dir)
+genind_all<-read.genepop(file=paste(gp_dir,"Genepop_all_loci_byK3.gen",sep="/"), ncode=2L,quiet=FALSE)
+genind_all
+# save.image("03_Workspaces/paralog_filter.RData")
+
+# The genind object has the populations named using the last individual in the list for each K but I updated this before formatting the genepop file so they would make sense here. 
+
+genind_all@pop
+
+# Get basic stats from hierfstat (3 mins):
+gendiv_all <- basic.stats(genind_all, diploid = TRUE, digits = 2)
+str(gendiv_all)
+head(gendiv_all$Fis)
+head(gendiv_all$Ho)
+tail(gendiv_all$Ho)
+
+fis_all<-as.data.frame(gendiv_all$Fis)
+head(fis_all)
+fis_all[which(fis_all<0),1]<-TRUE
+
+table(fis_all[,1])
+
+table(fis_all[,1]<0)
+table(fis_all[,2]<0)
+table(fis_all[,3]<0)
+
+gd_all<-data.frame(site=names(apply(gendiv_all$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_all$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_all$Ho,2,mean,na.rm=T),He=apply(gendiv_all$Hs,2,mean,na.rm=T),Fis=apply(gendiv_all$Fis,2,mean,na.rm=T))
+gd_all<-tidy.df(gd_all)
+gd_all$site<-substr(gd_all$site,1,nchar(as.character(gd_all$site))-3)
+head(gd_all); dim(gd_all)
+
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:
 ra<-0.95
@@ -81,10 +123,6 @@ ldf<-0.75
 
 # Run Supplement_01_LD_tests.R #
 
-##BD's Script#
-LD_dir<-"D:/OneDrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/Filtering/LD_results"
-ld_loc<-read.table(paste(LD_dir, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
-
 # AS LD: 
 LD_dir_AS<-"RESULTS/Filtering/LD_results"
 ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
@@ -109,11 +147,9 @@ ghead(filtered_data); dim(filtered_data)
 
 # for all neutrality tests, duplicated and monomorphic loci were removed and loci with < 50% call rate were removed. No other filters were applied. 
 
-# PCAdapt uses bed, bim, fam files (i.e. PLINK files) and LFMM a special format. See the format scripts below for these programs. 
-# BD: Directory with results:
-sel_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/00_Data"
+# PCAdapt uses bed, bim, fam files (i.e. PLINK files) and LFMM a special format. See the format scripts below for these programs.
 
-# AS: Directory with results:
+# Directory with results:
 sel_dir<-"00_Data"
 dir(sel_dir)
 
@@ -153,23 +189,28 @@ ghead(filtered_data); dim(filtered_data)
 
 # For analyses that require DartSeq format (e.g. our genetic diversity analysis), the data can be written directly, without any further processing:
 write.csv(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F)
-write.table(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F, sep="\t")
+write.table(filtered_data, "dartseq_all_loci.txt", quote=F, row.names=F, sep="\t")
 
 # close format DartSeq ----
 
 # FORMAT genepop by K3:    	# ----
 
-dir("00_Data/Filtered_DartSeq_format")
-filt2_loci<-read.table("00_Data/Filtered_DartSeq_format/dartseq_filt2_loci.txt", sep="", header=T)
-head(filt2_loci); dim(filt2_loci)
-table(filt2_loci$locus %in% colnames(filtered_data))
-filtered_data<-filtered_data[,c(1:2,which(colnames(filtered_data) %in% filt2_loci$locus))]
+dir("00_Data/Filtered_DartSeq_format/DartSeq_locus_info")
+filt4_loci<-read.table("00_Data/Filtered_DartSeq_format/DartSeq_locus_info/dartseq_all_loci_byK3_loci.txt", sep="", header=T)
+head(filt4_loci); dim(filt4_loci)
+
+# These should all be true:
+table(filt4_loci$locus %in% colnames(filtered_data))
+filtered_data<-filtered_data[,c(1:2,which(colnames(filtered_data) %in% filt4_loci$locus))]
+ghead(filtered_data); dim(filtered_data)
 
 dir("00_Data")
 kclust<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt2.txt", header=T)
 kclust<-kclust[,c("indiv", "K3")]
+head(kclust)
 
-kclust$indiv %in% filtered_data$ind
+# These should all be true:
+table(kclust$indiv %in% filtered_data$ind)
 ghead(filtered_data); dim(filtered_data)
 head(kclust); dim(kclust)
 filtered_data<-merge(filtered_data, kclust, by.x="ind", by.y="indiv", all.x=T, all.y=F)
@@ -178,7 +219,14 @@ filtered_data<-filtered_data[,c(which(colnames(filtered_data) %in% c("K3", "ind"
 filtered_data<-filtered_data[,c(2,1,grep("L", colnames(filtered_data)))]
 colnames(filtered_data)[which(colnames(filtered_data)=="K3")]<-"site"
 filtered_data$site<-as.factor(filtered_data$site)
+
+# Only run the this section if you need the population names to be meaningful (i.e. for the paralog filter):
 ghead(filtered_data); dim(filtered_data)
+filtered_data$ind<-as.character(filtered_data$ind)
+filtered_data$ind[filtered_data$site==1]<-"K1"
+filtered_data$ind[filtered_data$site==2]<-"K2"
+filtered_data$ind[filtered_data$site==3]<-"K3"
+filtered_data$ind<-as.factor(filtered_data$ind)
 
 # close format genepop K3 ----
 
@@ -192,7 +240,7 @@ ghead(filtered_data); dim(filtered_data)
 data<-filtered_data
 
 # parameter flags for param file:
-headline<-"Genepop_byK_Neutral"
+headline<-"Genepop_all_loci_byK3"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -200,11 +248,11 @@ param.noindiv<-nrow(data)
 param.dup<-T
 param.mono<-T
 param.callrate<-T
-param.repavg<-T
-param.MAF<-T
-param.LD<-T
+param.repavg<-F
+param.MAF<-F
+param.LD<-F
 param.HWE<-F
-param.neu<-T
+param.neu<-F
 
 ghead(data); dim(data)
 

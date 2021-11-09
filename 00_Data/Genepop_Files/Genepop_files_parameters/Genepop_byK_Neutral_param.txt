@@ -1,0 +1,14 @@
+Genepop_byK_Neutral
+Time = 2021-04-23 11:40:49
+Number of sites = 3
+Sites included = 1, 2, 3
+Number of loci = 20159
+Number of individuals = 93
+Monomorphic loci removed = TRUE
+Minimum reproducibility = 95%
+Maximum missing data = 50%
+Minor allele frequency filter = 5%
+Linkage disequilibrium filter = 75%
+No HWE filter
+Non-neutral markers removed = TRUE
+Duplicate sequences removed = TRUE
