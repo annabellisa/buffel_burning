@@ -54,29 +54,25 @@ ghead(filtered_data); dim(filtered_data)
 
 # --- *** PARALOG filter *** --- #
 
-# Following the method of Hohenlohe et al (2011, MER): "...we excluded additional putative SNP loci as homeologs by examining the pattern of observed heterozygosity within each species...We applied two stringent filters based on these measures: putative loci with Hobs > 0.5 within either species and those with FIS < 0.0 within either species were eliminated"
+# Filter putative paralogs by K clusters from structure because these might correspond to different cytotypes. 
 
-# It makes sense to do this within K3 clusters from structure because these might correspond to different cytotypes. 
-
-# Here we're making a genind object to get the Hobs and FIS for each K3 cluster separately. 
-
+# Make genind object to get  Hobs and FIS for each K cluster separately. 
 library(adegenet)
+
+# Make genind object (takes time so have included it in a separate workspace)
 load("03_Workspaces/paralog_filter.RData")
-
-# Make genind object
-
-gp_dir<-"00_Data/Genepop_Files"
-dir(gp_dir)
-genind_all<-read.genepop(file=paste(gp_dir,"Genepop_all_loci_byK3.gen",sep="/"), ncode=2L,quiet=FALSE)
 genind_all
+
+# gp_dir<-"00_Data/Genepop_Files"
+# dir(gp_dir)
+# genind_all<-read.genepop(file=paste(gp_dir,"Genepop_all_loci_byK3.gen",sep="/"), ncode=2L,quiet=FALSE)
 # save.image("03_Workspaces/paralog_filter.RData")
 
-# The genind object has the populations named using the last individual in the list for each K but I updated this before formatting the genepop file so they would make sense here. 
-
+# The genind object names populations using the last individual in the list for each K; I updated this before formatting the genepop file so they would relate to the K3 clusters here. 
 genind_all@pop
 
-# Get basic stats from hierfstat (3 mins):
-gendiv_all <- basic.stats(genind_all, diploid = TRUE, digits = 2)
+# Get basic stats from hierfstat (3 mins, saved in paralog_filter.RData):
+# gendiv_all <- basic.stats(genind_all, diploid = TRUE, digits = 2)
 str(gendiv_all)
 head(gendiv_all$Fis)
 head(gendiv_all$Ho)
@@ -86,44 +82,12 @@ fis_all<-as.data.frame(gendiv_all$Fis)
 Hobs_all<-as.data.frame(gendiv_all$Ho)
 head(fis_all)
 head(Hobs_all)
-
 table(rownames(fis_all)==rownames(Hobs_all))
 
 # Get list of loci that have Hobs > 80% in any cluster:
 Hobs80<-unique(c(rownames(Hobs_all[which(Hobs_all$K1>0.8),]),rownames(Hobs_all[which(Hobs_all$K2>0.8),]),rownames(Hobs_all[which(Hobs_all$K3>0.8),])))
 head(Hobs80); length(Hobs80)
-
-# Get list of loci that have FIS < -0.5 in any cluster:
-FISlevel<- -0.75
-FIS05<-unique(c(rownames(fis_all[which(fis_all$K1< FISlevel),]),rownames(fis_all[which(fis_all$K2< FISlevel),]),rownames(fis_all[which(fis_all$K3< FISlevel),])))
-head(FIS05); length(FIS05)
-
-# Get list of loci that have Hobs > 80% and FIS < -0.5
-paralog<-unique(c(Hobs80,FIS05))
-head(paralog); length(paralog)
-
-head(repavg95); length(repavg95)
-mafloci<-maf_sum$locus[which(maf_sum$maf<0.05)]
-head(mafloci); length(mafloci)
-
-dev.new(width=8, height=8, dpi=80, pointsize=16, noRStudioGD = T)
-plot(fis_all$K1, Hobs_all$K1, pch=20, col=rgb(0.2,0.2,0.2,0.5))
-points(fis_all$K2, Hobs_all$K2, pch=20, col=rgb(0.6,0.2,0.2,0.5))
-points(fis_all$K3, Hobs_all$K3, pch=20, col=rgb(1,0.2,0.2,0.5))
-
-summary(fis_all$K1)
-summary(fis_all$K2)
-summary(fis_all$K3)
-
-sd(fis_all$K1, na.rm=T)/mean(fis_all$K1, na.rm=T)
-sd(fis_all$K2, na.rm=T)/mean(fis_all$K1, na.rm=T)
-sd(fis_all$K3, na.rm=T)/mean(fis_all$K1, na.rm=T)
-
-dev.new(width=8, height=8, dpi=80, pointsize=16, noRStudioGD = T)
-par(mfrow=c(2,2), mar=c(4,4,1,1))
-hist(fis_all$K1[-which(is.na(fis_all$K1))], xlab="",main="(a) K1", font.main=1)
-hist(fis_all$K2[-which(is.na(fis_all$K2))], xlab="",main="(b) K2", font.main=1)
-hist(fis_all$K3[-which(is.na(fis_all$K3))], xlab="",main="(c) K3", font.main=1)
+# save.image("03_Workspaces/paralog_filter.RData")
 
 # Filter loci with extreme observed heterozygosity (80%, following Reynes et al. 2021 MER):
 
