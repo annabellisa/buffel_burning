@@ -60,6 +60,9 @@ ghead(filtered_data); dim(filtered_data)
 
 # Here we're making a genind object to get the Hobs and FIS for each K3 cluster separately. 
 
+library(adegenet)
+load("03_Workspaces/paralog_filter.RData")
+
 # Make genind object
 
 gp_dir<-"00_Data/Genepop_Files"
@@ -80,19 +83,53 @@ head(gendiv_all$Ho)
 tail(gendiv_all$Ho)
 
 fis_all<-as.data.frame(gendiv_all$Fis)
+Hobs_all<-as.data.frame(gendiv_all$Ho)
 head(fis_all)
-fis_all[which(fis_all<0),1]<-TRUE
+head(Hobs_all)
 
-table(fis_all[,1])
+table(rownames(fis_all)==rownames(Hobs_all))
 
-table(fis_all[,1]<0)
-table(fis_all[,2]<0)
-table(fis_all[,3]<0)
+# Get list of loci that have Hobs > 80% in any cluster:
+Hobs80<-unique(c(rownames(Hobs_all[which(Hobs_all$K1>0.8),]),rownames(Hobs_all[which(Hobs_all$K2>0.8),]),rownames(Hobs_all[which(Hobs_all$K3>0.8),])))
+head(Hobs80); length(Hobs80)
 
-gd_all<-data.frame(site=names(apply(gendiv_all$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_all$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_all$Ho,2,mean,na.rm=T),He=apply(gendiv_all$Hs,2,mean,na.rm=T),Fis=apply(gendiv_all$Fis,2,mean,na.rm=T))
-gd_all<-tidy.df(gd_all)
-gd_all$site<-substr(gd_all$site,1,nchar(as.character(gd_all$site))-3)
-head(gd_all); dim(gd_all)
+# Get list of loci that have FIS < -0.5 in any cluster:
+FISlevel<- -0.75
+FIS05<-unique(c(rownames(fis_all[which(fis_all$K1< FISlevel),]),rownames(fis_all[which(fis_all$K2< FISlevel),]),rownames(fis_all[which(fis_all$K3< FISlevel),])))
+head(FIS05); length(FIS05)
+
+# Get list of loci that have Hobs > 80% and FIS < -0.5
+paralog<-unique(c(Hobs80,FIS05))
+head(paralog); length(paralog)
+
+head(repavg95); length(repavg95)
+mafloci<-maf_sum$locus[which(maf_sum$maf<0.05)]
+head(mafloci); length(mafloci)
+
+dev.new(width=8, height=8, dpi=80, pointsize=16, noRStudioGD = T)
+plot(fis_all$K1, Hobs_all$K1, pch=20, col=rgb(0.2,0.2,0.2,0.5))
+points(fis_all$K2, Hobs_all$K2, pch=20, col=rgb(0.6,0.2,0.2,0.5))
+points(fis_all$K3, Hobs_all$K3, pch=20, col=rgb(1,0.2,0.2,0.5))
+
+summary(fis_all$K1)
+summary(fis_all$K2)
+summary(fis_all$K3)
+
+sd(fis_all$K1, na.rm=T)/mean(fis_all$K1, na.rm=T)
+sd(fis_all$K2, na.rm=T)/mean(fis_all$K1, na.rm=T)
+sd(fis_all$K3, na.rm=T)/mean(fis_all$K1, na.rm=T)
+
+dev.new(width=8, height=8, dpi=80, pointsize=16, noRStudioGD = T)
+par(mfrow=c(2,2), mar=c(4,4,1,1))
+hist(fis_all$K1[-which(is.na(fis_all$K1))], xlab="",main="(a) K1", font.main=1)
+hist(fis_all$K2[-which(is.na(fis_all$K2))], xlab="",main="(b) K2", font.main=1)
+hist(fis_all$K3[-which(is.na(fis_all$K3))], xlab="",main="(c) K3", font.main=1)
+
+# Filter loci with extreme observed heterozygosity (80%, following Reynes et al. 2021 MER):
+
+filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% Hobs80)]
+filtered_data<-tidy.df(filtered_data)
+ghead(filtered_data); dim(filtered_data)
 
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:
@@ -124,7 +161,7 @@ ldf<-0.75
 # Run Supplement_01_LD_tests.R #
 
 # AS LD: 
-LD_dir_AS<-"RESULTS/Filtering/LD_results"
+LD_dir_AS<-"04_RESULTS/Filtering/LD_results"
 ld_loc<-read.table(paste(LD_dir_AS, "LD_r75_loci_to_remove.txt",sep="/"),header=T)
 head(ld_loc); dim(ld_loc)
 
