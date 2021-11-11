@@ -22,23 +22,24 @@ gp_dir<-"00_Data/Genepop_Files"
 dir(gp_dir)
 
 # Make genind objects:
+# Updated Nov 2021 after peer review
 
-# ~~ Neutral (~ 5 min for 20159 loci)
-genind_neutral<-read.genepop(file=paste(gp_dir,"Genepop_Neutral_filt2.gen",sep="/"), ncode=2L,quiet=FALSE)
+# ~~ Neutral (~ 15 sec for 15965 loci)
+genind_neutral<-read.genepop(file=paste(gp_dir,"Genepop_filt4.gen",sep="/"), ncode=2L,quiet=FALSE)
 genind_neutral
 
-# ~~ Non-Neutral (~ 10 seconds for 3892 loci)
-genind_nonneutral<-read.genepop(file=paste(gp_dir,"Genepop_NonNeutral.gen",sep="/"), ncode=2L,quiet=FALSE)
+# ~~ Non-Neutral (~ 10 seconds for 5030 loci)
+genind_nonneutral<-read.genepop(file=paste(gp_dir,"Genepop_filt5_nonneutral.gen",sep="/"), ncode=2L,quiet=FALSE)
 genind_nonneutral
 
 # Load site data:
 sdat<-read.table(paste("00_data/Cenchrus_site_data.txt",sep=""),header=T)
 sdat<-sdat[sdat$sequenced==1,]
 sdat<-tidy.df(sdat)
-head(sdat); dim(sdat)
+head(sdat,2); dim(sdat)
 
 # Format to match genetic data:
-sdt<-sdat[,c("block","pop","year","burn_unburnt","time_since_burn","no_samples","lat","long")]
+sdt<-sdat[,c("block","site","year","burn_unburnt","time_since_burn","no_samples","lat","long")]
 colnames(sdt)<-c("block","site","year","burn","TSF","no_samples","lat","long")
 sdt$burn<-factor(sdt$burn, levels=c("u","b"))
 sdt$burn2<-as.character(sdt$burn)
@@ -47,18 +48,18 @@ sdt$burn2<-factor(sdt$burn2, levels=c("u","b","b2"))
 head(sdt, 3); dim(sdt)
 
 # Load cluster assignment data:
-kdat<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt2.txt", header=T)
+kdat<-read.table("00_data/K_genetic_clusters_Cenchrus_filt4.txt", header=T)
 kd<-kdat[,c("indiv", "K3", "K4")]
 head(kd,3); dim(kd)
 
-# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
+# save.image("03_Workspaces/STEP05_divdist_ALL.RData")
 
 # close genind object ----
 
 # RESULT:
 # See parameter files in gp_dir for filters
-genind_neutral # all filters + neutral markers only (20159 loci)
-genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
+genind_neutral # all filters + neutral markers only (15965 loci)
+genind_nonneutral # all filters + non-neutral markers only  (5030 loci)
 head(sdat,3); dim(sdat)
 
 ### -- *** 

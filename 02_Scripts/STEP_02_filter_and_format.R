@@ -145,12 +145,9 @@ ghead(filtered_data); dim(filtered_data)
 
 # --- *** NEUTRALITY filter *** --- #
 
-# Neutrality tests were run in three different programs (see STEP_03_loci_under_selection.R and BayeScan folder):
+# Neutrality tests were run in two different programs (see STEP_04_loci_under_selection.R): LFMM and PCAdapt
 
-# 2. LFMM - R - BD
-# 3. PCAdapt - R - BD
-
-# for all neutrality tests, duplicated and monomorphic loci were removed and loci with < 50% call rate were removed. No other filters were applied. 
+# Neutrality tests were run using the Filter # 2 output
 
 # PCAdapt uses bed, bim, fam files (i.e. PLINK files) and LFMM a special format. See the format scripts below for these programs.
 
@@ -158,16 +155,14 @@ ghead(filtered_data); dim(filtered_data)
 sel_dir<-"00_Data"
 dir(sel_dir)
 
-# filtered_data<-read.table(paste(sel_dir,"Partially_filtered_data",sep="/"),header=T)
-
 ghead(filtered_data); dim(filtered_data)
 
-# Outlier loci (from BayeScan, PCAdapt and LFMM):
+# Outlier loci (from PCAdapt and LFMM):
 res<-read.table(paste(sel_dir,"outliers_all.txt",sep="/"),header=T)
 head(res,3)
 
 # Names and length of outliers:
-outl_loci<-as.character(res$locus[c(which(res$bs_outl==1),which(res$pca_outl==1),which(res$lfmm_outl==1))])
+outl_loci<-as.character(res$locus[c(which(res$pca_outl==1),which(res$lfmm_outl==1))])
 outl_loci<-outl_loci[-which(duplicated(outl_loci))]
 head(outl_loci)
 length(outl_loci)
@@ -193,8 +188,7 @@ ghead(filtered_data); dim(filtered_data)
 # FORMAT DARTSEQ:    	# ----
 
 # For analyses that require DartSeq format (e.g. our genetic diversity analysis), the data can be written directly, without any further processing:
-write.csv(filtered_data, "dartseq_filt3.txt", quote=F, row.names=F)
-write.table(filtered_data, "dartseq_all_loci.txt", quote=F, row.names=F, sep="\t")
+write.table(filtered_data, "dartseq_filt4.txt", quote=F, row.names=F, sep="\t")
 
 # close format DartSeq ----
 
@@ -245,7 +239,7 @@ filtered_data$ind<-as.factor(filtered_data$ind)
 data<-filtered_data
 
 # parameter flags for param file:
-headline<-"Genepop_all_loci_byK3"
+headline<-"Genepop_filt5_nonneutral"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -253,9 +247,10 @@ param.noindiv<-nrow(data)
 param.dup<-T
 param.mono<-T
 param.callrate<-T
-param.repavg<-F
-param.MAF<-F
-param.LD<-F
+param.repavg<-T
+param.MAF<-T
+param.LD<-T
+param.plog<-T
 param.HWE<-F
 param.neu<-F
 
@@ -282,23 +277,23 @@ ghead(formatted_ped); dim(formatted_ped)
 
 check_plink_ped(orig_data=data_to_plink,plink_data=formatted_ped)
 
-# write.table(formatted_ped,"Cenchrus_filt3.ped",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_ped,"Cenchrus_filt4.ped",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ****** .map file ****** ~~~~ ##
 formatted_map<-format_plink_map(ped_file=formatted_ped,locus_data=linf)
 head(formatted_map)
 
-# write.table(formatted_map,"Cenchrus_filt3.map",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_map,"Cenchrus_filt4.map",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ***** locus info file ***** ~~~~ ##
 plink_locus_info<-data.frame(lind=1:length(colnames(data_to_plink)[3:ncol(data_to_plink)]),locus=colnames(data_to_plink)[3:ncol(data_to_plink)])
 head(plink_locus_info); dim(plink_locus_info)
 
-# write.table(plink_locus_info,"Cenchrus_filt3_loci.txt",sep="\t",row.names=F,quote=F)
+# write.table(plink_locus_info,"Cenchrus_filt4_loci.txt",sep="\t",row.names=F,quote=F)
 
 # parameter flags for param file:
 data<-filtered_data
-headline<-"PCAdapt_filt3"
+headline<-"Cenchrus_filt4"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -310,7 +305,7 @@ param.MAF<-T
 param.LD<-T
 param.plog<-T
 param.HWE<-F
-param.neu<-F
+param.neu<-T
 param.dup<-T
 
 # my original plink parameter file was write_parameters() in the format_plink.R library but the genepop one is working better

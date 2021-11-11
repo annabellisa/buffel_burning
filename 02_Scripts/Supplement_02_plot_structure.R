@@ -18,14 +18,14 @@ library("RColorBrewer")
 # SET WORKING DIRECTORIES, FILES AND TIDY DATA:
 
 # The project dir is the location of the structure input files:
-proj_dir<-"RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt2"
+proj_dir<-"04_RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt4"
 dir(proj_dir)
 
 # The results dir contains the structure results, usually within proj_dir:
-res_dir<-paste(proj_dir,"Cenchrus_filt2_results",sep="/")
+res_dir<-paste(proj_dir,"Cenchrus_filt4_results",sep="/")
 dir(res_dir)
 
-file_name<-"Cenchrus_filt2"
+file_name<-"Cenchrus_filt4"
 
 # this is usually .fam but can also be .str:
 str_file<-paste(proj_dir,dir(proj_dir)[grep(".fam",dir(proj_dir))],sep="/")
@@ -34,6 +34,7 @@ str_file<-paste(proj_dir,dir(proj_dir)[grep(".fam",dir(proj_dir))],sep="/")
 str_sites<-read.table(str_file,colClasses=c(rep("character",2),rep("NULL",dim(read.table(str_file))[2]-2)),header=F)
 
 dat_dir<-"00_Data"
+dir(dat_dir)
 
 # read main site data file:
 sdat<-read.table(paste(dat_dir,"Cenchrus_site_data.txt",sep="/"),header=T)
@@ -63,8 +64,9 @@ head(sdat,2)
 
 # this is the order for .fam files
 colnames(site_assig)<-c("site","indiv",paste("assig",1:K,sep=""))
-
 sdat2<-sdat
+
+# write.table(site_assig, "site_assigK3.txt",quote=F, row.names=F, sep="\t")
 
 # replace the "X" in the site name with "buf" (going to remove this later, but it's needed for merge)
 site_assig$site<-paste("buf",substr(site_assig$site,2,nchar(site_assig$site)),sep="")
@@ -117,6 +119,11 @@ head(sum_dat,3); dim(sum_dat)
 
 # write.table(sum_dat, file="K_genetic_clusters.txt", sep="\t", quote=F, row.names=F)
 
+# USING THE NEW filters, the K assignments are exactly the same as the original analysis; however, the clusters now have different names, OLD==NEW (this matters as the K names were used the the paper):
+# 2==3
+# 3==1
+# 1==2
+
 #########################################
 ####  	       BAR PLOTS:    		 ####
 #########################################
@@ -140,23 +147,6 @@ par(xpd=NA)
 arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
 par(xpd=F)
 
-### K=3 and K=4 PLOT, for SI:
-quartz(title="Fig",width=16,height=8,dpi=80,pointsize=10)
-par(mfrow=c(2,1),oma=c(2,0,1.5,0))
-str_plot_V10(K = 3,all_dat_K3,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="site")
-mtext("(a) K = 3", side=3, line=0.5, cex=1.8, at = 0, adj=0)
-mtext("West - East", side=1, line=2.8, cex=1.8)
-par(xpd=NA)
-arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
-par(xpd=F)
-
-str_plot_V10(K = 4,all_dat_K4,sdat2,las.opt=2,yaxs.loc=-3,cex.axis=0.7,col.pal="switch.col",site.lab="site")
-mtext("(b) K = 4", side=3, line=0.5, cex=1.8, at = 0, adj=0)
-mtext("West - East", side=1, line=2.8, cex=1.8)
-par(xpd=NA)
-arrows(x0=c(41,52),y0=c(-0.2,-0.2),x1=c(31,62),y1=c(-0.2,-0.2),code=2, length=0.2)
-par(xpd=F)
-
 ### SI PLOT (K=4 on its own):
 quartz(title="Fig",width=16,height=4,dpi=80,pointsize=10)
 par(mfrow=c(1,1),oma=c(1,0,1,0))
@@ -172,8 +162,8 @@ par(xpd=F)
 ### Order samples along dendrogram:
 
 ddir<-"00_Data/Filtered_DartSeq_format"
-ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
-ghead(ddat)
+ddat<-read.table(paste(ddir, "dartseq_filt4.txt", sep="/"), header=T)
+ghead(ddat); dim(ddat)
 
 # re-do distance matrix on raw data:
 clust_dat<-ddat
@@ -191,6 +181,8 @@ str(euc_clust)
 # get name label order:
 hc1_names<-data.frame(ind=hclust_name_order(euc_clust), hclust_order=1:length(hclust_name_order(euc_clust)))
 head(hc1_names)
+
+# write.table(hc1_names, "hc1_names.txt", quote=F, row.names=F, sep="\t")
 
 # for str_plot_V10 the ordering is done outside the function, so we can re-sort and use the same function:
 K3_dend_order<-all_dat_K3
@@ -220,7 +212,7 @@ plot(euc_clust, cex=0.8, xlab="", main="", cex.lab=1, las=1, ylab="Genetic dista
 mtext("(a)", side=3, line=0.5, adj=0, at=-6.5)
 
 # re-arrange colours so they match the colours used in the structure plot:
-switch.col2<-switch.col[c(3,1,2)]
+switch.col2<-switch.col[c(2,3,1)]
 
 str_plot_V11(K = 3,K3_dend_order,sdat2,las.opt=2,yaxs.loc=-2.5,cex.axis=0.7,col.pal="switch.col2",site.lab="")
 mtext("(b)", side=3, line=0.5, adj=0, at=-7.5)

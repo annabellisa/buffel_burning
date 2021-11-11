@@ -1,4 +1,5 @@
 Cenchrus_filt3
+This includes all loci after the "Filter # 2" steps in STEP_02_filter_and_format.R, i.e. all filters before the neutrality tests
 Time = 2021-11-11 08:32:55
 Number of sites = 19
 Sites included = X01b, X01u, X02b, X02u, X03b, X03u, X05b, X05u, X06b, X06u, X07b, X07u, X08b, X08u, X10b, X10u, X11b1, X11b2, X11b3

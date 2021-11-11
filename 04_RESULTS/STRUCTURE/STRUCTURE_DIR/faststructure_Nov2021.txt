@@ -8,7 +8,6 @@
 plink --version
 
 # cd into one drive (haven't figured out how to handle the spaces in one drive when assigning names to dirs):
-cd ~
 cd "OneDrive - The University of Queensland"
 ls
 
@@ -17,7 +16,7 @@ base_dir='/Users/annabelsmith/Documents/00_UQ_offline/buffel_burning/04_RESULTS/
 ls $base_dir
 
 # name for this analysis
-analysis_name=Cenchrus_filt3
+analysis_name=Cenchrus_filt4
 
 # dir for this analysis
 analysis_dir="${base_dir}/$analysis_name"
@@ -27,10 +26,10 @@ ls $analysis_dir
 echo $analysis_dir
 
 # map file
-map_file="${analysis_dir}/Cenchrus_filt3.map"
+map_file="${analysis_dir}/Cenchrus_filt4.map"
 
 # ped file
-ped_file="${analysis_dir}/Cenchrus_filt3.ped"
+ped_file="${analysis_dir}/Cenchrus_filt4.ped"
 
 echo $map_file
 head $map_file
@@ -61,9 +60,9 @@ cd /Users/annabelsmith/anaconda3/envs/dictator/bin
 python2 structure.py
 
 # assign name:
-infile="Cenchrus_filt2"
-out_dir="Cenchrus_filt2_results"
-out_prefix="Cenchrus_filt2"
+infile="Cenchrus_filt4"
+out_dir="Cenchrus_filt4_results"
+out_prefix="Cenchrus_filt4"
 
 echo $infile
 echo $out_dir
