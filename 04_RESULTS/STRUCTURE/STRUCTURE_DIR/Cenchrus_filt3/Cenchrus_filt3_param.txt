@@ -1,0 +1,15 @@
+Cenchrus_filt3
+Time = 2021-11-11 08:32:55
+Number of sites = 19
+Sites included = X01b, X01u, X02b, X02u, X03b, X03u, X05b, X05u, X06b, X06u, X07b, X07u, X08b, X08u, X10b, X10u, X11b1, X11b2, X11b3
+Number of loci = 20995
+Number of individuals = 93
+Monomorphic loci removed = TRUE
+Minimum reproducibility = 95%
+Maximum missing data = 50%
+Minor allele frequency filter = 5%
+Linkage disequilibrium filter = 75%
+Paralog filter (Hobs) = 80%
+No HWE filter
+Non-neutral markers not removed
+Duplicate sequences removed = TRUE

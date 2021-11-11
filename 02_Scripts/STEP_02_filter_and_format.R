@@ -23,6 +23,9 @@ invisible(lapply(paste("01_Functions/",dir("01_Functions"),sep=""),function(x) s
 ###-->> Set data:
 data_name<-"snp_onerow"
 filtered_data<-get(data_name)
+ghead(filtered_data); dim(filtered_data)
+
+###-->> FILTER # 1: duplicated, monomorphic, missing data
 
 # --- *** Discard duplicated *** --- #
 
@@ -52,48 +55,7 @@ range(m_summary$missing)
 filtered_data<-missing_sum$filt_dat
 ghead(filtered_data); dim(filtered_data)
 
-# --- *** PARALOG filter *** --- #
-
-# Filter putative paralogs by K clusters from structure because these might correspond to different cytotypes. 
-
-# Make genind object to get  Hobs and FIS for each K cluster separately. 
-library(adegenet)
-
-# Make genind object (takes time so have included it in a separate workspace)
-load("03_Workspaces/paralog_filter.RData")
-genind_all
-
-# gp_dir<-"00_Data/Genepop_Files"
-# dir(gp_dir)
-# genind_all<-read.genepop(file=paste(gp_dir,"Genepop_all_loci_byK3.gen",sep="/"), ncode=2L,quiet=FALSE)
-# save.image("03_Workspaces/paralog_filter.RData")
-
-# The genind object names populations using the last individual in the list for each K; I updated this before formatting the genepop file so they would relate to the K3 clusters here. 
-genind_all@pop
-
-# Get basic stats from hierfstat (3 mins, saved in paralog_filter.RData):
-# gendiv_all <- basic.stats(genind_all, diploid = TRUE, digits = 2)
-str(gendiv_all)
-head(gendiv_all$Fis)
-head(gendiv_all$Ho)
-tail(gendiv_all$Ho)
-
-fis_all<-as.data.frame(gendiv_all$Fis)
-Hobs_all<-as.data.frame(gendiv_all$Ho)
-head(fis_all)
-head(Hobs_all)
-table(rownames(fis_all)==rownames(Hobs_all))
-
-# Get list of loci that have Hobs > 80% in any cluster:
-Hobs80<-unique(c(rownames(Hobs_all[which(Hobs_all$K1>0.8),]),rownames(Hobs_all[which(Hobs_all$K2>0.8),]),rownames(Hobs_all[which(Hobs_all$K3>0.8),])))
-head(Hobs80); length(Hobs80)
-# save.image("03_Workspaces/paralog_filter.RData")
-
-# Filter loci with extreme observed heterozygosity (80%, following Reynes et al. 2021 MER):
-
-filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% Hobs80)]
-filtered_data<-tidy.df(filtered_data)
-ghead(filtered_data); dim(filtered_data)
+###-->> FILTER # 2: reproducibility, MAF, LD, paralogs
 
 # Filter loci with low reproducibility:
 ###-->> Set RepAvg:
@@ -112,10 +74,6 @@ head(maf_sum)
 malim<-0.05
 filtered_data<-maf_filter(maf_sum,filtered_data,malim)
 ghead(filtered_data); dim(filtered_data)
-
-# write.table(filtered_data, file = "Partially_filtered_data_after_MAF", quote = F, sep = "\t", row.names = T)
-
-# save.image("Partially Filtered Data After MAF.RData")
 
 # --- ***Linkage disequilibrium (LD) filters *** --- #
 
@@ -138,11 +96,57 @@ filtered_data<-tidy.df(filtered_data)
 print(paste("no loci after ld filt = ",dim(filtered_data)[2],sep=""))
 ghead(filtered_data); dim(filtered_data)
 
+# --- *** PARALOG filter *** --- #
+
+# Filter putative paralogs by K clusters from structure because these might correspond to different cytotypes. 
+
+# Make genind object to get Hobs and FIS for each K cluster separately. 
+library(adegenet); library(hierfstat)
+
+# Make genind object (takes time so have included it in a separate workspace; filtered_data in this workspace has all of the above filters already applied)
+load("03_Workspaces/paralog_filter.RData")
+genind_all
+
+# gp_dir<-"00_Data/Genepop_Files"
+# dir(gp_dir)
+# genind_all<-read.genepop(file=paste(gp_dir,"Genepop_all_loci_byK3.gen",sep="/"), ncode=2L,quiet=FALSE)
+# save.image("03_Workspaces/paralog_filter.RData")
+
+# The genind object names populations using the last individual in the list for each K; I updated this before formatting the genepop file so they would relate to the K3 clusters here. 
+genind_all@pop
+
+# Get basic stats from hierfstat (3 mins, saved in paralog_filter.RData):
+# gendiv_all <- basic.stats(genind_all, diploid = TRUE, digits = 2)
+head(gendiv_all$Fis)
+head(gendiv_all$Ho)
+
+fis_all<-as.data.frame(gendiv_all$Fis)
+Hobs_all<-as.data.frame(gendiv_all$Ho)
+head(fis_all)
+head(Hobs_all)
+table(rownames(fis_all)==rownames(Hobs_all))
+
+# Get list of loci that have Hobs > 80% in any cluster:
+Hobs80<-unique(c(rownames(Hobs_all[which(Hobs_all$K1>0.8),]),rownames(Hobs_all[which(Hobs_all$K2>0.8),]),rownames(Hobs_all[which(Hobs_all$K3>0.8),])))
+head(Hobs80); length(Hobs80)
+# 14718 loci fit this category but most (11662) have already been filtered out with the above quality control
+
+# save.image("03_Workspaces/paralog_filter.RData")
+
+# Filter loci with extreme observed heterozygosity (80%, following Reynes et al. 2021 MER):
+
+length(which(colnames(filtered_data) %in% Hobs80))
+
+filtered_data<-filtered_data[,-which(colnames(filtered_data) %in% Hobs80)]
+filtered_data<-tidy.df(filtered_data)
+ghead(filtered_data); dim(filtered_data)
+
+###-->> FILTER # 3: neutrality
+
 # --- *** NEUTRALITY filter *** --- #
 
 # Neutrality tests were run in three different programs (see STEP_03_loci_under_selection.R and BayeScan folder):
 
-# 1. BAYESCAN - command line program - AS
 # 2. LFMM - R - BD
 # 3. PCAdapt - R - BD
 
@@ -278,23 +282,23 @@ ghead(formatted_ped); dim(formatted_ped)
 
 check_plink_ped(orig_data=data_to_plink,plink_data=formatted_ped)
 
-# write.table(formatted_ped,"Cenchrus_filt2.ped",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_ped,"Cenchrus_filt3.ped",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ****** .map file ****** ~~~~ ##
 formatted_map<-format_plink_map(ped_file=formatted_ped,locus_data=linf)
 head(formatted_map)
 
-# write.table(formatted_map,"Cenchrus_filt2.map",quote=F,row.names=F,col.names=F,sep=" ")
+# write.table(formatted_map,"Cenchrus_filt3.map",quote=F,row.names=F,col.names=F,sep=" ")
 
 ## ~~~~ ***** locus info file ***** ~~~~ ##
 plink_locus_info<-data.frame(lind=1:length(colnames(data_to_plink)[3:ncol(data_to_plink)]),locus=colnames(data_to_plink)[3:ncol(data_to_plink)])
-head(plink_locus_info)
+head(plink_locus_info); dim(plink_locus_info)
 
-# write.table(plink_locus_info,"Cenchrus_filt2_loci.txt",sep="\t",row.names=F,quote=F)
+# write.table(plink_locus_info,"Cenchrus_filt3_loci.txt",sep="\t",row.names=F,quote=F)
 
 # parameter flags for param file:
 data<-filtered_data
-headline<-"Adaptive_DartSeq_Format"
+headline<-"PCAdapt_filt3"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -304,6 +308,7 @@ param.repavg<-T
 param.callrate<-T
 param.MAF<-T
 param.LD<-T
+param.plog<-T
 param.HWE<-F
 param.neu<-F
 param.dup<-T
@@ -324,21 +329,21 @@ gp_param(data,headline)
 # For lfmm 0,1,2 represents the number of alleles. 
 # From http://membres-timc.imag.fr/Olivier.Francois/lfmm/files/note.pdf: The number of alleles can be the number of reference alleles or the number of derived alleles as long as a same choice is made for an entire column
 
-ghead(filtered_data)
-dim(filtered_data)
+ghead(filtered_data); dim(filtered_data)
 
 # parameter flags for param file:
 data<-filtered_data
-headline<-"lfmm_filt2"
+headline<-"lfmm_filt3"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
 param.noindiv<-nrow(data)
 param.mono<-T
-param.repavg<-F
+param.repavg<-T
 param.callrate<-T
-param.MAF<-F
-param.LD<-F
+param.MAF<-T
+param.LD<-T
+param.plog<-T
 param.HWE<-F
 param.neu<-F
 param.dup<-T
@@ -382,10 +387,10 @@ write.table(data_lfmm,file="lfmm.txt",row.names=F,col.names=F,quote=F,sep=" ")
 gp_param(data,headline)
 
 # Output locus info index:
-lfmm_loci_filt2<-data.frame(lind=1:length(colnames(data)[3:ncol(data)]),locus=colnames(data)[3:ncol(data)])
-head(lfmm_loci_filt2)
+lfmm_loci_filt3<-data.frame(lind=1:length(colnames(data)[3:ncol(data)]),locus=colnames(data)[3:ncol(data)])
+head(lfmm_loci_filt3); dim(lfmm_loci_filt3)
 
-# write.table(lfmm_loci_filt2,"lfmm_loci_filt2.txt",row.names=F,quote=F,sep="\t")
+# write.table(lfmm_loci_filt3,"lfmm_loci_filt3.txt",row.names=F,quote=F,sep="\t")
 
 ghead(data)
 head(data[,1:2])

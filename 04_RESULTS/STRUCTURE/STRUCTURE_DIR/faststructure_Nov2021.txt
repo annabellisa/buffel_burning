@@ -1,3 +1,48 @@
+##### plink
+
+# Convert ped files to bed, bim, fam
+
+# make bed file:
+
+# plink should run from any location
+plink --version
+
+# cd into one drive (haven't figured out how to handle the spaces in one drive when assigning names to dirs):
+cd ~
+cd "OneDrive - The University of Queensland"
+ls
+
+# base dir
+base_dir='/Users/annabelsmith/Documents/00_UQ_offline/buffel_burning/04_RESULTS/STRUCTURE/STRUCTURE_DIR'
+ls $base_dir
+
+# name for this analysis
+analysis_name=Cenchrus_filt3
+
+# dir for this analysis
+analysis_dir="${base_dir}/$analysis_name"
+# make dir if it doesn't exist
+# mkdir $analysis_dir
+ls $analysis_dir
+echo $analysis_dir
+
+# map file
+map_file="${analysis_dir}/Cenchrus_filt3.map"
+
+# ped file
+ped_file="${analysis_dir}/Cenchrus_filt3.ped"
+
+echo $map_file
+head $map_file
+head $ped_file | cut -c 1-30
+
+# make bed:
+plink --ped $ped_file --map $map_file --make-bed --out ${analysis_dir}/$analysis_name
+
+trash ${analysis_dir}/*nosex ${analysis_dir}/*.log
+ls $analysis_dir
+
+
 ##### fastStructure
 
 # Nov 2021

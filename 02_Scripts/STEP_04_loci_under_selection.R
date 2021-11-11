@@ -30,33 +30,36 @@ library(qvalue)
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 # install.packages("BiocManager")
 
-path_to_file<- "D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/PCAdapt/PCAdapt_files"
-
-path_to_file <- "RESULTS/PCAdapt/PCAdapt_files"
+path_to_file <- "04_RESULTS/Loci_under_selection/PCAdapt_revised_Nov2021/PCAdapt_files"
 
 dir(path_to_file)
 
-filename <- read.pcadapt(paste(path_to_file,"Cenchrus_filt1.bed",sep="/"), type = "bed")
+filename <- read.pcadapt(paste(path_to_file,"Cenchrus_filt3.bed",sep="/"), type = "bed")
 
 ### --- *** SET INITIAL K *** --- ###
 
 K <- 19 # Begin with the number of sample sites
 x <- pcadapt(input = filename, K = 19) 
+summary(x)
+
+# This is the proportion variance explained
+# It's described as a vector containing the K ordered square root of the proportion of variance explained by each PC (https://bcm-uga.github.io/pcadapt/articles/pcadapt.html.
+# But it's the square root of the following that's written in the function (https://github.com/bcm-uga/pcadapt/blob/master/R/pcadapt.R)
+pvarexp<-x$singular.values[1:K]^2 / sum(x$singular.values^2)
 
 # CHOOSE K FROM SCREE PLOT:
-
 dev.new(width=4,height=4,dpi=160,pointsize=12, noRStudioGD = T)
 par(mar=c(4,4,1,0.5))
-plot(1:K,x$singular.values^2,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "", font.main=1)
+plot(1:K,pvarexp,xlab="",ylab="Proportion variance explained",pch=20,las=1,type="n", main = "", font.main=1)
 title(xlab="Principal component",mgp=c(2.5,1,0))
 grid()
-lines(1:K,x$singular.values^2)
-points(1:K,x$singular.values^2,pch=20)
+lines(1:K,pvarexp)
+points(1:K,pvarexp,pch=20)
 
 # CHOOSE K FROM PCs:
 
 # Get population names from the fam file:
-famf<-read.table(paste(path_to_file,"Cenchrus_filt1.fam",sep="/"),header=F) # strange fam file
+famf<-read.table(paste(path_to_file,"Cenchrus_filt3.fam",sep="/"),header=F) # strange fam file
 head(famf)
 poplist.names <- as.character(famf$V1)
 head(poplist.names)
@@ -94,16 +97,11 @@ pc1<-x$scores[,1]
 pc2<-x$scores[,2]
 pc3<-x$scores[,3]
 
-# the loadings for PC3 suggest a potential LD issue which might not be surprising because we have not filtered LD loci for this neutrality testing phase; after re-running the PCA with thinning, the problem on the loadings on PC3 looked the same, so I have not pursued the thinning step. 
-
 # Get outliers based on q values:
 
-loc_dat<-read.table(paste(path_to_file,"Cenchrus_filt1_loci.txt",sep="/"),header=T) 
+loc_dat<-read.table(paste(path_to_file,"Cenchrus_filt3_loci.txt",sep="/"),header=T) 
 loc_dat$pvalue<-x$pvalues
 head(loc_dat)
-
-# there are plenty of NAs:
-length(which(is.na(loc_dat$pvalue)))
 
 # Get outliers based on qvalues
 loc_dat$qvalue <- qvalue(x$pvalues)$qvalues
@@ -131,7 +129,7 @@ table(loc_dat$PC)
 
 # write.table(loc_dat,"outliers_PCAdapt_from_snp_pc.txt",sep="\t",row.names=F,quote=F)
 
-save.image("03_Workspaces/STEP03_loci_under_selection.RData")
+# save.image("03_Workspaces/STEP04_loci_under_selection.RData")
 
 # Reproduce manhattan plot:
 head(loc_dat); dim(loc_dat)
@@ -148,9 +146,7 @@ points(1:nrow(loc_dat),-log(loc_dat$pvalue,10),pch=20, cex=0.5,col=ifelse(as.fac
 library(lfmm) # https://bcm-uga.github.io/lfmm/articles/lfmm
 library(qvalue)
 
-lfmm_dir<-"RESULTS/LFMM/LFMM_files"
-lfmm_dir<-"D:/Onedrive/OneDrive - The University of Queensland/GitHub/Binyin_Winter/RESULTS/LFMM/lfmm_files"
-
+lfmm_dir<-"04_RESULTS/Loci_under_selection/LFMM_revised_Nov2021/LFMM_files"
 dir(lfmm_dir)
 
 # Genotype data:
@@ -166,9 +162,9 @@ head(lfsite)
 
 # Add site info
 sdat$site_code <- sub("buf","X",sdat$site)
-head(sdat) 
+head(sdat,2); dim(sdat) 
 
-# just need site_code, burnt_unburnt, and long:
+# enviro data to include: site_code, burnt_unburnt, and long:
 lfsd<-sdat[which(sdat$site_code %in% unique(lfsite$site)),c(which(colnames(sdat)=="site"),which(colnames(sdat)=="burn_unburnt"),which(colnames(sdat)=="long"):which(colnames(sdat)=="site_code"))] 
 lfsd<-lfsd[order(lfsd$site),]
 lfsd<-tidy.df(lfsd)
@@ -192,15 +188,27 @@ head(lfsd2); dim(lfsd2)
 lfsd3<-merge(lfsd2, lfsd, by.x = "site", by.y = "site_code",  all.x = TRUE, all.y = FALSE)
 
 #check:
-lfsite$ind == lfsd3$ind
+table(lfsite$ind == lfsd3$ind) # should all be T
 head(lfsd3); dim(lfsd3)
 
-# Reduce columns to burnt_unburnt and long - these are the environmental variables we're using in the model:
-lfs<-lfsd3[,c("burn_unburnt","long")]
+# Add K cluster:
+kdat<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt2.txt",header=T)
+# Check individual names correspond:
+table(kdat$indiv %in% lfsd3$ind) # should all be T
+table(lfsd3$ind %in% kdat$indiv ) # should all be T
+kdat<-kdat[,c("indiv","K3")]
+head(kdat,3); dim(kdat)
+# Merge with lfsd3
+
+lfsd3<-merge(lfsd3, kdat, by.x="ind", by.y="indiv", all.x=T, all.y=F)
+head(lfsd3); dim(lfsd3)
+
+# Reduce columns to burnt_unburnt, long and K - these are the environmental variables we're using in the model:
+lfs<-lfsd3[,c("burn_unburnt","long", "K3")]
 head(lfs); dim(lfs)
 
 # The environmental matrix (X):
-lfs<-as.matrix(lfs[,1:2])
+lfs<-as.matrix(lfs[,1:3])
 head(lfs); dim(lfs)
 
 # The genotype matrix (Y):
@@ -240,15 +248,18 @@ length(pvalues)
 # Direct effect sizes estimated from latent factor models:
 efs.lfmm1<-effect_size(Y = lfdat, X = as.matrix(lfs[,1]), lfmm = mod.lfmm) # a few minutes
 efs.lfmm2<-effect_size(Y = lfdat, X = as.matrix(lfs[,2]), lfmm = mod.lfmm)
+efs.lfmm3<-effect_size(Y = lfdat, X = as.matrix(lfs[,3]), lfmm = mod.lfmm)
+# save.image("03_Workspaces/STEP04_loci_under_selection.RData")
 
 head(efs.lfmm1)
 head(efs.lfmm2)
+head(efs.lfmm2)
 
-lfmm_loci<-read.table(paste(lfmm_dir,"lfmm_loci_filt2.txt",sep="/"),header=T)
+lfmm_loci<-read.table(paste(lfmm_dir,"lfmm_loci_filt3.txt",sep="/"),header=T)
 head(lfmm_loci)
 dim(lfmm_loci)
 
-# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
+# save.image("03_Workspaces/STEP04_loci_under_selection.RData")
 
 # Add p and q values to locus info:
 lfres<-data.frame(locus=lfmm_loci$locus,pvalues)
@@ -265,13 +276,16 @@ lf_outl<-apply(as.matrix(lfres[,2:ncol(lfres)]),2,function(x) which(x<alpha))
 
 lfres$bu_outl<-ifelse(rownames(lfres) %in% lf_outl$bu_q,1,0)
 lfres$lo_outl<-ifelse(rownames(lfres) %in% lf_outl$lo_q,1,0)
+lfres$K_outl<-ifelse(rownames(lfres) %in% lf_outl$K3_q,1,0)
 head(lfres)
 
 table(lfres$bu_outl)
 table(lfres$lo_outl)
+table(lfres$K_outl)
 
 # no loci were outliers along the burn gradient with a q threshold of 0.05
-# 35 loci were outliers along the longitudinal gradient with a q threshold of 0.05
+# 12 loci were outliers along the longitudinal gradient with a q threshold of 0.05
+# 22 loci were outliers along the K gradient with a q threshold of 0.05
 
 # Reproduce manhattan plot:
 lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="bu_outl"):ncol(lfres)])
@@ -286,15 +300,16 @@ plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,x
 
 points(1:nrow(lfres),-log(lfres$long_p,10),pch=20,col=as.factor(lfres$lo_q<0.05))
 
-# none were outlying on the burn gradient, so plot longitude outliers only:
+# none were outlying on the burn gradient, so plot longitude and K outliers only:
 points(rownames(lfres)[lfres$bu_q<alpha],-log(lfres$burn_unburnt_p[lfres$bu_q<alpha],10),pch=20,col="blue")
 points(rownames(lfres)[lfres$lo_q<alpha],-log(lfres$long_p[lfres$lo_q<alpha],10),pch=20,col="green")
-legend("topleft",legend=c("PC longtitude"),pch=20,col=c("green"))
-# legend("topleft",legend=c("PC1 burnt or unburnt","PC2 longtitude"),pch=20,col=c("green","blue"))
+points(rownames(lfres)[lfres$K3_q<alpha],-log(lfres$K3_p[lfres$K3_q<alpha],10),pch=20,col="cornflowerblue")
+legend("topleft",legend=c("longtitude", "K"),pch=20,col=c("green","cornflowerblue"))
 
 # Plot effect sizes:
 lfres$efs1<-efs.lfmm1
 lfres$efs2<-efs.lfmm2
+lfres$efs3<-efs.lfmm3
 head(lfres,3); dim(lfres)
 
 # write.table(lfres,"lfmm_outliers.txt",sep="\t",quote=F, row.names=F)
@@ -305,13 +320,15 @@ plot(1:nrow(lfres),lfres$efs1,type="n",ylab="Effect size",las=1,xlab="Locus",yli
 
 points(rownames(lfres)[lfres$never_outl==0],lfres$efs1[lfres$never_outl==0],pch=20,cex=1,col=rgb(0,0,0,0.08))
 points(rownames(lfres)[lfres$never_outl==0],lfres$efs2[lfres$never_outl==0],pch=20,cex=1,col=rgb(0,0,0,0.08))
+points(rownames(lfres)[lfres$never_outl==0],lfres$efs3[lfres$never_outl==0],pch=20,cex=1,col=rgb(0,0,0,0.08))
 
 points(rownames(lfres)[lfres$bu_q<alpha],lfres$efs1[lfres$bu_q<alpha],pch=20,col="red")
 points(rownames(lfres)[lfres$lo_q<alpha],lfres$efs2[lfres$lo_q<alpha],pch=20,col="green")
+points(rownames(lfres)[lfres$K3_q<alpha],lfres$efs3[lfres$K3_q<alpha],pch=20,col="cornflowerblue")
 
 abline(0,0,col="purple")
 
-legend("topleft",legend=c("PC longtitude"),pch=20,col=c("green"))
+legend("topleft",legend=c("longtitude","K"),pch=20,col=c("green","cornflowerblue"))
 
 ## QQ plot:
 dev.new(width=8,height=4, noRStudioGD = T,dpi=100)
@@ -319,25 +336,7 @@ par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 qqplot(rexp(length(pvalues), rate = log(10)),   -log10(pvalues), xlab = "Expected quantile",  pch = 19, cex = .4)
 abline(0,1)
 
-## PLOT GENOTYPE FREQUENCIES BY LOCATION:
-
-# Outlier loci along longitude PC:
-lfmm_loc.toanalyse<-as.character(lfres$locus_p[which(lfres$lo_outl==1)]) 
-length(lfmm_loc.toanalyse)
-head(lfmm_loc.toanalyse)
-
-# Genotype and site data (gt_data has all loci before filtering but colnames are the same, so can be used for these plots)
-ghead(gt_data); dim(gt_data)
-head(site_data,3); dim(site_data)
-
-# this plots by longitude (see plot_freq_long folder for results); use "jpg" for windows or "pdf" for mac
-out.dir<-"RESULTS/LFMM/plot_freq_long"
-plot_freq_long(loci=lfmm_loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 35, out_file_type="pdf") 
-
-out.dir<-"RESULTS/LFMM/plot_freq_burn"
-plot_freq_location(loci=lfmm_loc.toanalyse,genotype_data = gt_data,site_data = site_data,out.dir = out.dir,number_to_plot = 35, out_file_type="pdf") 
-
-# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
+# save.image("03_Workspaces/STEP04_loci_under_selection.RData")
 
 # close LFMM ----
 
@@ -345,20 +344,21 @@ plot_freq_location(loci=lfmm_loc.toanalyse,genotype_data = gt_data,site_data = s
 
 pcadap_linf<-loc_dat[,c("lind","locus","outlier")]
 colnames(pcadap_linf)[which(colnames(pcadap_linf)=="outlier")]<-"pca_outl"
-lfmm_linf<-lfres[,c("locus_p","bu_outl","lo_outl")]
-lfmm_linf$lfmm_outl<-rowSums(lfmm_linf[,c("bu_outl","lo_outl")])
+lfmm_linf<-lfres[,c("locus_p","bu_outl","lo_outl","K_outl")]
+lfmm_linf$lfmm_outl<-rowSums(lfmm_linf[,c("bu_outl","lo_outl","K_outl")])
+table(lfmm_linf$lfmm_outl==lfmm_linf$bu_outl)
+table(lfmm_linf$lfmm_outl==lfmm_linf$K_outl)
 table(lfmm_linf$lfmm_outl==lfmm_linf$lo_outl)
+
 lfmm_linf<-lfmm_linf[,c("locus_p","lfmm_outl")]
 
-head(bslinf,3); dim(bslinf) # BayeScan
 head(pcadap_linf,3); dim(pcadap_linf) # PCAdapt
 head(lfmm_linf,3); dim(lfmm_linf) # LFMM
 
-table(bslinf$bs_outl)
 table(pcadap_linf$pca_outl)
 table(lfmm_linf$lfmm_outl)
 
-outl_all<-merge(bslinf,pcadap_linf,by=c("lind","locus"),all.x=T,all.y=F)
+outl_all<-pcadap_linf
 
 outl_all<-merge(outl_all,lfmm_linf,by.x="locus",by.y="locus_p",all.x=T,all.y=F)
 outl_all<-outl_all[order(outl_all$lind),]
@@ -366,38 +366,33 @@ outl_all<-tidy.df(outl_all)
 head(outl_all); dim(outl_all)
 check.rows(outl_all)
 
-# There is very little overlap among three methods:
-table(rowSums(outl_all[,c("bs_outl","pca_outl","lfmm_outl")]))
+# LFMM = 34 outliers
+# PCAdapt = 5005 outliers
+# Overlap between methods = 9 outliers
+table(rowSums(outl_all[,c("pca_outl","lfmm_outl")]))
 
 # write.table(outl_all,"outliers_all.txt",sep="\t",row.names=F,quote=F)
 
-# save.image("03_Workspaces/STEP03_loci_under_selection.RData")
+# save.image("03_Workspaces/STEP04_loci_under_selection.RData")
 
 # VENN diagram:
 
 library(VennDiagram)
 
 # Summarise overlap:
-res2<-outl_all[,c("bs_outl","pca_outl","lfmm_outl")]
+res2<-outl_all[,c("pca_outl","lfmm_outl")]
 res2$sum1<-rowSums(cbind(res2[,1],res2[,2]))
-res2$sum2<-rowSums(cbind(res2[,2],res2[,3]))
-res2$sum3<-rowSums(cbind(res2[,1],res2[,3]))
-res2$sum4<-rowSums(cbind(res2[,1],res2[,2],res2[,3]))
+
 res2$sum1<-ifelse(res2$sum1==1,0,res2$sum1)
-res2$sum2<-ifelse(res2$sum2==1,0,res2$sum2)
-res2$sum3<-ifelse(res2$sum3==1,0,res2$sum3)
-res2$sum4<-ifelse(res2$sum4==1,0,res2$sum4)
-res2$sum4<-ifelse(res2$sum4==2,0,res2$sum4)
 res2$sum1<-ifelse(res2$sum1==2,1,res2$sum1)
-res2$sum2<-ifelse(res2$sum2==2,1,res2$sum2)
-res2$sum3<-ifelse(res2$sum3==2,1,res2$sum3)
-res2$sum4<-ifelse(res2$sum4==3,1,res2$sum4)
-head(res2)
+head(res2); table(res2$sum1)
 
 res3<-colSums(res2)
 res3
 
-venn.plot<-draw.triple.venn(res3[1],res3[2],res3[3],res3[4],res3[5],res3[6],res3[7], category=c("BayeScan","PCAdapt","LFMM"),fill=rgb(0,0,0,0.5),fontfamily="sans",cat.fontfamily="sans",cex=1, cat.pos=c(10,10,10),lwd=1)
+dev.new(width=4,height=4,dpi=160,pointsize=12, noRStudioGD = T)
+par(mar=c(4,4,1,0.5))
+venn.plot<-draw.pairwise.venn(res3[1],res3[2],res3[3], category=c("PCAdapt","LFMM"),scaled=F,fill=rgb(0,0,0,0.5),fontfamily="sans",cat.fontfamily="sans",cex=1, cat.pos=c(2,10),lwd=1)
 
 pdf(file="venn.pdf",width=4,height=4,pointsize=12)
 par(mar=c(4,4,1,1))

@@ -77,6 +77,7 @@ if(param.repavg==T) paste("Minimum reproducibility = ",ra*100,"%",sep="") else p
 if(param.callrate==T) paste("Maximum missing data = ",missing_cutoff*100,"%",sep="") else paste("No missing data filter",sep=""),
 if(param.MAF==T) paste("Minor allele frequency filter = ", malim*100,"%",sep="") else paste("No MAF filter",sep=""),
 if(param.LD==T) paste("Linkage disequilibrium filter = ", ldf*100,"%",sep="") else paste("No LD filter",sep=""),
+if(param.plog==T) paste("Paralog filter (Hobs) = ","80%",sep="") else paste("No paralog filter",sep=""),
 if(param.HWE==T) paste("HWE filter applied = ",param.HWE,sep="") else paste("No HWE filter",sep=""),
 if(param.neu==T) paste("Non-neutral markers removed = ",param.neu,sep="") else paste("Non-neutral markers not removed",sep=""),
 if(param.dup==T) paste("Duplicate sequences removed = ",param.dup,sep="") else paste("Duplicate sequences not removed",sep=""),
