@@ -194,17 +194,10 @@ write.table(filtered_data, "dartseq_filt4.txt", quote=F, row.names=F, sep="\t")
 
 # FORMAT genepop by K3:    	# ----
 
-dir("00_Data/Filtered_DartSeq_format/DartSeq_locus_info")
-filt4_loci<-read.table("00_Data/Filtered_DartSeq_format/DartSeq_locus_info/dartseq_all_loci_byK3_loci.txt", sep="", header=T)
-head(filt4_loci); dim(filt4_loci)
-
-# These should all be true:
-table(filt4_loci$locus %in% colnames(filtered_data))
-filtered_data<-filtered_data[,c(1:2,which(colnames(filtered_data) %in% filt4_loci$locus))]
-ghead(filtered_data); dim(filtered_data)
+# Format by K3 with all individuals in the same file:
 
 dir("00_Data")
-kclust<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt2.txt", header=T)
+kclust<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt4.txt", header=T)
 kclust<-kclust[,c("indiv", "K3")]
 head(kclust)
 
@@ -229,6 +222,53 @@ filtered_data$ind<-as.factor(filtered_data$ind)
 
 # close format genepop K3 ----
 
+
+# Format Genepop with K in separate files, individuals grouped into sites. 
+
+dir("00_Data")
+kclust<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt4.txt", header=T)
+kclust<-kclust[,c("indiv", "K3")]
+head(kclust)
+
+# Format separate files for each K:
+
+# These should all be true:
+table(kclust$indiv %in% filtered_data$ind)
+ghead(filtered_data); dim(filtered_data)
+head(kclust); dim(kclust)
+
+filtered_data<-merge(filtered_data, kclust, by.x="ind", by.y="indiv", all.x=T, all.y=F)
+ghead(filtered_data); dim(filtered_data)
+
+fd1<-filtered_data[which(filtered_data$K3==1),]
+fd2<-filtered_data[which(filtered_data$K3==2),]
+fd3<-filtered_data[which(filtered_data$K3==3),]
+
+fd1<-tidy.df(fd1)
+fd2<-tidy.df(fd2)
+fd3<-tidy.df(fd3)
+
+# Remove the K column:
+fd1$K3<-NULL
+fd2$K3<-NULL
+fd3$K3<-NULL
+
+# Remove sites with < 4 individuals
+# There are too few individuals in K2 to do the analysis, so focus on K1 and K3:
+fd1<-fd1[-which(fd1$site %in% names(which(table(fd1$site)<4))),]
+fd3<-fd3[-which(fd3$site %in% names(which(table(fd3$site)<4))),]
+fd1<-tidy.df(fd1)
+fd3<-tidy.df(fd3)
+
+ghead(fd1); dim(fd1)
+ghead(fd3); dim(fd3)
+
+# Check it:
+table(fd1$site)
+table(fd3$site)
+
+# close format genepop separate K ----
+
 ####   	 	 FORMAT GENEPOP:    	 ####
 
 # Single row data:
@@ -236,10 +276,10 @@ filtered_data$ind<-as.factor(filtered_data$ind)
 # 1 = SNP allele homozygote (0202)
 # 2 = heterozygote (0102)
 
-data<-filtered_data
+data<-fd3
 
 # parameter flags for param file:
-headline<-"Genepop_filt5_nonneutral"
+headline<-"Genepop_filt4_K3"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -252,14 +292,12 @@ param.MAF<-T
 param.LD<-T
 param.plog<-T
 param.HWE<-F
-param.neu<-F
+param.neu<-T
 
 ghead(data); dim(data)
 
 # format_genepop makes three files: the genepop file, the parameter file and the locus file:
 
-# < 1 min for 2500 loci
-# ~ 3 min for 93 x 20,000 loci
 format_genepop(data,headline)
 
 # close format genepop ----
