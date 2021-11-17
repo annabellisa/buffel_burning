@@ -102,7 +102,6 @@ str(euc_clust)
 # Load Genepop files
 gp_dir<-"00_Data/Genepop_Files/Genepop_gen_files"
 dir(gp_dir)
-dir(gp_dir)
 
 # Get FST by site ALL individuals ALL K:
 print(Sys.time())
@@ -110,13 +109,9 @@ fst<-diffCalc(paste(gp_dir,"Genepop_filt4.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
-# Get FST for each K separately:
+# Get FST for each K separately (K1 and K3 only):
 print(Sys.time())
 fst_K1<-diffCalc(paste(gp_dir,"Genepop_filt4_K1.gen",sep="/"),fst=T,pairwise=T)
-print(Sys.time())
-
-print(Sys.time())
-fst_K2<-diffCalc(paste(gp_dir,"Genepop_filt4_K2.gen",sep="/"),fst=T,pairwise=T)
 print(Sys.time())
 
 print(Sys.time())
@@ -125,15 +120,68 @@ print(Sys.time())
 
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
+# Get FST by K3 clusters, all individuals:
+print(Sys.time())
+fstK3clust<-diffCalc(paste(gp_dir,"Genepop_filt4_byK3.gen",sep="/"),fst=T,pairwise=T)
+print(Sys.time())
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
+
 head(fst$pairwise$Fst)
 head(fst_K1$pairwise$Fst)
-head(fst_K2$pairwise$Fst)
 head(fst_K3$pairwise$Fst)
+
+# FST between clusters:
+head(fstK3clust$pairwise$Fst)
+
+fst_clust_name<-rownames(fstK3clust$pairwise$Fst)
+fst_clust_name<-substr(fst_clust_name,1,nchar(fst_clust_name)-1)
+
+# Get K data for interpretation:
+dir("00_Data")
+kclust<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt4.txt", header=T)
+kclust<-kclust[,c("indiv", "K3")]
+head(kclust)
+
+# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
+
+kclust_3<-kclust[which(kclust$indiv %in% fst_clust_name),]
+kclust_3<-tidy.df(kclust_3)
+kclust_3
+
+fstK3clust2<-fstK3clust$pairwise$Fst
+rownames(fstK3clust2)<-substr(rownames(fstK3clust2),1,nchar(rownames(fstK3clust2))-1)
+colnames(fstK3clust2)<-substr(colnames(fstK3clust2),1,nchar(colnames(fstK3clust2))-1)
+
+rownames(fstK3clust2)<-paste("K",kclust_3$K3[unlist(lapply(rownames(fstK3clust2) , FUN=function(x) which(kclust_3$indiv %in% x)))],sep="")
+colnames(fstK3clust2)<-paste("K",kclust_3$K3[unlist(lapply(colnames(fstK3clust2) , FUN=function(x) which(kclust_3$indiv %in% x)))],sep="")
+fstnK3clust<-rownames(fstK3clust2)
+
+fst_K3clust_df<-data.frame(pop1=combn(fstnK3clust,2)[1,],pop2=combn(fstnK3clust,2)[2,],fst=fstK3clust2[lower.tri(fstK3clust2)])
+
+# COLOURS and K name UPDATE Nov 2021
+# K1 == Site 1, 2, 6u, 7u, 8u, 10 == PURPLE (#BEAED4)
+# K2 == Site 7b, 8b == ORANGE (#FDC086)
+# K3 == Site 3, 5, 6b, 11b1 == GREEN (#7FC97F)
+
+# c("#7FC97F","#BEAED4","#FDC086")
+# this is green purple orange
+
+# they're plotted in this order on the structure plot: K3 (green), K1 (purple), K2 (orange)
+# confusion arises because in the K clusters file that we're using for all K subset analyses, they're listed in order from site 1 onwards. On the structure plot, they're ordered from west to east, so site 11 comes up first (thus K3, green gets plotted first)
+# but the colours and Ks as listed here are correct
+fst_K3clust_df
+dev.new(8,8,pointsize=16, dpi=80,noRStudioGD = T)
+plot(1:3, 1:3, type="p", pch=20, cex=4,col=c("#7FC97F","#BEAED4","#FDC086"))
 
 # Convert square matrix to column matrix:
 fstn<-rownames(fst$pairwise$Fst)
 fstn<-substr(fstn,1,(nchar(fstn)-2))
+fstn1<-rownames(fst_K1$pairwise$Fst)
+fstn1<-substr(fstn1,1,(nchar(fstn1)-2))
+fstn3<-rownames(fst_K3$pairwise$Fst)
+fstn3<-substr(fstn3,1,(nchar(fstn3)-2))
 
+# All sites
 ind_endnum<-which(unlist(gregexpr("[0-9]",substr(fstn,nchar(fstn),nchar(fstn))))>0)
 with_endnum<-fstn[ind_endnum]
 fstn[ind_endnum]<-substr(with_endnum,1,nchar(with_endnum)-1)
@@ -142,24 +190,61 @@ ind_endund<-which(unlist(gregexpr("_",substr(fstn,nchar(fstn),nchar(fstn))))>0)
 with_endund<-fstn[ind_endund]
 fstn[ind_endund]<-substr(with_endund,1,nchar(with_endund)-1)
 
+# K1
+ind_endnum1<-which(unlist(gregexpr("[0-9]",substr(fstn1,nchar(fstn1),nchar(fstn1))))>0)
+with_endnum1<-fstn1[ind_endnum1]
+fstn1[ind_endnum1]<-substr(with_endnum1,1,nchar(with_endnum1)-1)
+
+ind_endund1<-which(unlist(gregexpr("_",substr(fstn1,nchar(fstn1),nchar(fstn1))))>0)
+with_endund1<-fstn1[ind_endund1]
+fstn1[ind_endund1]<-substr(with_endund1,1,nchar(with_endund1)-1)
+
+# K3
+ind_endnum3<-which(unlist(gregexpr("[0-9]",substr(fstn3,nchar(fstn3),nchar(fstn3))))>0)
+with_endnum3<-fstn3[ind_endnum3]
+fstn3[ind_endnum3]<-substr(with_endnum3,1,nchar(with_endnum3)-1)
+
+ind_endund3<-which(unlist(gregexpr("_",substr(fstn3,nchar(fstn3),nchar(fstn3))))>0)
+with_endund3<-fstn3[ind_endund3]
+fstn3[ind_endund3]<-substr(with_endund3,1,nchar(with_endund3)-1)
+
+# Combine into data frames
+
+# All sites:
 fst_df<-data.frame(pop1=combn(fstn,2)[1,],pop2=combn(fstn,2)[2,],fst=fst$pairwise$Fst[lower.tri(fst$pairwise$Fst)],gst=fst$pairwise$gst[lower.tri(fst$pairwise$gst)],Gst=fst$pairwise$Gst[lower.tri(fst$pairwise$Gst)],GGst=fst$pairwise$GGst[lower.tri(fst$pairwise$GGst)],D=fst$pairwise$D[lower.tri(fst$pairwise$D)])
 head(fst_df)
 
+# K1:
+fst_df1<-data.frame(pop1=combn(fstn1,2)[1,],pop2=combn(fstn1,2)[2,],fst=fst_K1$pairwise$Fst[lower.tri(fst_K1$pairwise$Fst)],gst=fst_K1$pairwise$gst[lower.tri(fst_K1$pairwise$gst)],Gst=fst_K1$pairwise$Gst[lower.tri(fst_K1$pairwise$Gst)],GGst=fst_K1$pairwise$GGst[lower.tri(fst_K1$pairwise$GGst)],D=fst_K1$pairwise$D[lower.tri(fst_K1$pairwise$D)])
+head(fst_df1)
+
+# K3:
+fst_df3<-data.frame(pop1=combn(fstn3,2)[1,],pop2=combn(fstn3,2)[2,],fst=fst_K3$pairwise$Fst[lower.tri(fst_K3$pairwise$Fst)],gst=fst_K3$pairwise$gst[lower.tri(fst_K3$pairwise$gst)],Gst=fst_K3$pairwise$Gst[lower.tri(fst_K3$pairwise$Gst)],GGst=fst_K3$pairwise$GGst[lower.tri(fst_K3$pairwise$GGst)],D=fst_K3$pairwise$D[lower.tri(fst_K3$pairwise$D)])
+head(fst_df3)
+
 mean(fst_df$fst)
 range(fst_df$fst,na.rm=T)
+mean(fst_df1$fst)
+range(fst_df1$fst,na.rm=T)
+mean(fst_df3$fst)
+range(fst_df3$fst,na.rm=T)
 
-# write.table(fst_df,"fst_all_sites.txt",row.names=F,quote=F,sep="\t")
+# write.table(fst_df3,"fst_K3.txt",row.names=F,quote=F,sep="\t")
 
 ### -- *** ADD GEOGRAPHIC DISTANCE:
 
 # The following formatting of FST (adding geog dist, etc) has been run and saved in fst_and_distances_all_sites.txt (until "Analyse FST")
 
-dat_dir<-"RESULTS/Diversity_and_Distance/FST"
+dat_dir<-"04_RESULTS/Diversity_and_Distance/FST"
 dir(dat_dir)
 
 # load fst data:
 pwpop<-read.table(paste(dat_dir,"fst_all_sites.txt",sep="/"),header=T)
+pwpop1<-read.table(paste(dat_dir,"fst_K1.txt",sep="/"),header=T)
+pwpop3<-read.table(paste(dat_dir,"fst_K3.txt",sep="/"),header=T)
 head(pwpop)
+head(pwpop1)
+head(pwpop3)
 
 # load site data:
 
@@ -168,13 +253,16 @@ sdat$pop<-sdat$site
 sdat$pop<-paste("X",substr(x=sdat$pop,start = 4,stop = nchar(as.character(sdat$pop))), sep="")
 head(sdat,3)
 
-# Check all sites in data have site data:
-unique(c(levels(pwpop$pop1),levels(pwpop$pop2))) %in% sdat$pop
+# Check all sites in data have site data (should all be T):
+table(unique(c(pwpop$pop1,pwpop$pop2)) %in% sdat$pop)
+table(unique(c(pwpop1$pop1,pwpop1$pop2)) %in% sdat$pop)
+table(unique(c(pwpop3$pop1,pwpop3$pop2)) %in% sdat$pop)
 
 sll<-sdat[,c("pop","lat","long")]
 head(sll); dim(sll)
 head(pwpop,2); dim(pwpop)
 
+# All SITES:
 m1<-merge(pwpop,sll,by.x="pop1",by.y="pop",all.x=T,all.y=F)
 colnames(m1)[colnames(m1) %in% c("lat","long")]<-c("lat1","lon1")
 m1<-merge(m1,sll,by.x="pop2",by.y="pop",all.x=T,all.y=F)
@@ -205,7 +293,75 @@ m2$same_block<-m2$block1==m2$block2
 m2$same_block<-ifelse(m2$same_block==T,1,0)
 check.rows(m2)
 
-# write.table(m2,"m2.txt",row.names=F,quote=F,sep="\t")
+# K1:
+head(pwpop1); dim(pwpop1)
+m1K1<-merge(pwpop1,sll,by.x="pop1",by.y="pop",all.x=T,all.y=F)
+colnames(m1K1)[colnames(m1K1) %in% c("lat","long")]<-c("lat1","lon1")
+m1K1<-merge(m1K1,sll,by.x="pop2",by.y="pop",all.x=T,all.y=F)
+colnames(m1K1)[colnames(m1K1) %in% c("lat","long")]<-c("lat2","lon2")
+m1K1<-m1K1[order(m1K1$pop1,m1K1$pop2),]
+m1K1<-tidy.df(m1K1)
+head(m1K1)
+
+m1K1<-m1K1[,c(2,1,3:length(m1K1))]
+m1K1$geog_dist<-distGeo(m1K1[,c("lon1","lat1")],m1K1[,c("lon2","lat2")])
+# lat dist is redundant here. For Cenchrus, long dist would make more sense, but that will be captured in pure geographic distance:
+m1K1$lat_dist<-abs(m1K1$lat1)-abs(m1K1$lat2)
+head(m1K1,2); dim(m1K1)
+head(sdat,4)
+
+# Add same site distance:
+head(ndis); dim(ndis)
+m2K1<-merge(m1K1,ndis,by.x="pop1",by.y="pop",all.x=T,all.y=F)
+colnames(m2K1)[colnames(m2K1) %in% c("block")]<-c("block1")
+m2K1<-merge(m2K1,ndis,by.x="pop2",by.y="pop",all.x=T,all.y=F)
+colnames(m2K1)[colnames(m2K1) %in% c("block")]<-c("block2")
+m2K1<-m2K1[order(m2K1$pop1,m2K1$pop2),]
+m2K1<-tidy.df(m2K1)
+m2K1<-m2K1[,c(2,1,3:length(m2K1))]
+head(m2K1,3)
+
+m2K1$same_block<-m2K1$block1==m2K1$block2
+m2K1$same_block<-ifelse(m2K1$same_block==T,1,0)
+head(m2K1,3); dim(m2K1)
+
+# K3:
+head(pwpop3); dim(pwpop3)
+m1K3<-merge(pwpop3,sll,by.x="pop1",by.y="pop",all.x=T,all.y=F)
+colnames(m1K3)[colnames(m1K3) %in% c("lat","long")]<-c("lat1","lon1")
+m1K3<-merge(m1K3,sll,by.x="pop2",by.y="pop",all.x=T,all.y=F)
+colnames(m1K3)[colnames(m1K3) %in% c("lat","long")]<-c("lat2","lon2")
+m1K3<-m1K3[order(m1K3$pop1,m1K3$pop2),]
+m1K3<-tidy.df(m1K3)
+head(m1K3); dim(m1K3)
+
+m1K3<-m1K3[,c(2,1,3:length(m1K3))]
+m1K3$geog_dist<-distGeo(m1K3[,c("lon1","lat1")],m1K3[,c("lon2","lat2")])
+# lat dist is redundant here. For Cenchrus, long dist would make more sense, but that will be captured in pure geographic distance:
+m1K3$lat_dist<-abs(m1K3$lat1)-abs(m1K3$lat2)
+head(m1K3,2); dim(m1K3)
+head(sdat,4)
+
+# Add same site distance:
+head(ndis); dim(ndis)
+m2K3<-merge(m1K3,ndis,by.x="pop1",by.y="pop",all.x=T,all.y=F)
+colnames(m2K3)[colnames(m2K3) %in% c("block")]<-c("block1")
+m2K3<-merge(m2K3,ndis,by.x="pop2",by.y="pop",all.x=T,all.y=F)
+colnames(m2K3)[colnames(m2K3) %in% c("block")]<-c("block2")
+m2K3<-m2K3[order(m2K3$pop1,m2K3$pop2),]
+m2K3<-tidy.df(m2K3)
+m2K3<-m2K3[,c(2,1,3:length(m2K3))]
+head(m2K3,3)
+
+m2K3$same_block<-m2K3$block1==m2K3$block2
+m2K3$same_block<-ifelse(m2K3$same_block==T,1,0)
+head(m2K3,3); dim(m2K3)
+
+head(m2,3); dim(m2)
+head(m2K1,3); dim(m2K1)
+head(m2K3,3); dim(m2K3)
+
+# write.table(m2K3,"m2K3.txt",row.names=F,quote=F,sep="\t")
 # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # Analyse FST:
@@ -213,30 +369,42 @@ check.rows(m2)
 dir(dat_dir)
 # load fst data:
 fst_all<-read.table(paste(dat_dir,"fst_and_distances_all_sites.txt",sep="/"),header=T)
-head(fst_all,2)
+fst_K1<-read.table(paste(dat_dir,"fst_and_distances_K1.txt",sep="/"),header=T)
+fst_K3<-read.table(paste(dat_dir,"fst_and_distances_K3.txt",sep="/"),header=T)
+head(fst_all,2); dim(fst_all)
+head(fst_K1,2); dim(fst_K1)
+head(fst_K3,2); dim(fst_K3)
+
 summary(fst_all$fst)
+summary(fst_K1$fst)
+summary(fst_K3$fst)
 
 # sites with the very large FSTs correspond to the structure clusters... they're probably different lines
 fst_all[,1:3]
 
 # mantel test:
-mant1<-mantel(formula = fst~geog_dist, data = fst_all)
-mant1
-mant2<-mantel(formula = fst~geog_dist+same_block, data = fst_all)
-mant2
+mant_all<-mantel(formula = fst~geog_dist, data = fst_all)
+mant_all
+mant_K1<-mantel(formula = fst~geog_dist, data = fst_K1)
+mant_K1
+mant_K3<-mantel(formula = fst~geog_dist, data = fst_K3)
+mant_K3
 
 # plot FST:
-quartz("",6,4,dpi=100)
-par(mar=c(4,4,2,1), mgp=c(2.5,1,0))
-plot(fst_all$geog_dist, fst_all$fst, pch=20, xlab="Geographic distance (m)", ylab="FST", las=1)
-# pval2 = one-tailed p-value (null hypothesis: r >= 0).
-mtext(paste("mean FST = ",round(mean(fst_all$fst),2),"; mantel r = ",round(mant1[1],2),"; p = ",round(mant1[3],2), sep=""), adj=0)
-
-## WITHOUT STATS (for paper)
 # plot FST:
-quartz("",6,4,dpi=100)
-par(mar=c(4,4,0.5,0.5), mgp=c(2.5,1,0))
-plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)", xlim=c(0,100),ylab=expression("Genetic distance ("*italic("F")[ST]*")"), las=1)
+dev.new(6,8,dpi=90, pointsize=16,noRStudioGD = T)
+par(mfrow=c(3,1),mar=c(4,4,0.5,0.5), mgp=c(2.7,1,0), oma=c(0,0,1.5,0))
+plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="", xlim=c(0,100),ylab=expression("Genetic distance ("*italic("F")[ST]*")"), las=1)
+title(xlab="Geographic distance (km)",mgp=c(2.2,1,0))
+mtext(text="(a) All sites",side=3, at=-10, adj=0,line=0.5, cex=0.7)
+
+plot(fst_K1$geog_dist/1000, fst_K1$fst, pch=20, xlab="", xlim=c(0,100),ylab=expression("Genetic distance ("*italic("F")[ST]*")"),ylim=c(-0.2,1), las=1, col="#BEAED4")
+title(xlab="Geographic distance (km)",mgp=c(2.2,1,0))
+mtext(text="(b) Genetic cluster K1",side=3, at=-10,adj=0, line=0.5, cex=0.7)
+
+plot(fst_K3$geog_dist/1000, fst_K3$fst, pch=20, xlab="", xlim=c(0,100),ylab=expression("Genetic distance ("*italic("F")[ST]*")"),ylim=c(-0.2,1), las=1, col="#7FC97F")
+title(xlab="Geographic distance (km)",mgp=c(2.2,1,0))
+mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
 
 # close FST ----
 
@@ -310,6 +478,9 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   head(ldat,3); dim(ldat)
   head(sdt2,2); dim(sdt2)
   
+  # Align site names in two data sets:
+  sdt2$site<-paste("X",substr(sdt2$site, 4, nchar(as.character(sdt2$site))),sep="")
+  
   # should all be TRUE:
   table(ldat$site_code %in% sdt2$site); table(sdt2$site %in% ldat$site_code )
   
@@ -319,7 +490,7 @@ plot(fst_all$geog_dist/1000, fst_all$fst, pch=20, xlab="Geographic distance (km)
   ldat<-tidy.df(ldat)
   
   # Should all be TRUE:
-  rownames(pcaX$li) == ldat$rowpca
+  table(rownames(pcaX$li) == ldat$rowpca)
   
   # Add PCs to site data:
   ldat<-cbind(ldat, pcaX$li)

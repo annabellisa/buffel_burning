@@ -192,7 +192,7 @@ write.table(filtered_data, "dartseq_filt4.txt", quote=F, row.names=F, sep="\t")
 
 # close format DartSeq ----
 
-# FORMAT genepop by K3:    	# ----
+# FORMAT genepop by K3 (all sites):    	# ----
 
 # Format by K3 with all individuals in the same file:
 
@@ -222,8 +222,7 @@ filtered_data$ind<-as.factor(filtered_data$ind)
 
 # close format genepop K3 ----
 
-
-# Format Genepop with K in separate files, individuals grouped into sites. 
+# Format Genepop with K in separate files, individuals grouped into sites ---- 
 
 dir("00_Data")
 kclust<-read.table("00_Data/K_genetic_clusters_Cenchrus_filt4.txt", header=T)
@@ -254,18 +253,43 @@ fd2$K3<-NULL
 fd3$K3<-NULL
 
 # Remove sites with < 4 individuals
-# There are too few individuals in K2 to do the analysis, so focus on K1 and K3:
+# There are too few individuals in K2 to do the IBD analysis, so do this on K1 and K3 only
 fd1<-fd1[-which(fd1$site %in% names(which(table(fd1$site)<4))),]
+fd2<-fd2[-which(fd2$site %in% names(which(table(fd2$site)<4))),]
 fd3<-fd3[-which(fd3$site %in% names(which(table(fd3$site)<4))),]
 fd1<-tidy.df(fd1)
+fd2<-tidy.df(fd2)
 fd3<-tidy.df(fd3)
+
+# Check it:
+table(fd1$site)
+table(fd2$site)
+table(fd3$site)
+
+# Flip ind and site cols:
+fd1<-fd1[,c(2,1,3:ncol(fd1))]
+fd3<-fd3[,c(2,1,3:ncol(fd3))]
 
 ghead(fd1); dim(fd1)
 ghead(fd3); dim(fd3)
 
+# --- *** Filter monomorphic loci *** --- #
+fd1<-mono_loci(fd1,3)
+ghead(fd1); dim(fd1)
+
+fd3<-mono_loci(fd3,3)
+ghead(fd3); dim(fd3)
+
+# Remove all loci which are all NAs (only applies to fd3):
+
+fd3<-fd3[,-which(colnames(fd3) %in% names(unlist(apply(fd3[,3:ncol(fd3)], 2, function(x) which(length(which(is.na(x)))==nrow(fd3))))))]
+
 # Check it:
 table(fd1$site)
 table(fd3$site)
+
+ghead(fd1); dim(fd1)
+ghead(fd3); dim(fd3)
 
 # close format genepop separate K ----
 
