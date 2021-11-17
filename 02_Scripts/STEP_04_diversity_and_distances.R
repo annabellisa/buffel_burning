@@ -537,8 +537,8 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   
   # The following section has been run and saved in "Genetic_Diversity_ALL.txt"
   
-  genind_neutral # all filters + neutral markers only (20159 loci)
-  genind_nonneutral # all filters + non-neutral markers only  (3892 loci)
+  genind_neutral # all filters + neutral markers only (15965 loci)
+  genind_nonneutral # all filters + non-neutral markers only  (5030 loci)
   head(sdat,3); dim(sdat)
   
   # Calculate genetic diversity per population in hierfstat:
@@ -546,7 +546,7 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   # neutral:
   gendiv_neutral <- basic.stats(genind_neutral, diploid = TRUE, digits = 2)
   str(gendiv_neutral) # 1 min
-  head(gendiv_neutral$Fis)
+  head(gendiv_neutral$Fis); dim(gendiv_neutral$Fis)
   head(gendiv_neutral$Ho)
   tail(gendiv_neutral$Ho)
   # save.image("03_workspaces/STEP04_divdist_ALL.RData")
