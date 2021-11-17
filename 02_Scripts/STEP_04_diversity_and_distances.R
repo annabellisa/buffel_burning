@@ -1400,6 +1400,7 @@ mtext("(b)",side=3, at=0.5, line=0.3)
 # Analyse distribution of FIS, following Reynes et al. 2021 MER):
 load("03_Workspaces/paralog_filter.RData")
 
+
 # Plot 
 
 summary(fis_all$K1)
@@ -1410,18 +1411,26 @@ sd(fis_all$K1, na.rm=T)/mean(fis_all$K1, na.rm=T)
 sd(fis_all$K2, na.rm=T)/mean(fis_all$K1, na.rm=T)
 sd(fis_all$K3, na.rm=T)/mean(fis_all$K1, na.rm=T)
 
+head(fis_all,3); dim(fis_all)
+fisK1<-fis_all$K1[-which(is.na(fis_all$K1))]
+fisK2<-fis_all$K2[-which(is.na(fis_all$K2))]
+fisK3<-fis_all$K3[-which(is.na(fis_all$K3))]
+
+length(fisK1); length(fisK2); length(fisK3)
+
 dev.new(width=8, height=8, dpi=80, pointsize=20, noRStudioGD = T)
 par(mfrow=c(2,2), mar=c(4,4,2,1), mgp=c(2.5,1,0))
-h1<-hist(fis_all$K1[-which(is.na(fis_all$K1))], xlab=expression(""*italic("F")[IS]*""), main="",las=1,yaxt="n", ylab="Number of loci (/1000)")
+h1<-hist(fisK1, xlab=expression(""*italic("F")[IS]*""), main="",las=1,yaxt="n", ylab="Number of loci (/1000)")
 title(main="(a) K1", font.main=1, adj=0)
 axis(side=2, at=pretty(x=h1$counts,n=3), labels=pretty(x=h1$counts,n=3)/1000, las=1)
 
-h2<-hist(fis_all$K2[-which(is.na(fis_all$K2))], xlab=expression(""*italic("F")[IS]*""), main="",las=1,yaxt="n", ylab="Number of loci (/1000)")
+h2<-hist(fisK2, xlab=expression(""*italic("F")[IS]*""), main="",las=1,yaxt="n", ylab="Number of loci (/1000)")
 title(main="(b) K2", font.main=1, adj=0)
 axis(side=2, at=pretty(x=h2$counts,n=5), labels=pretty(x=h2$counts,n=5)/1000, las=1)
 
-h3<-hist(fis_all$K3[-which(is.na(fis_all$K3))], xlab=expression(""*italic("F")[IS]*""), main="",las=1,las=1,yaxt="n", ylab="Number of loci (/1000)")
+h3<-hist(fisK3, xlab=expression(""*italic("F")[IS]*""), main="",las=1,las=1,yaxt="n", ylab="Number of loci (/1000)")
 title(main="(c) K3", font.main=1, adj=0)
 axis(side=2, at=pretty(x=h3$counts,n=5), labels=pretty(x=h3$counts,n=5)/1000, las=1)
+
 
 # close FIS distribution ----

@@ -292,12 +292,18 @@ lfres$never_outl<-rowSums(lfres[,which(colnames(lfres)=="bu_outl"):ncol(lfres)])
 lfres$never_outl<-rowSums(lfres[,8,drop = FALSE]) 
 head(lfres)
 
+# What is the relationship between the -log10(p value) and the q value?
+dev.new(width=4,height=4,dpi=100,pointsize=14,noRStudioGD = T)
+par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
+plot(-log(lfres$long_p,10),lfres$lo_q)
+-log(lfres$long_p[which(lfres$lo_q<0.05)],10)
+dim(lfres)
+
 # AS manhattan:
 dev.new(width=10,height=4,dpi=80,pointsize=14,noRStudioGD = T)
 par(mar=c(4,4,1,1),mgp=c(2.5,1,0))
 plot(1:nrow(lfres),-log(lfres$long_p,10),type="n")
-plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab="-log10(p value)",las=1,xlab="Locus",ylim= c(0,max(-log(lfres[,2:4],10))), main = "")
-
+plot(1:nrow(lfres),-log(lfres$long_p,10),type="n",ylab=expression("–Log"*""[10]*italic(" (P")*" value)"),las=1,xlab="Locus",ylim= c(0,max(-log(lfres[,2:4],10))), main = "")
 points(1:nrow(lfres),-log(lfres$long_p,10),pch=20,col=as.factor(lfres$lo_q<0.05))
 
 # none were outlying on the burn gradient, so plot longitude and K outliers only:
@@ -305,6 +311,8 @@ points(rownames(lfres)[lfres$bu_q<alpha],-log(lfres$burn_unburnt_p[lfres$bu_q<al
 points(rownames(lfres)[lfres$lo_q<alpha],-log(lfres$long_p[lfres$lo_q<alpha],10),pch=20,col="green")
 points(rownames(lfres)[lfres$K3_q<alpha],-log(lfres$K3_p[lfres$K3_q<alpha],10),pch=20,col="cornflowerblue")
 legend("topleft",legend=c("longtitude", "K"),pch=20,col=c("green","cornflowerblue"))
+
+
 
 # Plot effect sizes:
 lfres$efs1<-efs.lfmm1
