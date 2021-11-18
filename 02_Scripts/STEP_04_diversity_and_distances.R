@@ -1109,7 +1109,7 @@ mtext("(a)",side=3, at=0.5, line=0.3, cex=0.7)
 boxplot(ar_neutral~most_likelyK, data=gd_all, las=1, ylab="allelic richness", xaxt="n", xlab="",col=col.order)
 axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
 axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
-title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+title(xlab=expression(paste("Genetic cluster (",italic("K"),")")), mgp=c(2,1,0))
 mtext("(b)",side=3, at=0.5, line=0.3, cex=0.7)
 
 full.int<-levels(interaction(gd_all$burn2,gd_all$most_likelyK))
@@ -1121,9 +1121,9 @@ b1<-boxplot(ar_neutral~burn2+most_likelyK, data=gd_all, las=2, ylab="allelic ric
 axis(side=1, at=1:length(ex.int), labels = rep("",length(ex.int)), cex.axis=0.7)
 axis(side=1, at=1:length(ex.int), labels = c("U","B","B","U","B","11"), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
 arrows(c(2.5,3.5),0,c(2.5,3.5),2,code=0,lty=2,col="grey50")
-title(xlab="Fire category x K", mgp=c(2,1,0))
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
 mtext("(c)",side=3, at=0.5, line=0.3, cex=0.7)
-mtext(c("K1","K2","K3"), side=3, at=c(1.5,3,5), line=0.2, cex=0.7)
+mtext(c(expression(paste(italic("K"),"1")),expression(paste(italic("K"),"2")),expression(paste(italic("K"),"3"))), side=3, at=c(1.5,3,5), line=0.2, cex=0.65)
 
 # individual heterozygosity
 head(ih_dat,3)
@@ -1138,7 +1138,7 @@ mtext("(d)",side=3, at=0.5, line=0.3, cex=0.7)
 b2<-boxplot(ind_het_neut~K3, data=ih_dat, las=1, ylab="individual heterozygosity", xaxt="n", xlab="",col=col.order)
 axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
 axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
-title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+title(xlab=expression(paste("Genetic cluster (",italic("K"),")")), mgp=c(2,1,0))
 mtext("(e)",side=3, at=0.5, line=0.3, cex=0.7)
 
 full.int2<-levels(interaction(ih_dat$burn2,ih_dat$K3))
@@ -1149,9 +1149,9 @@ b3<-boxplot(ind_het_neut~burn2+K3, data=ih_dat, las=2, ylab="individual heterozy
 axis(side=1, at=1:length(full.int), labels = rep("",length(full.int)), cex.axis=0.7)
 axis(side=1, at=1:length(col.ind2), labels = rep(c("U","B","11"),3)[col.ind2], tick = F, cex.axis=0.8, mgp=c(3,0.7,0),gap.axis=0.1)
 arrows(c(3.5,5.5),0,c(3.5,5.5),2,code=0,lty=2,col="grey50")
-title(xlab="Fire category x K", mgp=c(2,1,0))
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
 mtext("(f)",side=3, at=0.5, line=0.3, cex=0.7)
-mtext(c("K1","K2","K3"), side=3, at=c(2,4.5,7), line=0.2, cex=0.7)
+mtext(c(expression(paste(italic("K"),"1")),expression(paste(italic("K"),"2")),expression(paste(italic("K"),"3"))), side=3, at=c(2,4.5,7), line=0.2, cex=0.65)
 
 # Proportion clones
 head(prop_clone); dim(prop_clone)
@@ -1165,7 +1165,7 @@ mtext("(g)",side=3, at=0.5, line=0.3, cex=0.7)
 b4<-boxplot(prop_clone~most_likelyK, data=prop_clone, las=1, ylab="proportion clones", xaxt="n", xlab="",col=col.order)
 axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
 axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
-title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+title(xlab=expression(paste("Genetic cluster (",italic("K"),")")), mgp=c(2,1,0))
 mtext("(h)",side=3, at=0.5, line=0.3, cex=0.7)
 
 full.int3<-levels(interaction(prop_clone$burn2,prop_clone$most_likelyK))
@@ -1176,9 +1176,9 @@ b5<-boxplot(prop_clone~burn2+most_likelyK, data=prop_clone, las=2, ylab="proport
 axis(side=1, at=1:length(full.int3), labels = rep("",length(full.int3)), cex.axis=0.7)
 axis(side=1, at=1:length(col.ind3), labels = rep(c("U","B","11"),3)[col.ind3], tick = F, cex.axis=1, mgp=c(3,0.7,0),gap.axis=0.1)
 arrows(c(2.5,3.5),0,c(2.5,3.5),2,code=0,lty=2,col="grey50")
-title(xlab="Fire category x K", mgp=c(2,1,0))
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
 mtext("(i)",side=3, at=0.5, line=0.3, cex=0.7)
-mtext(c("K1","K2","K3"), side=3, at=c(1.5,3,5), line=0.2, cex=0.7)
+mtext(c(expression(paste(italic("K"),"1")),expression(paste(italic("K"),"2")),expression(paste(italic("K"),"3"))), side=3, at=c(1.5,3,5), line=0.2, cex=0.65)
 
 # Pairwise kinship coefficients
 head(neuc_df,3); dim(neuc_df) # all pairwise coefs
@@ -1194,7 +1194,7 @@ mtext("(j)",side=3, at=0.5, line=0.3, cex=0.7)
 b6<-boxplot(kinship_mle~K3_s1, data=kinsh4, las=1, ylab="kinship coefficient", xaxt="n", xlab="",col=col.order)
 axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
 axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
-title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+title(xlab=expression(paste("Genetic cluster (",italic("K"),")")), mgp=c(2,1,0))
 mtext("(k)",side=3, at=0.5, line=0.3, cex=0.7)
 
 full.int4<-levels(interaction(kinsh4$b3L_s1,kinsh4$K3_s1))
@@ -1205,9 +1205,9 @@ b5<-boxplot(kinship_mle~b3L_s1+K3_s1, data=kinsh4, las=2, ylab="kinship coeffici
 axis(side=1, at=1:length(full.int4), labels = rep("",length(full.int4)), cex.axis=0.7)
 axis(side=1, at=1:length(col.ind4), labels = rep(c("U","B","11"),3)[col.ind4], tick = F, cex.axis=1, mgp=c(3,0.7,0),gap.axis=0.1)
 arrows(c(3.5,5.5),0,c(3.5,5.5),2,code=0,lty=2,col="grey50")
-title(xlab="Fire category x K", mgp=c(2,1,0))
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
 mtext("(l)",side=3, at=0.5, line=0.3, cex=0.7)
-mtext(c("K1","K2","K3"), side=3, at=c(2,4.5,7), line=0.2, cex=0.7)
+mtext(c(expression(paste(italic("K"),"1")),expression(paste(italic("K"),"2")),expression(paste(italic("K"),"3"))), side=3, at=c(2,4.5,7), line=0.2, cex=0.65)
 
 # close summary plot ----
 
@@ -1343,22 +1343,109 @@ p.df<-data.frame(term=c("Fire category","K","Fire category x K"),ar_neut.p=round
 
 # PLOT MODEL ESTIMATES:
 
-ar.fullint<-unique(interaction(gd_all$treatment,gd_all$most_likelyK))
-ar.exint<-unique(interaction(gd_all$treatment,gd_all$most_likelyK,drop=T))
-col.ind<-which(full.int %in% ex.int)
+# COLOURS and K name UPDATE Nov 2021
+# K1 == Site 1, 2, 6u, 7u, 8u, 10 == PURPLE (#BEAED4)
+# K2 == Site 7b, 8b == ORANGE (#FDC086)
+# K3 == Site 3, 5, 6b, 11b1 == GREEN (#7FC97F)
 
-dev.new(width=7,height=7,pointsize=16,dpi=80,noRStudioGD = T)
-par(mfrow=c(1,1), mar=c(4,4,1,1), oma=c(0,0,1,1))
+# this is purple, orange, green (i.e. K1, K2, K3)
+col.order<-c("#BEAED4","#FDC086","#7FC97F")
+col.fullint.gd<-rep(col.order,rep(2,length(col.order)))
 
-plot(1:nrow(p_neut),p_neut$fit, ylim=c(min(p_neut$lci),max(p_neut$uci)), xlim=c(0.5,nrow(p_neut)+0.5), las=2, ylab="estimated allelic richness", cex.axis=1,col=col.fullint[col.ind], xaxt="n", xlab="", pch=20, cex=2)
-axis(side=1, at=1:length(ar.exint), labels = rep("",length(ar.exint)), cex.axis=0.7)
-axis(side=1, at=1:nrow(p_neut), labels = c("U","B","B","U","B"), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
-arrows(1:nrow(p_neut),p_neut$lci,1:nrow(p_neut),p_neut$uci,code=3, length=0.2, angle=90)
-points(1:nrow(p_neut),p_neut$fit, pch=20, cex=2, col=col.fullint[col.ind])
-arrows(c(2.5,3.5),0,c(2.5,3.5),2,code=0,lty=2,col="grey50")
-title(xlab="Fire category x K", mgp=c(2,1,0))
-mtext("(c)",side=3, at=0.5, line=0.3, cex=0.7)
-mtext(c("K1","K2","K3"), side=3, at=c(1.5,3,5), line=0.2, cex=0.7)
+# For site-level analysis (ar and pclone) there is no unburnt in K2 (rank deficient data structure)
+table(gd_all$most_likelyK, gd_all$treatment)
+table(prop_clone$most_likelyK, prop_clone$burn)
+table(ih_dat$K3, ih_dat$burn) 
+
+# Overwrite the offending lines with NA:
+# Since there is only one individual for ind het in the unburnt K2 category, overwrite that line as well:
+ar_neut.pred[which(ar_neut.pred$treatment=="u" & ar_neut.pred$most_likelyK==2),c(3:ncol(ar_neut.pred))]<-NA
+ar_nonneut.pred[which(ar_nonneut.pred$treatment=="u" & ar_nonneut.pred$most_likelyK==2),c(3:ncol(ar_nonneut.pred))]<-NA
+pclone.pred[which(pclone.pred$burn=="u" & pclone.pred$most_likelyK==2),c(3:ncol(pclone.pred))]<-NA
+ih_neut.pr[which(ih_neut.pr$burn=="u" & ih_neut.pr$K3==2),c(3:ncol(ih_neut.pr))]<-NA
+ih_nonneut.pr[which(ih_nonneut.pr$burn=="u" & ih_nonneut.pr$K3==2),c(3:ncol(ih_nonneut.pr))]<-NA
+
+ar_neut.pred
+ar_nonneut.pred
+pclone.pred
+ih_neut.pr
+ih_nonneut.pr
+
+ar.fullint<-levels(interaction(gd_all$treatment,gd_all$most_likelyK))
+ar.exint<-levels(interaction(gd_all$treatment,gd_all$most_likelyK, drop=T))
+col.ind.ar<-which(ar.fullint %in% ar.exint)
+
+# PLOT GENETIC DIVERSITY: neutral markers:
+
+dev.new(width=6,height=6,pointsize=16,dpi=80,noRStudioGD = T)
+par(mfrow=c(2,2), mar=c(4,4,1,1), oma=c(0,0,1,1))
+
+# allelic richness
+plot(1:nrow(ar_neut.pred),ar_neut.pred$fit, ylim=c(min(ar_neut.pred$lci, na.rm=T),max(ar_neut.pred$uci,na.rm=T)), xlim=c(0.5,nrow(ar_neut.pred)+0.5), las=2, ylab="allelic richness", cex.axis=1,col=col.fullint.gd, xaxt="n", xlab="", pch=20, cex=2)
+
+axis(side=1, at=1:nrow(ar_neut.pred), labels = rep("",nrow(ar_neut.pred)), cex.axis=0.7)
+axis(side=1, at=1:nrow(ar_neut.pred), labels = rep(c("U","B"),3), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
+arrows(1:nrow(ar_neut.pred),ar_neut.pred$lci,1:nrow(ar_neut.pred),ar_neut.pred$uci,code=3, length=0.02, angle=90)
+points(1:nrow(ar_neut.pred),ar_neut.pred$fit, pch=20, cex=2, col=col.fullint.gd)
+arrows(c(2.5,4.5),0,c(2.5,4.5),2,code=0,lty=2,col="grey50",lwd=0.5)
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
+mtext("(a)",side=3, at=0,adj=0, line=0.3, cex=1)
+
+# individual heterozygosity
+plot(1:nrow(ih_neut.pr),ih_neut.pr$fit, ylim=c(min(ih_neut.pr$lci, na.rm=T),max(ih_neut.pr$uci,na.rm=T)), xlim=c(0.5,nrow(ih_neut.pr)+0.5), las=2, ylab="individual heterozygosity", cex.axis=1,col=col.fullint.gd, xaxt="n", xlab="", pch=20, cex=2)
+
+axis(side=1, at=1:nrow(ih_neut.pr), labels = rep("",nrow(ih_neut.pr)), cex.axis=0.7)
+axis(side=1, at=1:nrow(ih_neut.pr), labels = rep(c("U","B"),3), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
+arrows(1:nrow(ih_neut.pr),ih_neut.pr$lci,1:nrow(ih_neut.pr),ih_neut.pr$uci,code=3, length=0.02, angle=90)
+points(1:nrow(ih_neut.pr),ih_neut.pr$fit, pch=20, cex=2, col=col.fullint.gd)
+arrows(c(2.5,4.5),0,c(2.5,4.5),2,code=0,lty=2,col="grey50",lwd=0.5)
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
+mtext("(b)",side=3, at=0,adj=0, line=0.3, cex=1)
+
+# proportion clones
+plot(1:nrow(pclone.pred),pclone.pred$fit, ylim=c(min(pclone.pred$lci, na.rm=T),max(pclone.pred$uci,na.rm=T)), xlim=c(0.5,nrow(pclone.pred)+0.5), las=2, ylab="proportion clones", cex.axis=1,col=col.fullint.gd, xaxt="n", xlab="", pch=20, cex=2)
+
+axis(side=1, at=1:nrow(pclone.pred), labels = rep("",nrow(pclone.pred)), cex.axis=0.7)
+axis(side=1, at=1:nrow(pclone.pred), labels = rep(c("U","B"),3), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
+arrows(1:nrow(pclone.pred),pclone.pred$lci,1:nrow(pclone.pred),pclone.pred$uci,code=3, length=0.02, angle=90)
+points(1:nrow(pclone.pred),pclone.pred$fit, pch=20, cex=2, col=col.fullint.gd)
+arrows(c(2.5,4.5),0,c(2.5,4.5),2,code=0,lty=2,col="grey50",lwd=0.5)
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
+mtext("(c)",side=3, at=0,adj=0, line=0.3, cex=1)
+
+plot(1:10,1:10,type="n",bty="n", xaxt="n", yaxt="n",ylab="",xlab="")
+legend("bottomleft",legend=c(expression(paste(italic("K"),"1")),expression(paste(italic("K"),"2")),expression(paste(italic("K"),"3"))),col=col.fullint.gd[c(1,3,5)],pch=20,cex=1,pt.cex = 2,title = "",  bty="n", title.adj = 2)
+text(1,6, labels="Genetic cluster", adj=0)
+
+# Non-neutral plots are essentially the same as the neutral plots, so it's redundant to include them in the main doc. 
+
+dev.new(width=8,height=4,pointsize=16,dpi=80,noRStudioGD = T)
+par(mfrow=c(1,2), mar=c(4,4,1,1), oma=c(0,0,1,1))
+
+plot(1:nrow(ar_nonneut.pred),ar_nonneut.pred$fit, ylim=c(min(ar_nonneut.pred$lci, na.rm=T),max(ar_nonneut.pred$uci,na.rm=T)), xlim=c(0.5,nrow(ar_nonneut.pred)+0.5), las=2, ylab="estimated allelic richness", cex.axis=1,col=col.fullint.gd, xaxt="n", xlab="", pch=20, cex=2)
+
+axis(side=1, at=1:nrow(ar_nonneut.pred), labels = rep("",nrow(ar_nonneut.pred)), cex.axis=0.7)
+axis(side=1, at=1:nrow(ar_nonneut.pred), labels = rep(c("U","B"),3), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
+arrows(1:nrow(ar_nonneut.pred),ar_nonneut.pred$lci,1:nrow(ar_nonneut.pred),ar_nonneut.pred$uci,code=3, length=0.02, angle=90)
+points(1:nrow(ar_nonneut.pred),ar_nonneut.pred$fit, pch=20, cex=2, col=col.fullint.gd)
+arrows(c(2.5,4.5),0,c(2.5,4.5),2,code=0,lty=2,col="grey50",lwd=0.5)
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
+mtext("(a) non-neutral",side=3, at=0,adj=0, line=0.3, cex=1)
+
+# individual heterozygosity
+
+plot(1:nrow(ih_nonneut.pr),ih_nonneut.pr$fit, ylim=c(min(ih_nonneut.pr$lci, na.rm=T),max(ih_nonneut.pr$uci,na.rm=T)), xlim=c(0.5,nrow(ih_nonneut.pr)+0.5), las=2, ylab="individual heterozygosity", cex.axis=1,col=col.fullint.gd, xaxt="n", xlab="", pch=20, cex=2)
+
+axis(side=1, at=1:nrow(ih_nonneut.pr), labels = rep("",nrow(ih_nonneut.pr)), cex.axis=0.7)
+axis(side=1, at=1:nrow(ih_nonneut.pr), labels = rep(c("U","B"),3), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
+arrows(1:nrow(ih_nonneut.pr),ih_nonneut.pr$lci,1:nrow(ih_nonneut.pr),ih_nonneut.pr$uci,code=3, length=0.02, angle=90)
+points(1:nrow(ih_nonneut.pr),ih_nonneut.pr$fit, pch=20, cex=2, col=col.fullint.gd)
+arrows(c(2.5,4.5),0,c(2.5,4.5),2,code=0,lty=2,col="grey50",lwd=0.5)
+title(xlab=expression(paste("Fire category x ",italic("K"))), mgp=c(2,1,0))
+mtext("(b) non-neutral",side=3, at=0,adj=0, line=0.3, cex=1)
+
+
+
 
 
 
