@@ -178,6 +178,19 @@ res.list[[m]]<-res.r2
 return(data.frame(do.call(rbind,res.list)))
 } # close multicollinearity function
 
+# predCI
+predCI<-function(model, new.data, se.fit=T)
+{
+  works.on<-c("lm")
+  if(class(model)[1] %in% works.on){
+  p1<-predict(model, newdata = new.data, se.fit=T)
+  p1<-data.frame(new.data, fit=p1$fit, se=p1$se.fit)
+  p1$lci<-p1$fit-(1.96*p1$se)
+  p1$uci<-p1$fit+(1.96*p1$se)
+  return(p1)
+  }
+  if(class(model)[1]!="lm") stop("function not defined for this class")
+}
 
 
 

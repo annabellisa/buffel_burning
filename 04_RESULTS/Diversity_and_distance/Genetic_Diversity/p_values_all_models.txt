@@ -1,0 +1,4 @@
+term	ar_neut.p	ar_nonneut.p	ih_neut.p	ih_nonneut.p	pclone.p
+Fire category	0.94	0.953	0.902	0.758	8.72769431462926e-08
+K	0.323	0.317	0	0	2.87084354746621e-07
+Fire category x K	0.023	0.024	0.421	0.297	1.13308390931476e-15

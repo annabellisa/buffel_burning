@@ -537,6 +537,8 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   
   # The following section has been run and saved in "Genetic_Diversity_ALL.txt"
   
+  load("03_workspaces/STEP04_divdist_ALL.RData")
+  
   genind_neutral # all filters + neutral markers only (15965 loci)
   genind_nonneutral # all filters + non-neutral markers only  (5030 loci)
   head(sdat,3); dim(sdat)
@@ -557,6 +559,8 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   gd_neutral$site<-substr(gd_neutral$site,1,nchar(as.character(gd_neutral$site))-3)
   head(gd_neutral); dim(gd_neutral)
   
+  # plot(gd_neutral$Ho, gd_neutral$He)
+  
   # non-neutral
   gendiv_nonneutral <- basic.stats(genind_nonneutral, diploid = TRUE, digits = 2)
   
@@ -566,12 +570,12 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   
   gd_nonneutral<-data.frame(site=names(apply(gendiv_nonneutral$Ho,2,mean,na.rm=T)),max_n=apply(gendiv_nonneutral$n.ind.samp,2,max,na.rm=T),Ho=apply(gendiv_nonneutral$Ho,2,mean,na.rm=T),He=apply(gendiv_nonneutral$Hs,2,mean,na.rm=T),Fis=apply(gendiv_nonneutral$Fis,2,mean,na.rm=T))
   gd_nonneutral<-tidy.df(gd_nonneutral)
-  head(gd_nonneutral); dim(gd_nonneutral)
+  head(gd_nonneutral,3); dim(gd_nonneutral)
   
   gd_nonneutral$site<-substr(gd_nonneutral$site,1,nchar(as.character(gd_nonneutral$site))-3)
   head(gd_nonneutral)
   
-  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
+  # save.image("03_workspaces/STEP_04_kinship.RData")
   
   ## -- ** ALLELIC RICHNESS:
   
@@ -617,7 +621,7 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   ar_nonneutral_res$site<-substr(ar_nonneutral_res$site,1,nchar(as.character(ar_nonneutral_res$site))-3)
   head(ar_nonneutral_res)
   
-  # check:
+  # check (all four should be all T):
   gd_neutral$site %in% ar_neutral_res$site
   ar_neutral_res$site %in% gd_neutral$site
   
@@ -648,30 +652,24 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   head(gd_all,3); dim(gd_all)
   
   # write.table(gd_all, "gd_all.txt", row.names=F, quote=F, sep="\t")
-  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
+  # save.image("03_workspaces/STEP_04_kinship.RData")
   
-  # close calc genetic diversity ----
-  
-#  ANALYSE SITE-LEVEL Genetic diversity:	# ----
-  
-  # Analyse the influence of fire treatment on site-level genetic diversity. 
+  # Format data for analysis:
   
   # Site-level data:
   gd_all<-read.table("RESULTS/Diversity_and_distance/Genetic_Diversity/Genetic_Diversity_ALL.txt", header=T)
-  head(gd_all,3)
+  head(gd_all,3); dim(gd_all)
   
   # simplify site data
-  sdt3<-sdat[,c("block","site","pop","burn_unburnt","no_samples","lat","long")]
-  sdt3$site<-paste("X",substr(sdt3$site, 4, nchar(as.character(sdt3$site))),sep="")
+  head(sdt4)
   
   # merge with genetic diversity data:
-  sdt3$site %in% gd_all$site
-  gd_all$site %in% sdt3$site
-  gd_all<-merge(gd_all, sdt3, by="site", all.x=T, all.y=F)
+  table(sdt4$site %in% gd_all$site)
+  table(gd_all$site %in% sdt4$site)
+  gd_all<-merge(gd_all, sdt4, by="site", all.x=T, all.y=F)
   
   # add second treatment variable:
-  gd_all$treatment<-gd_all$burn_unburnt
-  gd_all$burn_unburnt<-NULL
+  gd_all$treatment<-gd_all$burn
   gd_all$trt<-as.character(gd_all$treatment)
   gd_all$trt[grep("b",gd_all$trt)]<-"b1"
   gd_all$trt[grep("X11",gd_all$site)]<-"b2"
@@ -683,52 +681,13 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   # Given the strong background genetic structure in the data, we must control for phylogeny. 
   # We modelled background genetic structure using two methods: the mean site-level diversity score, calculated from individual level diversity scores and the most common K per site
   # Regardless of the method used, there was no effect of background genetic structure on site-level allelic richness. Both methods showed the treatment only model to be superior, although it was not better than a null model. 
-
+  # For the update during the revision, I have removed the diversity score, just focussing on the K method. 
+  
   # Assignment probabilities from STRUCTURE:
-  site_assig<-read.table("00_Data/assig_prob_K3_Cenchrus_filt2.txt", header=T)
-  site_assig<-cbind(site_assig, matrix(data=c(1,2,3),ncol=3,nrow=nrow(site_assig),byrow=T))
-  site_assig$genstr<-apply(site_assig[,3:8],1,function(x) weighted.mean(x[4:6], x[1:3]))
-  head(site_assig)
-  range(site_assig$genstr)
-
-  ## -- ** METHOD 1: Admixture Diversity Score:
-  
-  ### ---- provide calculations on the level of admixture per population
-  
-  # Working from equations in Harismendy et al. 2019, Journal of the American Medical Informatics Association, 26(5), 2019, 457–46
-  
-  # 93 individuals 
+  site_assig<-read.table("00_Data/assig_prob_K3_Cenchrus_filt4.txt", header=T)
+  # site_assig<-cbind(site_assig, matrix(data=c(1,2,3),ncol=3,nrow=nrow(site_assig),byrow=T))
+  # site_assig$genstr<-apply(site_assig[,3:8],1,function(x) weighted.mean(x[4:6], x[1:3]))
   head(site_assig); dim(site_assig)
-
-  # Associated site data (19 sites):
-  head(sdt2,2); dim(sdt2)
-  head(gd_all,3); dim(gd_all)
-  
-  # Use individual level data for the analysis:
-  head(site_assig); dim(site_assig)
-
-  # This is the Diversity Score from Harismendy. We don't need the first eqn (the cumulative admixture fraction), because ours already sum to 1. 
-  
-  # This diversity score is the same as the shannon diversity index but with a scaling factor to account for the number of clusters (Hmax). That is, it makes the diversity score relative to complete evenness. 
-  
-  DS<-function(x,K) {
-    Hmax<-K*((1/K)*log(1/K))
-    (-sum(x*log(x)))/-Hmax
-  }
-  
-  # SET K:
-  K<-3
-  
-  # Calculate admixture diversity for all individuals:
-  ds_div<-apply(site_assig[3:5], 1, DS, K=3)
-  range(ds_div)
-  site_assig$ds_div<-ds_div
-  head(site_assig); dim(site_assig)
-  
-  # Summarise site-level admixture diversity:
-  addiv_site<-aggregate(ds_div~site,FUN=mean,data=site_assig)
-  gd_all<-merge(gd_all, addiv_site, by="site", all.x=T, all.y=F)
-  head(gd_all,2); dim(gd_all)
   
   ## -- ** METHOD 2: K
   
@@ -737,134 +696,29 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   head(gd_all,2); dim(gd_all)
   
   # Use which.max to get the mode - the most common K for each site:
-  Ksite<-data.frame(site=names(tapply(ih_dat$K3,ih_dat$site, FUN = function(x) names(which.max(summary(x))))),K3=tapply(ih_dat$K3,ih_dat$site, FUN = function(x) names(which.max(summary(x)))))
+  Ksite<-data.frame(site=names(tapply(ih_dat$K3,ih_dat$site, FUN = function(x) names(which.max(summary(x))))),most_likelyK=tapply(ih_dat$K3,ih_dat$site, FUN = function(x) names(which.max(summary(x)))))
   Ksite<-tidy.df(Ksite)
+  head(Ksite); dim(Ksite)
+  head(gd_all)
   
   gd_all<-merge(gd_all, Ksite, by="site", all.x=T, all.y=F)
   # Check it against the structure plot
-  check.rows(gd_all[,c("site","K3")])
+  check.rows(gd_all[,c("site","most_likelyK")])
   
-  ## ANALYSIS:
-  head(gd_all,2); dim(gd_all)
+  # close calc genetic diversity ----
+  
+#  CALCULATE individual genetic diversity	# ----
+  
+  # Calculate ind het on dart seq format:
+  ddir<-"00_Data/Filtered_DartSeq_format"
+  dir(ddir)
+  ddat<-read.table(paste(ddir, "dartseq_filt4_neutral.txt", sep="/"), header=T)
 
-  ### With K:
-  {
-  # neutral models:
-  mod7.a<-lm(ar_neutral~1, data=gd_all)
-  mod7.b<-lm(ar_neutral~trt, data=gd_all)
-  mod7.c<-lm(ar_neutral~K3, data=gd_all)
-  mod7.d<-lm(ar_neutral~trt+K3, data=gd_all)
-  mod7.e<-lm(ar_neutral~trt*K3, data=gd_all)
-  AICc(mod7.a); AICc(mod7.b); AICc(mod7.c); AICc(mod7.d); AICc(mod7.e)
-  
-  summary(mod7.b); anova(mod7.b)
-
-  nd_neut<-data.frame(trt=levels(gd_all$trt))
-  p_neut<-predict(mod7.b, newdata = nd_neut, se.fit=T)
-  p_neut<-data.frame(nd_neut, fit=p_neut$fit, se=p_neut$se.fit)
-  p_neut$lci<-p_neut$fit-(1.96*p_neut$se)
-  p_neut$uci<-p_neut$fit+(1.96*p_neut$se)
-  p_neut
-  
-  # non-neutral models:
-  mod8.a<-lm(ar_nonneutral~1, data=gd_all)
-  mod8.b<-lm(ar_nonneutral~trt, data=gd_all)
-  mod8.c<-lm(ar_nonneutral~K3, data=gd_all)
-  mod8.d<-lm(ar_nonneutral~trt+K3, data=gd_all)
-  mod8.e<-lm(ar_nonneutral~trt*K3, data=gd_all)
-  AICc(mod8.a); AICc(mod8.b); AICc(mod8.c); AICc(mod8.d); AICc(mod8.e)
-  
-  summary(mod8.b); anova(mod8.b)
-  
-  nnd_neut<-data.frame(trt=levels(gd_all$trt))
-  p_nneut<-predict(mod8.b, newdata = nnd_neut, se.fit=T)
-  p_nneut<-data.frame(nnd_neut, fit=p_nneut$fit, se=p_nneut$se.fit)
-  p_nneut$lci<-p_nneut$fit-(1.96*p_nneut$se)
-  p_nneut$uci<-p_nneut$fit+(1.96*p_nneut$se)
-  p_nneut
-  
-  ## PLOT neutral and non-neutral together
-  
-  dev.new(height=4,width=9,dpi=100, noRStudioGD = T,pointsize=16)
-  par(mfrow=c(1,2),mar=c(3,4,1.5,0.5), mgp=c(2.8,0.8,0))
-  plot(1:3, p_neut$fit, ylim=c(min(p_neut$lci), max(p_neut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Neutral allelic richness", xlab="", xaxt="n", col="black")
-  arrows(1:3, p_neut$lci,1:3, p_neut$uci, code=3, angle=90, length=0.05,lwd=1.5)
-  axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
-  text(1,1.3, labels=paste("P = ",round(anova(mod1.b)$"Pr(>F)"[1],2),sep=""), adj=0)
-  mtext("(a)", side=3, line=0.5, adj=0)
-  
-  plot(1:3, p_nneut$fit, ylim=c(min(p_nneut$lci), max(p_nneut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Non-neutral allelic richness", xlab="", xaxt="n", col="black")
-  arrows(1:3, p_nneut$lci,1:3, p_nneut$uci, code=3, angle=90, length=0.05,lwd=1.5)
-  axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
-  text(1,1.3, labels=paste("P = ",round(anova(mod2.b)$"Pr(>F)"[1],2),sep=""), adj=0)
-  mtext("(b)", side=3, line=0.5, adj=0)
-  
-  } # close K
-  
-  # With diversity score:
-  {
-  # neutral models:
-  mod1.a<-lm(ar_neutral~1, data=gd_all)
-  mod1.b<-lm(ar_neutral~trt, data=gd_all)
-  mod1.b2<-lm(ar_neutral~ds_div, data=gd_all)
-  mod1.c<-lm(ar_neutral~trt+ds_div, data=gd_all)
-  mod1.d<-lm(ar_neutral~trt*ds_div, data=gd_all)
-  AICc(mod1.a); AICc(mod1.b); AICc(mod1.b2); AICc(mod1.c); AICc(mod1.d)
-  
-  summary(mod1.b); anova(mod1.b)
-  summary(mod1.c); anova(mod1.c)
-  
-  nd_neut<-data.frame(trt=levels(gd_all$trt))
-  p_neut<-predict(mod1.b, newdata = nd_neut, se.fit=T)
-  p_neut<-data.frame(nd_neut, fit=p_neut$fit, se=p_neut$se.fit)
-  p_neut$lci<-p_neut$fit-(1.96*p_neut$se)
-  p_neut$uci<-p_neut$fit+(1.96*p_neut$se)
-  p_neut
-  
-  # non-neutral models:
-  mod2.a<-lm(ar_nonneutral~1, data=gd_all)
-  mod2.b<-lm(ar_nonneutral~trt, data=gd_all)
-  mod2.b2<-lm(ar_nonneutral~ds_div, data=gd_all)
-  mod2.c<-lm(ar_nonneutral~trt+ds_div, data=gd_all)
-  mod2.d<-lm(ar_nonneutral~trt*ds_div, data=gd_all)
-  AICc(mod2.a); AICc(mod2.b); AICc(mod2.b2); AICc(mod2.c); AICc(mod2.d)
-  
-  summary(mod2.b); anova(mod2.b)
-  
-  nnd_neut<-data.frame(trt=levels(gd_all$trt))
-  p_nneut<-predict(mod2.b, newdata = nnd_neut, se.fit=T)
-  p_nneut<-data.frame(nnd_neut, fit=p_nneut$fit, se=p_nneut$se.fit)
-  p_nneut$lci<-p_nneut$fit-(1.96*p_nneut$se)
-  p_nneut$uci<-p_nneut$fit+(1.96*p_nneut$se)
-  p_nneut
-  
-  ## PLOT neutral and non-neutral together
-  
-  dev.new(height=4,width=9,dpi=100, noRStudioGD = T,pointsize=16)
-  par(mfrow=c(1,2),mar=c(3,4,1.5,0.5), mgp=c(2.8,0.8,0))
-  plot(1:3, p_neut$fit, ylim=c(min(p_neut$lci), max(p_neut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Neutral allelic richness", xlab="", xaxt="n", col="black")
-  arrows(1:3, p_neut$lci,1:3, p_neut$uci, code=3, angle=90, length=0.05,lwd=1.5)
-  axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
-  text(1,1.3, labels=paste("P = ",round(anova(mod1.b)$"Pr(>F)"[1],2),sep=""), adj=0)
-  mtext("(a)", side=3, line=0.5, adj=0)
-  
-  plot(1:3, p_nneut$fit, ylim=c(min(p_nneut$lci), max(p_nneut$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Non-neutral allelic richness", xlab="", xaxt="n", col="black")
-  arrows(1:3, p_nneut$lci,1:3, p_nneut$uci, code=3, angle=90, length=0.05,lwd=1.5)
-  axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
-  text(1,1.3, labels=paste("P = ",round(anova(mod2.b)$"Pr(>F)"[1],2),sep=""), adj=0)
-  mtext("(b)", side=3, line=0.5, adj=0)
-  
-  } # close diversity score
-  
-  # close analyse genetic diversity ----
-  
-#  Individual genetic diversity	# ----
-  
   # Neutral data set:
   ghead(ddat); dim(ddat)
   
   # Non-neutral data set:
-  nndat<-read.table(paste("00_Data/Filtered_DartSeq_format","dartseq_filt3_adaptive.txt", sep="/"), header=T)
+  nndat<-read.table(paste(ddir,"dartseq_filt4_non_neutral.txt", sep="/"), header=T)
   ghead(nndat); dim(nndat)
   
   # Codes for onerow formatted data:
@@ -874,6 +728,7 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   
   # Neutral
   # 3 MINS on laptop 
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
   
   ih_out<-data.frame(ddat[,1:2],ind_het=NA)
   head(ih_out,25)
@@ -887,6 +742,8 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
     if(length(which(t.cons$ind.cons==2))==0) ih_out[i,3]<-"no_heterozygotes" else ih_out[i,3]<-t.cons$count[t.cons$ind.cons==2]/sum(t.cons$count)
     
   } # close for i
+  
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
   
   # Non-neutral
   
@@ -904,23 +761,46 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
     
   } # close for i
   
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
+  
   ih_out_nn$ind_het<-as.numeric(ih_out_nn$ind_het)
   
   ghead(ddat); dim(ddat)
   ghead(nndat); dim(nndat)
   
-  # add site data and cluster assignment:
+  head(ih_out); dim(ih_out)
+  head(ih_out_nn); dim(ih_out_nn)
   
-  # sdt[,which(is.na(colnames(sdt)))]<-NULL
-  head(sdt, 3); dim(sdt)
+  # add site data and cluster assignment:
+  # Format to match ind het data:
+  sdt4<-sdt
+  sdt4$site<-paste("X",substr(sdt4$site,4,nchar(sdt4$site)),sep="")
+  head(sdt4, 3); dim(sdt4)
+  
+  # Check: should all be T
+  table(sdt4$site %in% ih_out$site)
+  table(ih_out$site %in% sdt4$site)
+  
+  kd$site<-substr(kd$indiv,1,(unlist(gregexpr("_",kd$indiv))-1))
+  head(kd,10); dim(kd)
+  
+  # Check: should all be T
+  table(kd$site %in% ih_out$site)
+  table(ih_out$site %in% kd$site)
+  
   head(ih_out,6); dim(ih_out)
   head(ih_out_nn,6); dim(ih_out_nn)
   
-  colnames(ih_out)[which(colnames(ih_out)=="ind_het")]<-"ind_het_neut"
-  colnames(ih_out_nn)[which(colnames(ih_out_nn)=="ind_het")]<-"ind_het_nonneut"
+  # Before merging, check they're in the same order:
+  table(ih_out$ind==ih_out_nn$ind)
   
-  ih_dat<-data.frame(ih_out,ind_het_nonneut=ih_out_nn[,3])
-  ih_dat<-merge(ih_dat, sdt, by="site", all.x=T, all.y=F)
+  ih_dat<-data.frame(ih_out,ind_het_nonneut=ih_out_nn$ind_het_nonneut)
+  
+  # Check all sites are present in new df:
+  table(ih_dat$site %in% sdt4$site)
+  
+  # Merge with site data:
+  ih_dat<-merge(ih_dat, sdt4, by="site", all.x=T, all.y=F)
   head(ih_dat,3); dim(ih_dat)
   
   # merge K on individual:
@@ -932,168 +812,25 @@ mtext(text="(c) Genetic cluster K3",side=3,at=-10,adj=0, line=0.5, cex=0.7)
   ih_dat<-merge(ih_dat, kd, by.x="ind", by.y="indiv", all.x=T, all.y=T)
   ih_dat$K3<-as.factor(ih_dat$K3)
   ih_dat$K4<-as.factor(ih_dat$K4)
+  
+  # Remove the extra site:
+  table(ih_dat$site.x==ih_dat$site.y)
+  ih_dat$site.y<-NULL
+  colnames(ih_dat)[which(colnames(ih_dat)=="site.x")]<-"site"
   head(ih_dat,3); dim(ih_dat)
   
-  # Add admixture diversity score:
-  head(site_assig,2); dim(site_assig)
-  sassig<-site_assig[,c("indiv","ds_div")]
-  head(sassig); dim(sassig)
-  table(sassig$indiv %in% ih_dat$ind)
+  # save.image("03_workspaces/STEP04_divdist_ALL.RData")
   
-  ih_dat<-merge(ih_dat, sassig, by.x="ind", by.y="indiv", all.x=T, all.y=F)
-  
-  # MODEL individual heterozygosity ~ burn category:
-  
-  # NEUTRAL
-  head(ih_dat,3); dim(ih_dat)
-  table(ih_dat$K3, ih_dat$burn2) # rank deficient data structure
-  summary(ih_dat$ind_het_neut)
-  
-  mod3.a<-lmer(ind_het_neut~1+(1|site), REML=F, data=ih_dat)
-  mod3.b<-lmer(ind_het_neut~burn2+(1|site),REML=F, data=ih_dat)
-  mod3.c<-lmer(ind_het_neut~K3+(1|site),REML=F, data=ih_dat)
-  mod3.d<-lmer(ind_het_neut~burn2+K3+(1|site), REML=F,data=ih_dat)
-  mod3.e<-lmer(ind_het_neut~burn2*K3+(1|site), REML=F,data=ih_dat)
-  
-  AICc(mod3.a); AICc(mod3.b); AICc(mod3.c); AICc(mod3.d); AICc(mod3.e)
-
-  summary(mod3.c); anova(mod3.c)
-  summary(mod3.d); anova(mod3.d)
-  
-  # plot fire + K for fun (mod3.d)
-  nd_fk<-data.frame(K3=rep(as.factor(c(1,2,3)),rep(3,3)), burn2=factor(c("u","b","b2"), levels=c("u","b","b2")))
-  p_fk<-predictSE(mod3.d, newdata = nd_fk, se.fit=T)
-  p_fk<-data.frame(nd_fk, fit=p_fk$fit, se=p_fk$se.fit)
-  p_fk$lci<-p_fk$fit-(1.96*p_fk$se)
-  p_fk$uci<-p_fk$fit+(1.96*p_fk$se)
-  p_fk
-  
-  dev.new(height=4,width=4,noRStudioGD = T,dpi=100, pointsize=20)
-  xofs.now<-0.1
-  par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
-  plot(1:3-xofs.now, p_fk$fit[p_fk$K3==1], ylim=c(min(p_fk$lci), max(p_fk$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2[1])
-  arrows(1:3-xofs.now, p_fk$lci[p_fk$K3==1],1:3-xofs.now, p_fk$uci[p_fk$K3==1], code=3, angle=90, length=0.05,lwd=1.5)
-  points(1:3-xofs.now, p_fk$fit[p_fk$K3==1], pch=20, col=switch.col2[1])
-  arrows(1:3, p_fk$lci[p_fk$K3==2],1:3, p_fk$uci[p_fk$K3==2], code=3, angle=90, length=0.05,lwd=1.5)
-  points(1:3, p_fk$fit[p_fk$K3==2], pch=20, col=switch.col2[2])
-  arrows(1:3+xofs.now, p_fk$lci[p_fk$K3==3],1:3+xofs.now, p_fk$uci[p_fk$K3==3], code=3, angle=90, length=0.05,lwd=1.5)
-  points(1:3+xofs.now, p_fk$fit[p_fk$K3==3], pch=20, col=switch.col2[3])
-  axis(side=1, at=c(1:3), labels = c("u","b","b2"))
-  title(xlab="Fire category", mgp=c(2,1,0))
-
-  # Adding the diversity score does not improve the model fit:
-  mod3.f<-lmer(ind_het~K3+ds_div+(1|site),REML=F, data=ih_dat)
-  summary(mod3.f)
-  AICc(mod3.c); AICc(mod3.f)
-  
-  # NON-NEUTRAL
-  head(ih_dat,3); dim(ih_dat)
-
-  mod6.a<-lmer(ind_het_nonneut~1+(1|site), REML=F, data=ih_dat)
-  mod6.b<-lmer(ind_het_nonneut~burn2+(1|site),REML=F, data=ih_dat)
-  mod6.c<-lmer(ind_het_nonneut~K3+(1|site),REML=F, data=ih_dat)
-  mod6.d<-lmer(ind_het_nonneut~burn2+K3+(1|site), REML=F,data=ih_dat)
-  mod6.e<-lmer(ind_het_nonneut~burn2*K3+(1|site), REML=F,data=ih_dat)
-  
-  AICc(mod6.a); AICc(mod6.b); AICc(mod6.c); AICc(mod6.d); AICc(mod6.e)
-  
-  summary(mod6.c); anova(mod6.c)
-  summary(mod6.d); anova(mod6.d)
-  
-  # MODEL ESTIMATES:
-  
-  # NEUTRAL
-  nd_ih<-data.frame(K3=as.factor(c(1,2,3)))
-  p_ih<-predictSE(mod3.c, newdata = nd_ih, se.fit=T)
-  p_ih<-data.frame(nd_ih, fit=p_ih$fit, se=p_ih$se.fit)
-  p_ih$lci<-p_ih$fit-(1.96*p_ih$se)
-  p_ih$uci<-p_ih$fit+(1.96*p_ih$se)
-  p_ih
-  
-  # NON-NEUTRAL
-  nd_ih_nn<-data.frame(K3=as.factor(c(1,2,3)))
-  p_ih_nn<-predictSE(mod6.c, newdata = nd_ih_nn, se.fit=T)
-  p_ih_nn<-data.frame(nd_ih_nn, fit=p_ih_nn$fit, se=p_ih_nn$se.fit)
-  p_ih_nn$lci<-p_ih_nn$fit-(1.96*p_ih_nn$se)
-  p_ih_nn$uci<-p_ih_nn$fit+(1.96*p_ih_nn$se)
-  p_ih_nn
-  
-  # PLOT TOP MODEL: genetic diversity ~ genetic cluster:
-  
-  # COLOURS:
-  # The main structure plot used the colour order in switch.col and the structure plot in the dendro used switch.col2 - rearranged so they would match
-  # switch.col is green, purple, orange
-  switch.col<-c("#7FC97F", "#BEAED4", "#FDC086")
-  
-  # switch.col2 is orange, green, purple
-  switch.col2<-c("#FDC086", "#7FC97F", "#BEAED4")
-  
-  # switch.col2 is in the correct order for plotting K1:K3
-  ih_dat[which(ih_dat$ind=="X11b1_02"),] # K2 == green
-  ih_dat[which(ih_dat$ind=="X08b_03"),] # K1 == orange
-  ih_dat[which(ih_dat$ind=="X02b_03"),] # K3 == purple
-  # plot(1:3, 1:3, col=switch.col2, cex=2, pch=16)
-  
-  head(ih_dat,3); dim(ih_dat)
-  
-  # NEUTRAL
-  dev.new(height=4,width=4,noRStudioGD = T,dpi=100, pointsize=20)
-  par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
-  plot(1:3, p_ih$fit, ylim=c(min(p_ih$lci), max(p_ih$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
-  arrows(1:3, p_ih$lci,1:3, p_ih$uci, code=3, angle=90, length=0.05,lwd=1.5)
-  axis(side=1, at=c(1:3), labels = c(1,2,3))
-  title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
-  text(2,0.12, labels="P < 0.001", adj=0)
-  points(1:3, p_ih$fit, col=switch.col2, cex=2)
-  points(1:3, p_ih$fit, col=switch.col2, cex=2,pch=20)
-  
-  # NON-NEUTRAL
-  dev.new(height=4,width=4,noRStudioGD = T,dpi=100, pointsize=20)
-  par(mfrow=c(1,1),mar=c(3,3.5,0.5,0.1), mgp=c(2.6,0.8,0))
-  plot(1:3, p_ih_nn$fit, ylim=c(min(p_ih_nn$lci), max(p_ih_nn$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Individual heterozygosity", xlab="", xaxt="n", col=switch.col2)
-  arrows(1:3, p_ih_nn$lci,1:3, p_ih_nn$uci, code=3, angle=90, length=0.05,lwd=1.5)
-  axis(side=1, at=c(1:3), labels = c(1,2,3))
-  title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
-  text(2,0.12, labels="P < 0.001", adj=0)
-  points(1:3, p_ih_nn$fit, col=switch.col2, cex=2)
-  points(1:3, p_ih_nn$fit, col=switch.col2, cex=2,pch=20)
-  
-  # save.image("03_Workspaces/STEP04_divdist_ALL.RData")
-
 # close individual diversity ----
-  
+
 # Question 3: Does fire influence the mode of reproduction?
-  
+
 #  Individual genetic distance & relatedness	# ----
 
 genind_neutral
 
-# Euclidean distance (from adegenet, works on genind object)
-# See Shirk et al. 2017 - Euc dist performs as well as other distance measures:
-neu_euc_dist<-dist(genind_neutral, method="euclidean")
-
-# get names BEFORE as.matrix:
-neu_euc_names<-combn(attr(neu_euc_dist, "Labels"),2)
-neu_euc<-as.matrix(neu_euc_dist)
-neuc_df<-data.frame(ind1=neu_euc_names[1,], ind2=neu_euc_names[2,], dist_euc=neu_euc[lower.tri(neu_euc)])
-
-# check:
-head(neuc_df)
-neu_euc[1:5,1:5]
-neu_euc[90:93,1:5]
-neuc_df[90:93,]
-
-# Bray-Curtis (from vegan, works on data.frame):
-
-ddir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/00_Data/Filtered_DartSeq_format"
-ddat<-read.table(paste(ddir, "dartseq_filt2.txt", sep="/"), header=T)
-ghead(ddat); dim(ddat)
-neu_bray<-vegdist(x = ddat[,3:length(ddat)], method="bray",na.rm=T)
-neuc_df$dist_bray<-neu_bray
-head(neuc_df); dim(neuc_df)
-# these are very highy correlated:
-# plot(neuc_df$dist_euc, neuc_df$dist_bray)
-# cor.test(neuc_df$dist_euc, neuc_df$dist_bray)
+ddir<-"00_Data"
+dir(ddir)
 
 # SNPRelate (uses plink format - can use STRUCTURE files - Cenchrus_filt2)
 # http://corearray.sourceforge.net/tutorials/SNPRelate/
@@ -1104,20 +841,20 @@ library("SNPRelate")
   # install.packages("BiocManager")
 # BiocManager::install("SNPRelate")
 
-str.dir<-"/Users/annabelsmith/Documents/00_UQ_offline/Binyin_Winter/RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt2"
+str.dir<-"/Users/annabelsmith/Documents/00_UQ_offline/buffel_burning/04_RESULTS/STRUCTURE/STRUCTURE_DIR/Cenchrus_filt4"
 dir(str.dir)
 
 # Read structure files:
-bed.fn <- paste(str.dir,"Cenchrus_filt2.bed",sep="/")
-fam.fn <- paste(str.dir,"Cenchrus_filt2.fam",sep="/")
-bim.fn <- paste(str.dir,"Cenchrus_filt2.bim",sep="/")
+bed.fn <- paste(str.dir,"Cenchrus_filt4.bed",sep="/")
+fam.fn <- paste(str.dir,"Cenchrus_filt4.fam",sep="/")
+bim.fn <- paste(str.dir,"Cenchrus_filt4.bim",sep="/")
 
 # Make gds format
-snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "Cenchrus_filt2.gds")
-snpgdsSummary(paste(ddir,"Cenchrus_filt2.gds",sep="/"))
+snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "Cenchrus_filt4.gds")
+snpgdsSummary(paste(ddir,"Cenchrus_filt4.gds",sep="/"))
 
 # Import gds format :
-genofile <- snpgdsOpen(paste(ddir,"Cenchrus_filt2.gds",sep="/"))
+genofile <- snpgdsOpen(paste(ddir,"Cenchrus_filt4.gds",sep="/"))
 summary(genofile)
 
 # Estimating IBD Using PLINK method of moments (MoM)
@@ -1143,43 +880,6 @@ head(neuc_df)
 
 table(neuc_df$kinship_mle>0.48)
 table(neuc_df$kinship_mom>0.45)
-
-# Add proportion matching genotypes
-
-head(neuc_df,3); dim(neuc_df)
-ghead(ddat); dim(ddat)
-
-neuc_df$prop_match<-NA
-
-### prop_match is the proportion of NON-NA genotypes that match
-
-## WARNING: takes approx 50 min
-
-for (i in 1:nrow(neuc_df)){
-  
-  pair.thisrun<-neuc_df[i,c(1,2)]
-  pair1.thisrun<-ddat[which(ddat$ind==pair.thisrun$ind1),3:length(ddat)]
-  pair2.thisrun<-ddat[which(ddat$ind==pair.thisrun$ind2),3:length(ddat)]
-  comp.thisrun<-pair1.thisrun==pair2.thisrun
-  t1<-table(comp.thisrun)
-  neuc_df$prop_match[i]<-t1[2]/sum(t1)
-  
-} # close i
-
-# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
-
-# compare methods:
-
-quartz("",6,6,dpi=100)
-par(mfrow=c(2,2),mar=c(4,4,2,1), mgp=c(2.5,1,0))
-plot(neuc_df$dist_euc, neuc_df$dist_bray, pch=20, xlab="Euclidean", ylab="Bray-Curtis")
-plot(neuc_df$dist_euc, neuc_df$kinship_mle, pch=20, xlab="Euclidean", ylab="Kinship MLE")
-plot(neuc_df$dist_bray, neuc_df$kinship_mle, pch=20, xlab="Bray-Curtis", ylab="Kinship MLE")
-plot(neuc_df$kinship_mle, neuc_df$prop_match, pch=20, xlab="Kinship MLE", ylab="Proportion matching")
-
-plot(neuc_df$kinship_mom, neuc_df$kinship_mle,  pch=20, xlab="Kinship MoM", ylab="Kinship MLE")
-
-# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
 
 # Are all samples WITHIN sites clones?
 # Kinship coefficient == 1/2 * relatedness coefficient, such that:
@@ -1235,11 +935,9 @@ table(neuc_df$kinship_mle[neuc_df$same_block==1]<0.25)
 table(neuc_df$kinship_mle[neuc_df$same_block==0]>0.45)
 head(neuc_df,3); dim(neuc_df)
 
-# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
+# save.image("03_Workspaces/STEP_04_kinship.RData")
 
-# close individual distances ----
-
-#  Analyse Individaul distance & relatedness	# ----
+# Prepare data for analysis:
 
 # is there a difference in the probability of being a clone (> 0.45) between the burnt and unburnt sites?
 
@@ -1250,11 +948,13 @@ kinsh<-neuc_df
 # set clone cutoff
 kinsh$clone<-ifelse(kinsh$kinship_mle>0.45,1,0)
 
-sdt$site %in% kinsh$site1
-sdt$site %in% kinsh$site2
+table(sdt4$site %in% kinsh$site1)
+table(sdt4$site %in% kinsh$site2)
 
 # Add burn categories to distance matrix:
-bdat<-sdt[,c("site","burn","burn2")]
+head(sdt4,3); dim(sdt4)
+
+bdat<-sdt4[,c("site","burn","burn2")]
 colnames(bdat)[2:3]<-c("b2L","b3L")
 head(bdat,3); dim(bdat)
 
@@ -1270,8 +970,8 @@ head(ih_dat,3); dim(ih_dat)
 indK<-ih_dat[,c("ind","K3")]
 head(indK,3); dim(indK)
 
-indK$ind %in% unique(c(kinsh$ind1, kinsh$ind2))
-unique(c(kinsh$ind1, kinsh$ind2)) %in% indK$ind
+table(indK$ind %in% unique(c(kinsh$ind1, kinsh$ind2)))
+table(unique(c(kinsh$ind1, kinsh$ind2)) %in% indK$ind)
 
 kinsh<-merge(kinsh, indK, by.x="ind1", by.y="ind", all.x=T, all.y=F)
 colnames(kinsh)[which(colnames(kinsh)==c("K3"))]<-c("K3_s1")
@@ -1299,102 +999,39 @@ head(kinsh2,3); dim(kinsh2) # same block
 head(kinsh3,3); dim(kinsh3) # same site
 head(kinsh4,3); dim(kinsh4) # same K
 
-  # Focussing on within site comparisons (i.e. kinsh3), for each site calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
+# Focussing on within site comparisons (i.e. kinsh3), for each site calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
 
 prop_clone<-aggregate(clone~site1, data=kinsh3, FUN=function(x) length(x[x==1])/length(x))
 colnames(prop_clone)<-c("site","prop_clone")
 head(prop_clone); dim(prop_clone)
 
+dir()
+# save.image("03_Workspaces/STEP_04_kinship.RData")
+
 # check:
 site.now<-sample(kinsh3$site1,1)
-d.now<-kinsh3[kinsh3$site1==site.now,c("site1","site2","ind1","ind2","kinship_mle","prop_match","clone")]
+d.now<-kinsh3[kinsh3$site1==site.now,c("site1","site2","ind1","ind2","kinship_mle","clone")]
 d.now
 prop_clone[prop_clone$site==site.now,]
 length(d.now$clone[d.now$clone==1])/length(d.now$clone)
 
 # add site data to clone proportions:
-head(sdt2)
-prop_clone<-merge(prop_clone, sdt2, by="site", all.x=T, all.y=F)
-# plot(prop_clone$burn2, prop_clone$prop_clone)
+head(sdt4)
+prop_clone<-merge(prop_clone, sdt4, by="site", all.x=T, all.y=F)
+head(prop_clone); dim(prop_clone)
 
 # Merge with the diversity score and K to account for background genetic structure:
 
 head(gd_all,2); dim(gd_all)
-gd_ds<-gd_all[,c("site","ds_div","K3")]
+gd_ds<-gd_all[,c("site","most_likelyK")]
 prop_clone<-merge(prop_clone, gd_ds, by="site", all.x=T, all.y=F)
 head(prop_clone); dim(prop_clone)
 
-# What is the effect of burn category on the probability of being a clone (site level analysis with binomial models)?
+# save.image("03_Workspaces/STEP_04_kinship.RData")
 
-mod5.bNULL<-glm(prop_clone~1, data=prop_clone, family="binomial")
-mod5.b1<-glm(prop_clone~burn2, data=prop_clone, family="binomial")
-mod5.b2<-glm(prop_clone~K3, data=prop_clone, family="binomial")
-mod5.b3<-glm(prop_clone~burn2+K3, data=prop_clone, family="binomial")
-mod5.b4<-glm(prop_clone~burn2*K3, data=prop_clone, family="binomial")
-summary(mod5.b1)$coefficients
-anova(mod5.b1)
-AICc(mod5.bNULL); AICc(mod5.b1); AICc(mod5.b2); AICc(mod5.b3); AICc(mod5.b4)
+# close individual distances ----
 
-nd.b1<-data.frame(burn2=factor(c("u","b","b2"),level=c("u","b","b2")))
-pr.b1<-predict(mod5.b1, newdata = nd.b1, type="response", se.fit=T)
-pr.b1<-data.frame(nd.b1, fit=pr.b1$fit, se=pr.b1$se.fit)
-pr.b1$lci<-pr.b1$fit-(1.96*pr.b1$se)
-pr.b1$uci<-pr.b1$fit+(1.96*pr.b1$se)
-# pr.b1$lci[which(pr.b1$lci<0)]<-0
-
-# get effects and 95% CI on link scale
-pr.b1_EFS<-predict(mod5.b1, newdata = nd.b1, type="link", se.fit=T)
-pr.b1_EFS<-data.frame(nd.b1, fit=pr.b1_EFS$fit, se=pr.b1_EFS$se.fit)
-pr.b1_EFS$lci<-pr.b1_EFS$fit-(1.96*pr.b1_EFS$se)
-pr.b1_EFS$uci<-pr.b1_EFS$fit+(1.96*pr.b1_EFS$se)
-
-# PLOT ESTIMATED site-level proportion CLONE
-dev.new(height=4,width=7,dpi=100, noRStudioGD = T,pointsize=15)
-par(mfrow=c(1,2),mar=c(3,4,2,1), mgp=c(2.5,0.8,0))
-plot(1:3, pr.b1$fit, ylim=c(min(pr.b1$lci), max(pr.b1$uci)), pch=20, xlim=c(0.75, 3.25), las=1, ylab="Proportion asexual individuals", xlab="", xaxt="n", col="black")
-arrows(1:3, pr.b1$lci,1:3, pr.b1$uci, code=3, angle=90, length=0.05,lwd=1.5)
-axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
-mtext("(a) response scale",side=3, line=0.5, adj=0)
-
-# plot effect sizes:
-par(mgp=c(2.3,0.8,0))
-plot(1:3,pr.b1_EFS$fit,  ylim=c(min(pr.b1_EFS$lci), max(pr.b1_EFS$uci)), pch=20, las=1, ylab="Proportion asexual individuals", xlab="", col="black",xaxt="n",xlim=c(0.75, 3.25))
-arrows(1:3,pr.b1_EFS$lci,1:3, pr.b1_EFS$uci, code=3, angle=90, length=0.05,lwd=1.5)
-arrows(0,0, 4,0, code=3, angle=90, length=0,lwd=1.5)
-axis(side=1, at=c(1:3), labels = c("unburnt","burnt","site 11"))
-mtext("(b) logit scale",side=3, line=0.5, adj=0)
-
-# Focussing on within K comparisons (i.e. kinsh4), for each K, calculate the proportion of pairwise distances that indicate clonality, as a measure of the rate of clonality:
-
-plot(kinsh3$b3L_s1, kinsh3$kinship_mle)
-head(kinsh3,2); dim(kinsh3) # same burn
-head(kinsh4,3); dim(kinsh4) # same K
-
-prop_cloneK<-aggregate(clone~K3_s1, data=kinsh4, FUN=function(x) length(x[x==1])/length(x))
-colnames(prop_cloneK)<-c("K","prop_clone")
-prop_cloneK
-
-# PLOT pair-wise kinship coefficients within sites across fire cateogries and K to visualise variation in the data that might not have been captured by the site-level proportion variable:
-
-dev.new(height=4,width=8,noRStudioGD = T,dpi=100, pointsize=20)
-par(mfrow=c(1,2),mar=c(3,3.5,1.5,0.5), mgp=c(2.3,0.8,0))
-
-plot(kinsh3$b3L_s1, kinsh3$kinship_mle, las=1, ylab="Kinship coefficient", xlab="", xaxt="n")
-axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
-axis(side=1, at=c(1,2,3), labels = c("unburnt","burnt","site 11"), tick = F, cex.axis=0.8)
-title(xlab="Fire regime", mgp=c(2,1,0))
-mtext("(a)",side=3, at=0.5, line=0.3)
-
-plot(as.factor(kinsh4$K3_s1), kinsh4$kinship_mle, pch=20, las=1, ylab="Kinship coefficient", xlab="", xaxt="n")
-axis(side=1, at=c(1:3), labels = c(1,2,3))
-title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
-mtext("(b)",side=3, at=0.5, line=0.3)
-
-# save.image("03_Workspaces/STEP04_divdist_ALL.RData")
-
-# close analyse distance ----
-
-# Analyse distribution of FIS	# ----
+# Visualise distribution of FIS	(i.e. level of clonality) # ----
 
 # The paralog filter workspace has the full set of FIS values for all loci (40711)
 # Analyse distribution of FIS, following Reynes et al. 2021 MER):
@@ -1434,3 +1071,298 @@ axis(side=2, at=pretty(x=h3$counts,n=5), labels=pretty(x=h3$counts,n=5)/1000, la
 
 
 # close FIS distribution ----
+
+#  SUMMARY PLOTS: genetic diversity & reproductive mode	# ----
+
+# save.image("03_Workspaces/STEP_04_kinship.RData")
+
+# Site level genetic diversity, including most likely K
+head(gd_all,3); dim(gd_all)
+
+# The proportion of clones per site, including most likely K
+head(prop_clone); dim(prop_clone)
+
+# Individual heterozygosity, including actual K:
+head(ih_dat,3); dim(ih_dat)
+
+# Pairwise kinship coefficients:
+head(neuc_df,3); dim(neuc_df)
+
+# COLOURS and K name UPDATE Nov 2021
+# K1 == Site 1, 2, 6u, 7u, 8u, 10 == PURPLE (#BEAED4)
+# K2 == Site 7b, 8b == ORANGE (#FDC086)
+# K3 == Site 3, 5, 6b, 11b1 == GREEN (#7FC97F)
+
+# this is purple, orange, green (i.e. K1, K2, K3)
+col.order<-c("#BEAED4","#FDC086","#7FC97F")
+
+# PLOT GENETIC DIVERSITY: neutral markers:
+
+dev.new(width=7.2,height=9.4,pointsize=16,dpi=80,noRStudioGD = T)
+par(mfrow=c(4,3), mar=c(4,4,1,1), oma=c(0,0,1,1))
+boxplot(ar_neutral~burn2, data=gd_all, las=1, ylab="allelic richness", xaxt="n", xlab="")
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(0.7,2,3.3), labels = c("unburnt","burnt","site 11"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Fire category", mgp=c(2,1,0))
+mtext("(a)",side=3, at=0.5, line=0.3, cex=0.7)
+
+boxplot(ar_neutral~most_likelyK, data=gd_all, las=1, ylab="allelic richness", xaxt="n", xlab="",col=col.order)
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+mtext("(b)",side=3, at=0.5, line=0.3, cex=0.7)
+
+full.int<-levels(interaction(gd_all$burn2,gd_all$most_likelyK))
+ex.int<-levels(interaction(gd_all$burn2,gd_all$most_likelyK,drop=T))
+col.fullint<-rep(col.order,rep(3,length(col.order)))
+col.ind<-which(full.int %in% ex.int)
+
+b1<-boxplot(ar_neutral~burn2+most_likelyK, data=gd_all, las=2, ylab="allelic richness", cex.axis=1,col=col.fullint[col.ind], xaxt="n", xlab="", drop=T)
+axis(side=1, at=1:length(ex.int), labels = rep("",length(ex.int)), cex.axis=0.7)
+axis(side=1, at=1:length(ex.int), labels = c("U","B","B","U","B","11"), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
+arrows(c(2.5,3.5),0,c(2.5,3.5),2,code=0,lty=2,col="grey50")
+title(xlab="Fire category x K", mgp=c(2,1,0))
+mtext("(c)",side=3, at=0.5, line=0.3, cex=0.7)
+mtext(c("K1","K2","K3"), side=3, at=c(1.5,3,5), line=0.2, cex=0.7)
+
+# individual heterozygosity
+head(ih_dat,3)
+ih_dat[c("ind","K3")]
+
+boxplot(ind_het_neut~burn2, data=ih_dat, las=1, ylab="individual heterozygosity", xaxt="n", xlab="")
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(0.7,2,3.3), labels = c("unburnt","burnt","site 11"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Fire category", mgp=c(2,1,0))
+mtext("(d)",side=3, at=0.5, line=0.3, cex=0.7)
+
+b2<-boxplot(ind_het_neut~K3, data=ih_dat, las=1, ylab="individual heterozygosity", xaxt="n", xlab="",col=col.order)
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+mtext("(e)",side=3, at=0.5, line=0.3, cex=0.7)
+
+full.int2<-levels(interaction(ih_dat$burn2,ih_dat$K3))
+ex.int2<-levels(interaction(ih_dat$burn2,ih_dat$K3,drop=T))
+col.ind2<-which(full.int2 %in% ex.int2)
+
+b3<-boxplot(ind_het_neut~burn2+K3, data=ih_dat, las=2, ylab="individual heterozygosity", cex.axis=1,col=col.fullint[col.ind2], xaxt="n", xlab="", drop=T)
+axis(side=1, at=1:length(full.int), labels = rep("",length(full.int)), cex.axis=0.7)
+axis(side=1, at=1:length(col.ind2), labels = rep(c("U","B","11"),3)[col.ind2], tick = F, cex.axis=0.8, mgp=c(3,0.7,0),gap.axis=0.1)
+arrows(c(3.5,5.5),0,c(3.5,5.5),2,code=0,lty=2,col="grey50")
+title(xlab="Fire category x K", mgp=c(2,1,0))
+mtext("(f)",side=3, at=0.5, line=0.3, cex=0.7)
+mtext(c("K1","K2","K3"), side=3, at=c(2,4.5,7), line=0.2, cex=0.7)
+
+# Proportion clones
+head(prop_clone); dim(prop_clone)
+
+boxplot(prop_clone~burn2, data=prop_clone, las=1, ylab="proportion clones", xaxt="n", xlab="")
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(0.7,2,3.3), labels = c("unburnt","burnt","site 11"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Fire category", mgp=c(2,1,0))
+mtext("(g)",side=3, at=0.5, line=0.3, cex=0.7)
+
+b4<-boxplot(prop_clone~most_likelyK, data=prop_clone, las=1, ylab="proportion clones", xaxt="n", xlab="",col=col.order)
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+mtext("(h)",side=3, at=0.5, line=0.3, cex=0.7)
+
+full.int3<-levels(interaction(prop_clone$burn2,prop_clone$most_likelyK))
+ex.int3<-levels(interaction(prop_clone$burn2,prop_clone$most_likelyK,drop=T))
+col.ind3<-which(full.int3 %in% ex.int3)
+
+b5<-boxplot(prop_clone~burn2+most_likelyK, data=prop_clone, las=2, ylab="proportion clones", cex.axis=1,col=col.fullint[col.ind3], xaxt="n", xlab="", drop=T)
+axis(side=1, at=1:length(full.int3), labels = rep("",length(full.int3)), cex.axis=0.7)
+axis(side=1, at=1:length(col.ind3), labels = rep(c("U","B","11"),3)[col.ind3], tick = F, cex.axis=1, mgp=c(3,0.7,0),gap.axis=0.1)
+arrows(c(2.5,3.5),0,c(2.5,3.5),2,code=0,lty=2,col="grey50")
+title(xlab="Fire category x K", mgp=c(2,1,0))
+mtext("(i)",side=3, at=0.5, line=0.3, cex=0.7)
+mtext(c("K1","K2","K3"), side=3, at=c(1.5,3,5), line=0.2, cex=0.7)
+
+# Pairwise kinship coefficients
+head(neuc_df,3); dim(neuc_df) # all pairwise coefs
+head(kinsh3,2); dim(kinsh3) # same burn
+head(kinsh4,3); dim(kinsh4) # same K
+
+boxplot(kinship_mle~b3L_s1, data=kinsh3, las=1, ylab="kinship coefficient", xaxt="n", xlab="")
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(0.7,2,3.3), labels = c("unburnt","burnt","site 11"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Fire category", mgp=c(2,1,0))
+mtext("(j)",side=3, at=0.5, line=0.3, cex=0.7)
+
+b6<-boxplot(kinship_mle~K3_s1, data=kinsh4, las=1, ylab="kinship coefficient", xaxt="n", xlab="",col=col.order)
+axis(side=1, at=c(1:3), labels = c("","",""), cex.axis=0.7)
+axis(side=1, at=c(1,2,3), labels = c("1","2","3"), tick = F, cex.axis=1, mgp=c(3,0.7,0))
+title(xlab="Genetic cluster (K)", mgp=c(2,1,0))
+mtext("(k)",side=3, at=0.5, line=0.3, cex=0.7)
+
+full.int4<-levels(interaction(kinsh4$b3L_s1,kinsh4$K3_s1))
+ex.int4<-levels(interaction(kinsh4$b3L_s1,kinsh4$K3_s1,drop=T))
+col.ind4<-which(full.int4 %in% ex.int4)
+
+b5<-boxplot(kinship_mle~b3L_s1+K3_s1, data=kinsh4, las=2, ylab="kinship coefficient", cex.axis=1,col=col.fullint[col.ind4], xaxt="n", xlab="", drop=T)
+axis(side=1, at=1:length(full.int4), labels = rep("",length(full.int4)), cex.axis=0.7)
+axis(side=1, at=1:length(col.ind4), labels = rep(c("U","B","11"),3)[col.ind4], tick = F, cex.axis=1, mgp=c(3,0.7,0),gap.axis=0.1)
+arrows(c(3.5,5.5),0,c(3.5,5.5),2,code=0,lty=2,col="grey50")
+title(xlab="Fire category x K", mgp=c(2,1,0))
+mtext("(l)",side=3, at=0.5, line=0.3, cex=0.7)
+mtext(c("K1","K2","K3"), side=3, at=c(2,4.5,7), line=0.2, cex=0.7)
+
+# close summary plot ----
+
+#  ANALYSE Genetic diversity & reproductive mode:	# ----
+
+# save.image("03_Workspaces/STEP_04_analysis.RData")
+
+## ANALYSIS:
+
+# Site level genetic diversity, including most likely K
+head(gd_all,3); dim(gd_all)
+
+# The proportion of clones per site, including most likely K
+head(prop_clone); dim(prop_clone)
+
+# Individual heterozygosity, including actual K:
+head(ih_dat,3); dim(ih_dat)
+
+# Model ALLELIC RICHNESS:
+
+# Make K a factor
+gd_all$most_likelyK<-as.factor(gd_all$most_likelyK)
+head(gd_all,3); dim(gd_all)
+
+ar_neut.1<-lm(ar_neutral~treatment*most_likelyK, data=gd_all)
+summary(ar_neut.1)
+anova(ar_neut.1)
+
+ar_nonneut.1<-lm(ar_nonneutral~treatment*most_likelyK, data=gd_all)
+summary(ar_nonneut.1)
+anova(ar_nonneut.1)
+
+# Model INDIVIDUAL HETEROZYGOSITY:
+
+head(ih_dat,3); dim(ih_dat)
+table(ih_dat$K3, ih_dat$burn2) # rank deficient data structure
+summary(ih_dat$ind_het_neut)
+
+library(lme4)
+library(lmerTest)
+
+ih_neut.1<-lmer(ind_het_neut~burn*K3+(1|site), REML=F,data=ih_dat)
+summary(ih_neut.1)
+anova(ih_neut.1)
+
+ih_nonneut.1<-lmer(ind_het_nonneut~burn*K3+(1|site), REML=F,data=ih_dat)
+summary(ih_nonneut.1)
+anova(ih_nonneut.1)
+
+# Model PROPORTION CLONES:
+head(prop_clone); dim(prop_clone)
+library(mgcv)
+
+pclone.neut1<-gam(prop_clone~burn*most_likelyK, data=prop_clone, family=betar)
+summary(pclone.neut1)
+anova(pclone.neut1)
+
+# Predict from model:
+nd_ar<-data.frame(treatment=levels(gd_all$treatment), most_likelyK=as.factor(rep(c(1,2,3), rep(2,3))))
+
+nd_pc<-data.frame(burn=levels(prop_clone$burn), most_likelyK=as.factor(rep(c(1,2,3), rep(2,3))))
+
+nd_ih<-data.frame(burn=as.factor(levels(ih_dat$burn)), K3=as.factor(rep(c(1,2,3), rep(2,3))))
+
+# For site-level analysis (ar and pclone) there is no unburnt in K2 (rank deficient data structure)
+table(gd_all$most_likelyK, gd_all$treatment)
+table(prop_clone$most_likelyK, prop_clone$burn)
+table(ih_dat$K3, ih_dat$burn) 
+
+# Generate predictions for these levels but overwrite them after, to help with lining up the plots:
+
+head(nd_ar)
+head(nd_ih)
+head(nd_pc)
+
+ar_neut.pred<-predCI(ar_neut.1,nd_ar)
+ar_nonneut.pred<-predCI(ar_nonneut.1,nd_ar)
+
+ih_neut.pr<-predictSE(ih_neut.1, newdata = nd_ih, se.fit=T)
+ih_neut.pr<-data.frame(nd_ih, fit=ih_neut.pr$fit, se=ih_neut.pr$se.fit)
+ih_neut.pr$lci<-ih_neut.pr$fit-(1.96*ih_neut.pr$se)
+ih_neut.pr$uci<-ih_neut.pr$fit+(1.96*ih_neut.pr$se)
+
+ih_nonneut.pr<-predictSE(ih_nonneut.1, newdata = nd_ih, se.fit=T)
+ih_nonneut.pr<-data.frame(nd_ih, fit=ih_nonneut.pr$fit, se=ih_nonneut.pr$se.fit)
+ih_nonneut.pr$lci<-ih_nonneut.pr$fit-(1.96*ih_nonneut.pr$se)
+ih_nonneut.pr$uci<-ih_nonneut.pr$fit+(1.96*ih_nonneut.pr$se)
+
+pclone.pred<-predict(pclone.neut1, newdata = nd_pc, se.fit=T, type="response")
+pclone.pred<-data.frame(nd_pc, fit=pclone.pred$fit, se=pclone.pred$se.fit)
+pclone.pred$lci<-pclone.pred$fit-(1.96*pclone.pred$se)
+pclone.pred$uci<-pclone.pred$fit+(1.96*pclone.pred$se)
+
+ar_neut.pred
+ar_nonneut.pred
+pclone.pred
+ih_neut.pr
+ih_nonneut.pr
+
+# Extract model coefficients for paper:
+
+ar_neut.coef<-round(summary(ar_neut.1)$coefficient[,c(1)],3)
+ar_nonneut.coef<-round(summary(ar_nonneut.1)$coefficient[,c(1)],3)
+ih_neut.coef<-round(summary(ih_neut.1)$coefficient[,c(1)],3)
+ih_nonneut.coef<-round(summary(ih_nonneut.1)$coefficient[,c(1)],3)
+pclone.coef<-round(summary(pclone.neut1)$p.coeff,3)
+
+ar_neut.se<-round(summary(ar_neut.1)$coefficient[,c(2)],3)
+ar_nonneut.se<-round(summary(ar_nonneut.1)$coefficient[,c(2)],3)
+ih_neut.se<-round(summary(ih_neut.1)$coefficient[,c(2)],3)
+ih_nonneut.se<-round(summary(ih_nonneut.1)$coefficient[,c(2)],3)
+pclone.se<-round(summary(pclone.neut1)$p.coeff,3)
+
+# For site-level analysis (ar and pclone) there is no unburnt in K2 (rank deficient data structure); the p clone (gam) model returns this as zero; but the lm models leave it out (so need to add back in)
+
+rownames(summary(ar_neut.1)$coefficient)
+
+ar_neut.coef<-c(ar_neut.coef[1:4],NA,ar_neut.coef[5])
+ar_nonneut.coef<-c(ar_nonneut.coef[1:4],NA,ar_nonneut.coef[5])
+ar_neut.se<-c(ar_neut.se[1:4],NA,ar_neut.se[5])
+ar_nonneut.se<-c(ar_nonneut.se[1:4],NA,ar_nonneut.se[5])
+
+coef.df<-data.frame(term=c("Intercept","Burnt","K2","K3","Burnt K2","Burnt K3"),ar_neut.coef,ar_neut.se,ar_nonneut.coef,ar_nonneut.se,ih_neut.coef, ih_neut.se,ih_nonneut.coef,ih_nonneut.se,pclone.coef, pclone.se)
+coef.df<-tidy.df(coef.df)
+coef.df
+
+p.df<-data.frame(term=c("Fire category","K","Fire category x K"),ar_neut.p=round(anova(ar_neut.1)$"Pr(>F)"[1:3],3),ar_nonneut.p=round(anova(ar_nonneut.1)$"Pr(>F)"[1:3],3),ih_neut.p=round(anova(ih_neut.1)$"Pr(>F)",3),ih_nonneut.p=round(anova(ih_nonneut.1)$"Pr(>F)",3),pclone.p=summary(pclone.neut1)$pTerms.table[,3])
+
+# write.table(coef.df,"coef.txt", row.names = F, quote=F, sep="\t")
+# write.table(p.df,"pdf.txt", row.names = F, quote=F, sep="\t")
+
+# save.image("03_Workspaces/STEP_04_analysis.RData")
+
+# PLOT MODEL ESTIMATES:
+
+ar.fullint<-unique(interaction(gd_all$treatment,gd_all$most_likelyK))
+ar.exint<-unique(interaction(gd_all$treatment,gd_all$most_likelyK,drop=T))
+col.ind<-which(full.int %in% ex.int)
+
+dev.new(width=7,height=7,pointsize=16,dpi=80,noRStudioGD = T)
+par(mfrow=c(1,1), mar=c(4,4,1,1), oma=c(0,0,1,1))
+
+plot(1:nrow(p_neut),p_neut$fit, ylim=c(min(p_neut$lci),max(p_neut$uci)), xlim=c(0.5,nrow(p_neut)+0.5), las=2, ylab="estimated allelic richness", cex.axis=1,col=col.fullint[col.ind], xaxt="n", xlab="", pch=20, cex=2)
+axis(side=1, at=1:length(ar.exint), labels = rep("",length(ar.exint)), cex.axis=0.7)
+axis(side=1, at=1:nrow(p_neut), labels = c("U","B","B","U","B"), tick = F, cex.axis=1, mgp=c(3,0.7,0), gap.axis = 0.2)
+arrows(1:nrow(p_neut),p_neut$lci,1:nrow(p_neut),p_neut$uci,code=3, length=0.2, angle=90)
+points(1:nrow(p_neut),p_neut$fit, pch=20, cex=2, col=col.fullint[col.ind])
+arrows(c(2.5,3.5),0,c(2.5,3.5),2,code=0,lty=2,col="grey50")
+title(xlab="Fire category x K", mgp=c(2,1,0))
+mtext("(c)",side=3, at=0.5, line=0.3, cex=0.7)
+mtext(c("K1","K2","K3"), side=3, at=c(1.5,3,5), line=0.2, cex=0.7)
+
+
+
+# close analyse genetic diversity ----
+
+
+

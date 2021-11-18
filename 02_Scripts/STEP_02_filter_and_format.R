@@ -188,7 +188,7 @@ ghead(filtered_data); dim(filtered_data)
 # FORMAT DARTSEQ:    	# ----
 
 # For analyses that require DartSeq format (e.g. our genetic diversity analysis), the data can be written directly, without any further processing:
-write.table(filtered_data, "dartseq_filt4.txt", quote=F, row.names=F, sep="\t")
+write.table(filtered_data, "dartseqNN_filt4.txt", quote=F, row.names=F, sep="\t")
 
 # close format DartSeq ----
 
@@ -300,10 +300,10 @@ ghead(fd3); dim(fd3)
 # 1 = SNP allele homozygote (0202)
 # 2 = heterozygote (0102)
 
-data<-fd3
+data<-filtered_data
 
 # parameter flags for param file:
-headline<-"Genepop_filt4_K3"
+headline<-"Genepop_filt4_non_neutral"
 param.sites<-levels(data$site)
 param.nosites<-length(param.sites)
 param.noloci<-ncol(data)-2
@@ -316,7 +316,7 @@ param.MAF<-T
 param.LD<-T
 param.plog<-T
 param.HWE<-F
-param.neu<-T
+param.neu<-F
 
 ghead(data); dim(data)
 
