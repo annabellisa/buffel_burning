@@ -20,7 +20,7 @@ Annabel Smith and Di Binyin (unless otherwise stated within script)
 
 ## Manuscript
 
-Di B, Firn J, Buckley YM, Lomas K, Pausas JG, Smith AL (2022) The impact of roadside burning on genetic diversity in a high-biomass invasive grass Evolutionary Applications, doi.org/10.1111/eva.13369
+Di B, Firn J, Buckley YM, Lomas K, Pausas JG, Smith AL (2022) The impact of roadside burning on genetic diversity in a high-biomass invasive grass. Evolutionary Applications, doi.org/10.1111/eva.13369
 
 ## License
 
